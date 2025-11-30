@@ -264,7 +264,7 @@ class ComprehensiveEvaluator:
     async def run_full_evaluation(
         self,
         task: Task,
-        agent_client: MockAgentClient,
+        agent_client: Any,
         conduct_debate: bool = True,
     ) -> EvaluationResult:
         """

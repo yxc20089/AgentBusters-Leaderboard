@@ -14,12 +14,14 @@ aggregated summary to the output JSON file.
 """
 
 import argparse
+import asyncio
 import json
 import random
 import statistics
+import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, List
 
 from cio_agent.datasets.csv_provider import CsvFinanceDatasetProvider
 from cio_agent.evaluator import ComprehensiveEvaluator
@@ -92,55 +94,55 @@ def main() -> None:
     evaluator = ComprehensiveEvaluator()
     agent = MockAgentClient(agent_id="batch-agent", model="gpt-4o")
 
-    results: list[dict[str, Any]] = []
+    results: List[dict[str, Any]] = []
 
-    for tpl in templates:
-        try:
-            task = asyncio_run(generator.generate_task(tpl.template_id, sim_date))
-            if not task:
-                results.append(
-                    {
-                        "template_id": tpl.template_id,
-                        "error": "task_generation_failed",
-                    }
-                )
-                continue
+    async def process_template(tpl):
+        """Process a single template and return result dict."""
+        task = await generator.generate_task(tpl.template_id, sim_date)
+        if not task:
+            return {
+                "template_id": tpl.template_id,
+                "error": "task_generation_failed",
+            }
 
-            eval_result = asyncio_run(
-                evaluator.run_full_evaluation(
-                    task=task,
-                    agent_client=agent,
-                    conduct_debate=not args.no_debate,
-                )
-            )
+        eval_result = await evaluator.run_full_evaluation(
+            task=task,
+            agent_client=agent,
+            conduct_debate=not args.no_debate,
+        )
 
-            alpha = getattr(eval_result.alpha_score, "score", None)
-            role = getattr(eval_result.role_score, "total", None)
-            debate_obj = getattr(eval_result, "debate_result", None)
-            debate = getattr(debate_obj, "debate_multiplier", None) if debate_obj else None
-            cost_obj = getattr(eval_result, "cost_breakdown", None)
-            cost = getattr(cost_obj, "total_cost_usd", None) if cost_obj else None
+        alpha = getattr(eval_result.alpha_score, "score", None)
+        role = getattr(eval_result.role_score, "total", None)
+        debate_obj = getattr(eval_result, "debate_result", None)
+        debate = getattr(debate_obj, "debate_multiplier", None) if debate_obj else None
+        cost_obj = getattr(eval_result, "cost_breakdown", None)
+        cost = getattr(cost_obj, "total_cost_usd", None) if cost_obj else None
 
-            results.append(
-                {
-                    "task_id": task.question_id,
-                    "template_id": tpl.template_id,
-                    "category": task.category.value,
-                    "difficulty": task.difficulty.value,
-                    "alpha_score": alpha,
-                    "role_score": role,
-                    "debate_multiplier": debate,
-                    "cost": cost,
-                    "error": None,
-                }
-            )
-        except Exception as e:
-            results.append(
-                {
+        return {
+            "task_id": task.question_id,
+            "template_id": tpl.template_id,
+            "category": task.category.value,
+            "difficulty": task.difficulty.value,
+            "alpha_score": alpha,
+            "role_score": role,
+            "debate_multiplier": debate,
+            "cost": cost,
+            "error": None,
+        }
+
+    async def run_all():
+        """Run evaluation for all templates."""
+        for tpl in templates:
+            try:
+                result = await process_template(tpl)
+                results.append(result)
+            except Exception as e:
+                results.append({
                     "template_id": tpl.template_id,
                     "error": str(e),
-                }
-            )
+                })
+
+    asyncio.run(run_all())
 
     # Aggregate
     alpha_values = [r["alpha_score"] for r in results if isinstance(r.get("alpha_score"), (int, float))]
@@ -174,17 +176,6 @@ def main() -> None:
     # Print brief summary
     print(json.dumps(summary, indent=2))
     print(f"Summary written to: {output_path}")
-
-
-def asyncio_run(coro):
-    import asyncio
-
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    return loop.run_until_complete(coro)
 
 
 if __name__ == "__main__":

@@ -6,11 +6,14 @@ for real financial data access with temporal locking.
 """
 
 import asyncio
+import os
 from datetime import datetime
 from typing import Any
 from dataclasses import dataclass, field
 
-# Import the MCP server factories
+import httpx
+
+# Import the MCP server factories (used when no remote MCP URLs provided)
 from mcp_servers.sec_edgar import create_edgar_server
 from mcp_servers.yahoo_finance import create_yahoo_finance_server
 from mcp_servers.sandbox import create_sandbox_server
@@ -66,20 +69,25 @@ class MCPToolkit:
         """
         self.simulation_date = simulation_date
 
-        # Create MCP servers with temporal locking
-        self._edgar_server = create_edgar_server(simulation_date=simulation_date)
-        self._yfinance_server = create_yahoo_finance_server(simulation_date=simulation_date)
-        self._sandbox_server = create_sandbox_server()
+        # Prefer remote MCP endpoints if provided; otherwise fall back to in-process servers.
+        self._edgar_url = os.environ.get("MCP_EDGAR_URL")
+        self._yfinance_url = os.environ.get("MCP_YFINANCE_URL")
+        self._sandbox_url = os.environ.get("MCP_SANDBOX_URL")
+        self._http_client = httpx.AsyncClient(timeout=30)
+
+        self._edgar_server = None if self._edgar_url else create_edgar_server(simulation_date=simulation_date)
+        self._yfinance_server = None if self._yfinance_url else create_yahoo_finance_server(simulation_date=simulation_date)
+        self._sandbox_server = None if self._sandbox_url else create_sandbox_server()
 
         # Metrics
         self._metrics = MCPToolMetrics()
         self._tool_calls: list[dict] = []
 
     async def _get_tools(self):
-        """Get tools from all servers."""
-        edgar_tools = await self._edgar_server.get_tools()
-        yfinance_tools = await self._yfinance_server.get_tools()
-        sandbox_tools = await self._sandbox_server.get_tools()
+        """Get tools from all servers (only used in local mode)."""
+        edgar_tools = await self._edgar_server.get_tools() if self._edgar_server else None
+        yfinance_tools = await self._yfinance_server.get_tools() if self._yfinance_server else None
+        sandbox_tools = await self._sandbox_server.get_tools() if self._sandbox_server else None
         return {
             "edgar": edgar_tools,
             "yfinance": yfinance_tools,
@@ -113,12 +121,21 @@ class MCPToolkit:
         Returns:
             Stock quote with price, market cap, ratios
         """
-        tools = await self._yfinance_server.get_tools()
-        get_quote = tools["get_quote"]
-
         import time
         start = time.time()
-        result = get_quote.fn(ticker=ticker)
+
+        if self._yfinance_url:
+            resp = await self._http_client.post(
+                f"{self._yfinance_url}/tools/get_quote",
+                json={"ticker": ticker},
+            )
+            resp.raise_for_status()
+            result = resp.json()
+        else:
+            tools = await self._yfinance_server.get_tools()
+            get_quote = tools["get_quote"]
+            result = get_quote.fn(ticker=ticker)
+
         elapsed = int((time.time() - start) * 1000)
 
         self._record_call("yfinance", "get_quote", result, elapsed)
@@ -190,12 +207,21 @@ class MCPToolkit:
         Returns:
             Key statistics including P/E, P/B, beta
         """
-        tools = await self._yfinance_server.get_tools()
-        get_stats = tools["get_key_statistics"]
-
         import time
         start = time.time()
-        result = get_stats.fn(ticker=ticker)
+
+        if self._yfinance_url:
+            resp = await self._http_client.post(
+                f"{self._yfinance_url}/tools/get_key_statistics",
+                json={"ticker": ticker},
+            )
+            resp.raise_for_status()
+            result = resp.json()
+        else:
+            tools = await self._yfinance_server.get_tools()
+            get_stats = tools["get_key_statistics"]
+            result = get_stats.fn(ticker=ticker)
+
         elapsed = int((time.time() - start) * 1000)
 
         self._record_call("yfinance", "get_key_statistics", result, elapsed)
@@ -257,12 +283,21 @@ class MCPToolkit:
         Returns:
             Company info including CIK, name
         """
-        tools = await self._edgar_server.get_tools()
-        get_company = tools["get_company_info"]
-
         import time
         start = time.time()
-        result = get_company.fn(ticker=ticker)
+
+        if self._edgar_url:
+            resp = await self._http_client.post(
+                f"{self._edgar_url}/tools/get_company_info",
+                json={"ticker": ticker},
+            )
+            resp.raise_for_status()
+            result = resp.json()
+        else:
+            tools = await self._edgar_server.get_tools()
+            get_company = tools["get_company_info"]
+            result = get_company.fn(ticker=ticker)
+
         elapsed = int((time.time() - start) * 1000)
 
         self._record_call("edgar", "get_company_info", result, elapsed)
@@ -285,12 +320,24 @@ class MCPToolkit:
         Returns:
             Filing metadata
         """
-        tools = await self._edgar_server.get_tools()
-        get_filing = tools["get_filing"]
-
         import time
         start = time.time()
-        result = get_filing.fn(ticker=ticker, form_type=form_type, fiscal_year=fiscal_year)
+
+        if self._edgar_url:
+            payload = {"ticker": ticker, "form_type": form_type}
+            if fiscal_year:
+                payload["fiscal_year"] = fiscal_year
+            resp = await self._http_client.post(
+                f"{self._edgar_url}/tools/get_filing",
+                json=payload,
+            )
+            resp.raise_for_status()
+            result = resp.json()
+        else:
+            tools = await self._edgar_server.get_tools()
+            get_filing = tools["get_filing"]
+            result = get_filing.fn(ticker=ticker, form_type=form_type, fiscal_year=fiscal_year)
+
         elapsed = int((time.time() - start) * 1000)
 
         self._record_call("edgar", "get_filing", result, elapsed)
@@ -313,12 +360,26 @@ class MCPToolkit:
         Returns:
             Parsed XBRL financial data
         """
-        tools = await self._edgar_server.get_tools()
-        get_xbrl = tools["get_xbrl_financials"]
-
         import time
         start = time.time()
-        result = get_xbrl.fn(ticker=ticker, statement_type=statement_type, fiscal_year=fiscal_year)
+
+        if self._edgar_url:
+            payload = {
+                "ticker": ticker,
+                "statement_type": statement_type,
+                "fiscal_year": fiscal_year,
+            }
+            resp = await self._http_client.post(
+                f"{self._edgar_url}/tools/get_xbrl_financials",
+                json=payload,
+            )
+            resp.raise_for_status()
+            result = resp.json()
+        else:
+            tools = await self._edgar_server.get_tools()
+            get_xbrl = tools["get_xbrl_financials"]
+            result = get_xbrl.fn(ticker=ticker, statement_type=statement_type, fiscal_year=fiscal_year)
+
         elapsed = int((time.time() - start) * 1000)
 
         self._record_call("edgar", "get_xbrl_financials", result, elapsed)
@@ -345,12 +406,21 @@ class MCPToolkit:
         Returns:
             Execution result with stdout, stderr, return value
         """
-        tools = await self._sandbox_server.get_tools()
-        execute = tools["execute_python"]
-
         import time
         start = time.time()
-        result = execute.fn(code=code, timeout=timeout)
+
+        if self._sandbox_url:
+            resp = await self._http_client.post(
+                f"{self._sandbox_url}/tools/execute_python",
+                json={"code": code, "timeout": timeout},
+            )
+            resp.raise_for_status()
+            result = resp.json()
+        else:
+            tools = await self._sandbox_server.get_tools()
+            execute = tools["execute_python"]
+            result = execute.fn(code=code, timeout=timeout)
+
         elapsed = int((time.time() - start) * 1000)
 
         self._record_call("sandbox", "execute_python", result, elapsed)
@@ -374,12 +444,21 @@ class MCPToolkit:
         Returns:
             Calculated metric value and formula
         """
-        tools = await self._sandbox_server.get_tools()
-        calc = tools["calculate_financial_metric"]
-
         import time
         start = time.time()
-        result = calc.fn(metric=metric, values=values)
+
+        if self._sandbox_url:
+            resp = await self._http_client.post(
+                f"{self._sandbox_url}/tools/calculate_financial_metric",
+                json={"metric": metric, "values": values},
+            )
+            resp.raise_for_status()
+            result = resp.json()
+        else:
+            tools = await self._sandbox_server.get_tools()
+            calc = tools["calculate_financial_metric"]
+            result = calc.fn(metric=metric, values=values)
+
         elapsed = int((time.time() - start) * 1000)
 
         self._record_call("sandbox", "calculate_financial_metric", result, elapsed)
@@ -403,12 +482,21 @@ class MCPToolkit:
         Returns:
             Analysis results for each operation
         """
-        tools = await self._sandbox_server.get_tools()
-        analyze = tools["analyze_time_series"]
-
         import time
         start = time.time()
-        result = analyze.fn(data=data, operations=operations)
+
+        if self._sandbox_url:
+            resp = await self._http_client.post(
+                f"{self._sandbox_url}/tools/analyze_time_series",
+                json={"data": data, "operations": operations},
+            )
+            resp.raise_for_status()
+            result = resp.json()
+        else:
+            tools = await self._sandbox_server.get_tools()
+            analyze = tools["analyze_time_series"]
+            result = analyze.fn(data=data, operations=operations)
+
         elapsed = int((time.time() - start) * 1000)
 
         self._record_call("sandbox", "analyze_time_series", result, elapsed)

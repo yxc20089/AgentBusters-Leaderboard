@@ -20,7 +20,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY pyproject.toml .
 COPY src/ ./src/
 COPY scripts/ ./scripts/
-ENV PYTHONPATH=/app/src:/app
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -e .
@@ -32,7 +31,7 @@ USER cioagent
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONPATH=/app:/app/src
+ENV PYTHONPATH=/app/src:/app
 
 # Default command
 CMD ["cio-agent", "version"]

@@ -65,7 +65,7 @@ uv pip install -e ".[dev]"
 cio-agent list-tasks
 
 # Run evaluation on a specific task
-cio-agent evaluate --task-id FAB_001 --agent-url http://localhost:8001
+cio-agent evaluate --task-id FAB_001 --purple-endpoint http://localhost:8001
 
 # Run the NVIDIA Q3 FY2026 test
 python scripts/test_nvidia.py
@@ -107,39 +107,39 @@ export MCP_SANDBOX_URL=http://localhost:8003
 
 ## Docker Deployment
 
-### Full Stack
+MCP servers build from `src/mcp_servers/*.py` using the provided Dockerfiles. Use targeted commands instead of a blanket `docker-compose up`.
 
+### Build images
 ```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
+docker compose build --no-cache sec-edgar-mcp yahoo-finance-mcp mcp-sandbox purple-agent
 ```
 
 #### MCP endpoints and connectivity tips
-- MCP servers run on HTTP with `/mcp` prefix: EDGAR `http://localhost:8001/mcp`, Yahoo `http://localhost:8002/mcp`, Sandbox `http://localhost:8003/mcp`.
+- MCP servers run on HTTP with `/mcp` prefix: EDGAR `http://localhost:8101/mcp`, Yahoo `http://localhost:8102/mcp`, Sandbox `http://localhost:8103/mcp`.
 - Root (`/`) and `/health` return 404 by design; use SSE ping instead:
-  - Host: `curl.exe -H "Accept: text/event-stream" -H "x-session-id: test" http://localhost:8001/mcp` (same for 8002/8003)
+  - Host: `curl -H "Accept: text/event-stream" -H "x-session-id: test" http://localhost:8101/mcp` (same for 8102/8103)
   - Inside container (avoids quoting issues): `docker exec -it fab-plus-edgar curl -H "Accept: text/event-stream" -H "x-session-id: test" http://localhost:8000/mcp`
 - List tools via FastMCP inspect (inside containers):
   - `docker exec -it fab-plus-edgar fastmcp inspect "/app/src/mcp_servers/sec_edgar.py:create_edgar_server"`
   - `docker exec -it fab-plus-yfinance fastmcp inspect "/app/src/mcp_servers/yahoo_finance.py:create_yahoo_finance_server"`
   - `docker exec -it fab-plus-sandbox fastmcp inspect "/app/src/mcp_servers/sandbox.py:create_sandbox_server"`
 
-### Individual Services
-
+### Run MCP + Purple together
 ```bash
-# Build and run Purple Agent only
-docker build -f Dockerfile.purple -t purple-agent .
-docker run -p 8001:8001 \
-  -e OPENAI_API_KEY=$OPENAI_API_KEY \
-  -e MCP_EDGAR_URL=http://host.docker.internal:8001 \
-  purple-agent
+docker compose up -d sec-edgar-mcp yahoo-finance-mcp mcp-sandbox purple-agent
+docker compose logs -f purple-agent
 ```
+External ports: 8101/8102/8103 -> 8000 inside. Internal URLs: `http://sec-edgar-mcp:8000`, `http://yahoo-finance-mcp:8000`, `http://mcp-sandbox:8000`.
+
+### Green Agent (calling Purple)
+- Purple must be running.
+- From another container on the same network:
+```bash
+docker compose run --rm --no-deps cio-agent \
+  cio-agent evaluate --task-id FAB_050 --date 2024-01-01 --output summary \
+  --purple-endpoint http://fab-plus-purple-agent:8001
+```
+- From host to purple container: use `--purple-endpoint http://localhost:8001`.
 
 ### Batch Evaluation (run all CSV tasks headless)
 
