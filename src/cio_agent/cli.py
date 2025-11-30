@@ -22,6 +22,7 @@ from cio_agent.task_generator import DynamicTaskGenerator, FABDataset
 from cio_agent.orchestrator import MockAgentClient
 from cio_agent.evaluator import ComprehensiveEvaluator, EvaluationReporter
 from cio_agent.models import TaskCategory, TaskDifficulty
+from cio_agent.a2a_client import PurpleHTTPAgentClient
 
 app = typer.Typer(
     name="cio-agent",
@@ -46,6 +47,12 @@ def evaluate(
         "gpt-4o",
         "--model", "-m",
         help="Agent model to simulate"
+    ),
+    purple_base_url: Optional[str] = typer.Option(
+        None,
+        "--purple-endpoint",
+        help="Purple agent base URL (e.g., http://purple-agent:8001 or http://localhost:8001)",
+        envvar="PURPLE_ENDPOINT",
     ),
     no_debate: bool = typer.Option(
         False,
@@ -83,7 +90,14 @@ def evaluate(
         # Initialize components
         task_generator = DynamicTaskGenerator()
         evaluator = ComprehensiveEvaluator()
-        agent = MockAgentClient(agent_id="test-agent", model=agent_model)
+        if purple_base_url:
+            agent = PurpleHTTPAgentClient(
+                base_url=purple_base_url,
+                agent_id="purple-agent",
+                model=agent_model,
+            )
+        else:
+            agent = MockAgentClient(agent_id="test-agent", model=agent_model)
 
         with Progress(
             SpinnerColumn(),

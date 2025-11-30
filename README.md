@@ -65,7 +65,7 @@ uv pip install -e ".[dev]"
 cio-agent list-tasks
 
 # Run evaluation on a specific task
-cio-agent evaluate --task-id FAB_001 --agent-url http://localhost:8001
+cio-agent evaluate --task-id FAB_001 --purple-endpoint http://localhost:8001
 
 # Run the NVIDIA Q3 FY2026 test
 python scripts/test_nvidia.py
@@ -107,29 +107,29 @@ export MCP_SANDBOX_URL=http://localhost:8003
 
 ## Docker Deployment
 
-### Full Stack
+MCP servers build from `src/mcp_servers/*.py` using the provided Dockerfiles. Use targeted commands instead of a blanket `docker-compose up`.
 
+### Build images
 ```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
+docker compose build --no-cache sec-edgar-mcp yahoo-finance-mcp mcp-sandbox purple-agent
 ```
 
-### Individual Services
-
+### Run MCP + Purple together
 ```bash
-# Build and run Purple Agent only
-docker build -f Dockerfile.purple -t purple-agent .
-docker run -p 8001:8001 \
-  -e OPENAI_API_KEY=$OPENAI_API_KEY \
-  -e MCP_EDGAR_URL=http://host.docker.internal:8001 \
-  purple-agent
+docker compose up -d sec-edgar-mcp yahoo-finance-mcp mcp-sandbox purple-agent
+docker compose logs -f purple-agent
 ```
+External ports: 8101/8102/8103 -> 8000 inside. Internal URLs: `http://sec-edgar-mcp:8000`, `http://yahoo-finance-mcp:8000`, `http://mcp-sandbox:8000`.
+
+### Green Agent (calling Purple)
+- Purple must be running.
+- From another container on the same network:
+```bash
+docker compose run --rm --no-deps cio-agent \
+  cio-agent evaluate --task-id FAB_050 --date 2024-01-01 --output summary \
+  --purple-endpoint http://fab-plus-purple-agent:8001
+```
+- From host to purple container: use `--purple-endpoint http://localhost:8001`.
 
 ## Configuration
 

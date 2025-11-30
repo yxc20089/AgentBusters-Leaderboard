@@ -4,8 +4,8 @@ services:
   # MCP Server 1: SEC EDGAR
   sec-edgar-mcp:
     build:
-      context: ./mcp-servers/sec-edgar-mcp
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.mcp-edgar
     container_name: fab-plus-edgar
     environment:
       - EDGAR_CACHE_DIR=/data/edgar_cache
@@ -15,7 +15,7 @@ services:
     volumes:
       - edgar-cache:/data/edgar_cache
     ports:
-      - "8001:8000"
+      - "8101:8000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -26,8 +26,8 @@ services:
   # MCP Server 2: Yahoo Finance
   yahoo-finance-mcp:
     build:
-      context: ./mcp-servers/yahoo-finance-mcp
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.mcp-yahoo
     container_name: fab-plus-yfinance
     environment:
       - YFINANCE_CACHE_DIR=/data/yf_cache
@@ -36,7 +36,7 @@ services:
     volumes:
       - yfinance-cache:/data/yf_cache
     ports:
-      - "8002:8000"
+      - "8102:8000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -47,8 +47,8 @@ services:
   # MCP Server 3: Sandbox
   mcp-sandbox:
     build:
-      context: ./mcp-servers/mcp-sandbox
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.mcp-sandbox
     container_name: fab-plus-sandbox
     environment:
       - EXECUTION_TIMEOUT=30
@@ -60,7 +60,7 @@ services:
     cap_add:
       - NET_BIND_SERVICE
     ports:
-      - "8003:8000"
+      - "8103:8000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -106,6 +106,9 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - LLM_MODEL=${LLM_MODEL:-gpt-4o}
       - SIMULATION_DATE=${SIMULATION_DATE:-}
+      - MCP_EDGAR_URL=http://sec-edgar-mcp:8000
+      - MCP_YFINANCE_URL=http://yahoo-finance-mcp:8000
+      - MCP_SANDBOX_URL=http://mcp-sandbox:8000
     ports:
       - "8001:8001"
     healthcheck:

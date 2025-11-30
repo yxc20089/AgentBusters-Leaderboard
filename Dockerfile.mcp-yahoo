@@ -1,0 +1,9 @@
+FROM python:3.11-slim
+WORKDIR /app
+
+RUN pip install fastmcp yfinance pandas numpy
+
+COPY src/mcp_servers/yahoo_finance.py /app/yahoo_finance.py
+
+EXPOSE 8000
+CMD ["python", "/app/yahoo_finance.py"]

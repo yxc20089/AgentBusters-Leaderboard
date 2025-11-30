@@ -1,0 +1,9 @@
+FROM python:3.11-slim
+WORKDIR /app
+
+RUN pip install fastmcp edgartools pandas numpy
+
+COPY src/mcp_servers/sec_edgar.py /app/sec_edgar.py
+
+EXPOSE 8000
+CMD ["python", "/app/sec_edgar.py"]
