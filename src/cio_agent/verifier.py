@@ -142,13 +142,14 @@ class QuestionVerifier:
             
             elif isinstance(expected, dict) and isinstance(computed_answer, dict):
                 # Compare dict values
+                match = True
                 for key in expected:
                     if key in computed_answer:
                         if isinstance(expected[key], (int, float)):
                             m, e = self._compare_numerical(computed_answer[key], expected[key])
                             if not m:
                                 issues.append(f"Key '{key}' mismatch: {computed_answer[key]} vs {expected[key]}")
-                            match = match and m if match else m
+                            match = match and m
                 
             elif isinstance(expected, list) and isinstance(computed_answer, list):
                 match = self._compare_ranking(computed_answer, expected)
