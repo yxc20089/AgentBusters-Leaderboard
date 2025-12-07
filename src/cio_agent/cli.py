@@ -678,8 +678,11 @@ def verify_questions(
             },
             "reports": [r.model_dump() for r in results["reports"]],
         }
-        output_file.write_text(json.dumps(report_data, indent=2, default=str))
-        console.print(f"[green]Report saved to {output_file}[/green]")
+        try:
+            output_file.write_text(json.dumps(report_data, indent=2, default=str))
+            console.print(f"[green]Report saved to {output_file}[/green]")
+        except OSError as e:
+            console.print(f"[red]Failed to save report to {output_file}: {e}[/red]")
 
 
 @app.command()
