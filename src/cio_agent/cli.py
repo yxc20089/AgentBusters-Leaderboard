@@ -409,5 +409,320 @@ def version():
     ))
 
 
+# =============================================================================
+# SYNTHETIC BENCHMARK COMMANDS
+# =============================================================================
+
+@app.command()
+def harvest(
+    tickers: Optional[str] = typer.Option(
+        None,
+        "--tickers", "-t",
+        help="Comma-separated list of tickers (defaults to full universe)"
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force", "-f",
+        help="Re-fetch data even if it exists"
+    ),
+):
+    """
+    Harvest financial data from AlphaVantage into the Financial Lake.
+    
+    Populates local cache with fundamental data for synthetic question generation.
+    Requires ALPHAVANTAGE_API_KEY in environment.
+    """
+    from cio_agent.financial_lake import FinancialLake, ALL_TICKERS
+    
+    ticker_list = None
+    if tickers:
+        ticker_list = [t.strip().upper() for t in tickers.split(",")]
+    else:
+        ticker_list = ALL_TICKERS
+    
+    console.print(Panel.fit(
+        f"[bold blue]Financial Lake Harvester[/bold blue]\n"
+        f"Tickers: {len(ticker_list)}\n"
+        f"Force refresh: {force}"
+    ))
+    
+    async def run_harvest():
+        lake = FinancialLake()
+        return await lake.harvest(ticker_list, force=force)
+    
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        progress.add_task(description="Harvesting financial data...", total=None)
+        results = asyncio.run(run_harvest())
+    
+    # Summary
+    success = sum(results.values())
+    failed = len(results) - success
+    
+    table = Table(title="Harvest Results")
+    table.add_column("Status", style="cyan")
+    table.add_column("Count", style="green")
+    
+    table.add_row("Success", str(success))
+    table.add_row("Failed", str(failed))
+    
+    console.print(table)
+    
+    if failed > 0:
+        failed_tickers = [t for t, ok in results.items() if not ok]
+        console.print(f"[yellow]Failed tickers: {', '.join(failed_tickers[:10])}...[/yellow]")
+
+
+@app.command()
+def generate_synthetic(
+    count: int = typer.Option(
+        10,
+        "--count", "-n",
+        help="Number of questions to generate"
+    ),
+    category: Optional[str] = typer.Option(
+        None,
+        "--category", "-c",
+        help="Filter by category (e.g., 'Quantitative Retrieval')"
+    ),
+    output_file: Optional[Path] = typer.Option(
+        None,
+        "--output", "-o",
+        help="Output file for generated questions (JSON)"
+    ),
+    respect_weights: bool = typer.Option(
+        True,
+        "--respect-weights/--even-distribution",
+        help="Use FAB benchmark category weights"
+    ),
+):
+    """
+    Generate synthetic benchmark questions using the Financial Lake.
+    
+    Uses the Generator-Verifier-Refiner architecture to create
+    high-quality questions with pre-calculated ground truth.
+    """
+    from cio_agent.synthetic_generator import SyntheticTaskGenerator
+    from cio_agent.financial_lake import FinancialLake
+    
+    console.print(Panel.fit(
+        f"[bold blue]Synthetic Question Generator[/bold blue]\n"
+        f"Count: {count}\n"
+        f"Category: {category or 'All (weighted)'}\n"
+        f"Respect weights: {respect_weights}"
+    ))
+    
+    # Parse category filter
+    categories = None
+    if category:
+        try:
+            categories = [TaskCategory(category)]
+        except ValueError:
+            console.print(f"[red]Invalid category: {category}[/red]")
+            console.print("Valid categories: " + ", ".join([c.value for c in TaskCategory]))
+            raise typer.Exit(1)
+    
+    lake = FinancialLake()
+    available = lake.get_available_tickers()
+    
+    if not available:
+        console.print("[red]No data in Financial Lake. Run 'cio-agent harvest' first.[/red]")
+        raise typer.Exit(1)
+    
+    console.print(f"[dim]Using {len(available)} tickers from Financial Lake[/dim]")
+    
+    generator = SyntheticTaskGenerator(financial_lake=lake)
+    questions = generator.generate_batch(
+        count=count,
+        categories=categories,
+        respect_weights=respect_weights and not category,
+    )
+    
+    # Display summary
+    table = Table(title=f"Generated {len(questions)} Questions")
+    table.add_column("ID", style="cyan")
+    table.add_column("Category", style="green")
+    table.add_column("Difficulty", style="yellow")
+    table.add_column("Ticker", style="magenta")
+    table.add_column("Question Preview", style="white")
+    
+    for q in questions[:20]:  # Show first 20
+        table.add_row(
+            q.question_id,
+            q.category.value[:20],
+            q.difficulty.value,
+            q.ticker,
+            q.question[:40] + "..."
+        )
+    
+    if len(questions) > 20:
+        table.add_row("...", f"({len(questions) - 20} more)", "", "", "")
+    
+    console.print(table)
+    
+    # Category distribution
+    cat_dist = {}
+    for q in questions:
+        cat_dist[q.category.value] = cat_dist.get(q.category.value, 0) + 1
+    
+    dist_table = Table(title="Category Distribution")
+    dist_table.add_column("Category", style="cyan")
+    dist_table.add_column("Count", style="green")
+    dist_table.add_column("%", style="yellow")
+    
+    for cat, cnt in sorted(cat_dist.items(), key=lambda x: -x[1]):
+        dist_table.add_row(cat, str(cnt), f"{cnt/len(questions)*100:.1f}%")
+    
+    console.print(dist_table)
+    
+    # Save to file
+    if output_file:
+        import json
+        output_data = {
+            "generated_at": datetime.now().isoformat(),
+            "count": len(questions),
+            "questions": [q.model_dump() for q in questions],
+        }
+        try:
+            output_file.write_text(json.dumps(output_data, indent=2, default=str))
+            console.print(f"[green]Questions saved to {output_file}[/green]")
+        except Exception as e:
+            console.print(f"[red]Failed to save questions to {output_file}: {e}[/red]")
+
+
+@app.command()
+def verify_questions(
+    input_file: Path = typer.Argument(help="JSON file with generated questions"),
+    output_file: Optional[Path] = typer.Option(
+        None,
+        "--output", "-o",
+        help="Output file for verification report (JSON)"
+    ),
+    tolerance: float = typer.Option(
+        0.05,
+        "--tolerance",
+        help="Numerical tolerance for answer comparison (0.05 = 5%)"
+    ),
+):
+    """
+    Verify synthetic questions for solvability.
+    
+    Runs the Verifier to check that questions are answerable
+    and flags any that need refinement.
+    """
+    import json
+    from cio_agent.synthetic_generator import SyntheticQuestion
+    from cio_agent.verifier import QuestionVerifier, VerificationResult
+    
+    if not input_file.exists():
+        console.print(f"[red]File not found: {input_file}[/red]")
+        raise typer.Exit(1)
+    
+    # Load questions
+    data = json.loads(input_file.read_text())
+    questions = [SyntheticQuestion(**q) for q in data.get("questions", [])]
+    
+    console.print(Panel.fit(
+        f"[bold blue]Question Verifier[/bold blue]\n"
+        f"Questions: {len(questions)}\n"
+        f"Tolerance: {tolerance*100:.1f}%"
+    ))
+    
+    verifier = QuestionVerifier(numerical_tolerance=tolerance)
+    results = verifier.verify_batch(questions)
+    
+    # Summary
+    table = Table(title="Verification Results")
+    table.add_column("Status", style="cyan")
+    table.add_column("Count", style="green")
+    table.add_column("%", style="yellow")
+    
+    table.add_row(
+        "[green]Accept[/green]",
+        str(results["accept"]),
+        f"{results['accept']/results['total']*100:.1f}%"
+    )
+    table.add_row(
+        "[yellow]Refine[/yellow]",
+        str(results["refine"]),
+        f"{results['refine']/results['total']*100:.1f}%"
+    )
+    table.add_row(
+        "[red]Reject[/red]",
+        str(results["reject"]),
+        f"{results['reject']/results['total']*100:.1f}%"
+    )
+    
+    console.print(table)
+    
+    # Show issues for questions needing attention
+    refine_reports = [r for r in results["reports"] if r.result != VerificationResult.ACCEPT]
+    if refine_reports[:5]:
+        console.print("\n[bold]Questions needing attention:[/bold]")
+        for r in refine_reports[:5]:
+            console.print(f"  [yellow]{r.question_id}[/yellow]: {', '.join(r.issues)}")
+    
+    # Save report
+    if output_file:
+        report_data = {
+            "verified_at": datetime.now().isoformat(),
+            "summary": {
+                "total": results["total"],
+                "accept": results["accept"],
+                "reject": results["reject"],
+                "refine": results["refine"],
+                "accept_rate": results["accept_rate"],
+            },
+            "reports": [r.model_dump() for r in results["reports"]],
+        }
+        try:
+            output_file.write_text(json.dumps(report_data, indent=2, default=str))
+            console.print(f"[green]Report saved to {output_file}[/green]")
+        except OSError as e:
+            console.print(f"[red]Failed to save report to {output_file}: {e}[/red]")
+
+
+@app.command()
+def lake_status():
+    """
+    Show status of the Financial Lake data.
+    """
+    from cio_agent.financial_lake import FinancialLake, TICKER_UNIVERSE
+    
+    lake = FinancialLake()
+    available = lake.get_available_tickers()
+    
+    console.print(Panel.fit(
+        f"[bold blue]Financial Lake Status[/bold blue]\n"
+        f"Total tickers: {len(available)}"
+    ))
+    
+    # By sector
+    table = Table(title="Data by Sector")
+    table.add_column("Sector", style="cyan")
+    table.add_column("Available", style="green")
+    table.add_column("Total", style="yellow")
+    table.add_column("Coverage", style="magenta")
+    
+    for sector, tickers in TICKER_UNIVERSE.items():
+        available_in_sector = lake.get_tickers_by_sector(sector)
+        coverage = len(available_in_sector) / len(tickers) * 100
+        table.add_row(
+            sector.replace("_", " ").title(),
+            str(len(available_in_sector)),
+            str(len(tickers)),
+            f"{coverage:.0f}%"
+        )
+    
+    console.print(table)
+    
+    if not available:
+        console.print("\n[yellow]Financial Lake is empty. Run 'cio-agent harvest' to populate.[/yellow]")
+
+
 if __name__ == "__main__":
     app()
+

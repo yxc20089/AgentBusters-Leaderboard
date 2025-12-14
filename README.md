@@ -207,7 +207,11 @@ AgentBusters/
 │   │   ├── debate.py        # Adversarial debate manager
 │   │   ├── task_generator.py # Dynamic task generation
 │   │   ├── orchestrator.py  # A2A orchestrator
-│   │   └── cli.py           # CLI interface
+│   │   ├── cli.py           # CLI interface
+│   │   ├── alphavantage.py  # AlphaVantage API client
+│   │   ├── financial_lake.py # Local financial data storage
+│   │   ├── synthetic_generator.py # Synthetic question generation
+│   │   └── verifier.py      # Question verification
 │   │
 │   ├── purple_agent/        # Purple Agent (Finance Analyst)
 │   │   ├── agent.py         # Main agent class
@@ -261,6 +265,58 @@ Where:
 - **DebateMultiplier**: 0.5x - 1.2x based on conviction in adversarial debate
 - **Cost**: Total USD cost of LLM and tool calls
 - **LookaheadPenalty**: Penalty for temporal violations (accessing future data)
+
+## Synthetic Benchmark Generation
+
+The system includes a **Generator-Verifier-Refiner** architecture for creating synthetic FAB-style questions using AlphaVantage as the ground truth substrate.
+
+### Setup
+
+1. Get a free API key from [AlphaVantage](https://www.alphavantage.co/support/#api-key)
+2. Add to `.env`:
+   ```bash
+   ALPHAVANTAGE_API_KEY=your_api_key_here
+   ```
+
+### CLI Commands
+
+```bash
+# Harvest financial data into local cache (50 tickers)
+cio-agent harvest --tickers "AAPL,MSFT,GOOGL"
+
+# Check what data is available
+cio-agent lake-status
+
+# Generate synthetic benchmark questions
+cio-agent generate-synthetic --count 100 --output questions.json
+
+# Verify questions for solvability
+cio-agent verify-questions questions.json --output report.json
+```
+
+### Category Coverage
+
+The generator creates questions across all 9 FAB categories:
+
+| Category | Weight | Description |
+|----------|--------|-------------|
+| Quantitative Retrieval | 19% | Extract specific numerical values |
+| Qualitative Retrieval | 18% | Extract text descriptions, risk factors |
+| Numerical Reasoning | 15% | Margins, growth rates, CAGR |
+| Beat or Miss | 13% | EPS vs analyst estimates |
+| Complex Retrieval | 10% | Multi-document synthesis |
+| Adjustments | 8% | EBITDA reconciliation |
+| Trends | 7% | Multi-year longitudinal analysis |
+| Financial Modeling | 9% | M&A firepower, DCF |
+| Market Analysis | 6% | Cross-company comparisons |
+
+### Architecture
+
+```
+AlphaVantage API → Financial Lake → Synthetic Generator → Verifier → Questions
+                                           ↓
+                                       Refiner (for ambiguous questions)
+```
 
 ## Testing
 
