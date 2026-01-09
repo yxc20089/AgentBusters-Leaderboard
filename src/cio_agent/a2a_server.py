@@ -27,11 +27,12 @@ import json
 import os
 from pathlib import Path
 import uvicorn
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from dotenv import load_dotenv
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
-from a2a.server.tasks import InMemoryTaskStore
+from a2a.server.tasks import DatabaseTaskStore
 from a2a.types import (
     AgentCapabilities,
     AgentCard,
@@ -141,9 +142,14 @@ def main():
     )
 
     # Create request handler with executor
+    database_url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///tasks.db")
+    print(f"Using database task store: {database_url}")
+    engine = create_async_engine(database_url)
+    task_store = DatabaseTaskStore(engine)
+    
     request_handler = DefaultRequestHandler(
         agent_executor=GreenAgentExecutor(synthetic_questions=synthetic_questions),
-        task_store=InMemoryTaskStore(),
+        task_store=task_store,
     )
     
     # Create A2A application

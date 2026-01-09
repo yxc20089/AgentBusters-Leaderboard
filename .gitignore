@@ -84,3 +84,4 @@ evaluation-results/
 edgar-cache/
 yfinance-cache/
 data/results.json
+tasks.db

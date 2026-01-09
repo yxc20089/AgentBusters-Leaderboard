@@ -62,27 +62,27 @@ The CIO-Agent FAB++ system evaluates AI agents on financial analysis tasks using
 ### Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     AgentBusters System                         │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────────┐         A2A Protocol        ┌───────────┐ │
-│  │   Green Agent   │◄──────────────────────────►│  Purple   │ │
-│  │   (Evaluator)   │                             │   Agent   │ │
-│  │   CIO-Agent     │                             │ (Analyst) │ │
-│  └────────┬────────┘                             └─────┬─────┘ │
-│           │                                            │       │
-│           ▼                                            ▼       │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │                    MCP Trinity                          │   │
-│  │  ┌──────────┐   ┌──────────────┐   ┌──────────────┐    │   │
-│  │  │  SEC     │   │   Yahoo      │   │   Python     │    │   │
-│  │  │  EDGAR   │   │   Finance    │   │   Sandbox    │    │   │
-│  │  │  MCP     │   │   MCP        │   │   MCP        │    │   │
-│  │  └──────────┘   └──────────────┘   └──────────────┘    │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────┐
+│                     AgentBusters System                               │
+├───────────────────────────────────────────────────────────────────────┤
+│                                                                       │
+│  ┌─────────────────┐         A2A Protocol        ┌───────────┐        │
+│  │   Green Agent   │◄──────────────────────────►│  Purple   │        │
+│  │   (Evaluator)   │                             │   Agent   │        │
+│  │   CIO-Agent     │─ ─ ┐                        │ (Analyst) │        │
+│  └────────┬────────┘    │                        └─────┬─────┘        │
+│           │             ▼                              │              │
+│           ▼        ┌────────┐                          ▼              │
+│  ┌─────────────────│ SQLite │──────────────────────────────────────┐  │
+│  │                 │tasks.db│      MCP Trinity                     │  │
+│  │  ┌──────────┐   └────────┘  ┌──────────────┐   ┌──────────────┐ │  │
+│  │  │  SEC     │               │   Yahoo      │   │   Python     │ │  │
+│  │  │  EDGAR   │               │   Finance    │   │   Sandbox    │ │  │
+│  │  │  MCP     │               │   MCP        │   │   MCP        │ │  │
+│  │  └──────────┘               └──────────────┘   └──────────────┘ │  │
+│  └─────────────────────────────────────────────────────────────────┘  │
+│                                                                       │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Quick Start
@@ -223,16 +223,17 @@ cio-agent evaluate-synthetic data/synthetic_questions/questions.json \
 #                                 │ A2A JSON-RPC
 #                                 ▼
 # ┌─────────────────────────────────────────────────────────────┐
-# │  Green Agent A2A Server (:9109)                             │
-# │  --synthetic-questions questions.json                       │
-# │  (Loads synthetic questions from JSON file)                 │
-# └───────────────────────────┬─────────────────────────────────┘
-#                             │ Evaluates Purple Agent
-#                             ▼
-#                     ┌───────────────────┐
-#                     │  Purple Agent     │
-#                     │  (:9110)          │
-#                     └───────────────────┘
+# │  Green Agent A2A Server (:9109)                             │◄──┐
+# │  --synthetic-questions questions.json                       │   │
+# │  (Loads synthetic questions from JSON file)                 │   │
+# └───────────────────────────┬─────────────────────────────────┘   │
+#                             │ Evaluates Purple Agent              │
+#                             ▼                                     │
+#                     ┌───────────────────┐                         │
+#                     │  Purple Agent     │                  ┌────────────┐
+#                     │  (:9110)          │                  │  SQLite    │
+#                     └───────────────────┘                  │ (tasks.db) │
+#                                                            └────────────┘
 
 # Run Green Agent A2A server with synthetic questions (for AgentBeats):
 python src/cio_agent/a2a_server.py --host 0.0.0.0 --port 9109 \
@@ -258,8 +259,8 @@ curl -X POST http://localhost:9109/ \
 # Synthetic questions are loaded by the A2A server and used during evaluation
 
 # IMPORTANT: A2A SDK tracks tasks by session context (not just messageId)
-# Error "Task already in terminal state" occurs because A2A remembers completed tasks.
-# Solution: RESTART the A2A server to clear in-memory state (Ctrl+C then re-run).
+# Error "Task already in terminal state" occurs because A2A remembers completed tasks in tasks.db.
+# Solution: Use a unique Task ID for each run, or delete the tasks.db file to reset state.
 # For local testing, use evaluate-synthetic instead (no session tracking issues).
 
 # A2A curl with dynamic UUID (use this to avoid "terminal state" error):
@@ -307,7 +308,7 @@ cio-agent evaluate-synthetic data/synthetic_questions/questions.json \
 # │ Method                      │ Results Storage                          │
 # ├─────────────────────────────┼──────────────────────────────────────────┤
 # │ evaluate-synthetic --output │ Saved to JSON file (persistent)          │
-# │ A2A Server                  │ In-memory only (lost on restart)         │
+# │ A2A Server                  │ SQLite Database (persistent in tasks.db) │
 # └─────────────────────────────┴──────────────────────────────────────────┘
 # Recommendation: Use evaluate-synthetic with --output for local dev
 
@@ -486,6 +487,7 @@ The agents will automatically load `.env` on startup. Alternatively, you can use
 | `MCP_EDGAR_URL` | SEC EDGAR MCP server | `http://localhost:8101` |
 | `MCP_YFINANCE_URL` | Yahoo Finance MCP server | `http://localhost:8102` |
 | `MCP_SANDBOX_URL` | Sandbox MCP server | `http://localhost:8103` |
+| `DATABASE_URL` | SQLite database URL | `sqlite:///tasks.db` |
 
 
 ## Project Structure

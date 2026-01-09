@@ -600,6 +600,14 @@ def cost_penalty(total_cost_usd: float) -> float:
     return math.log(1 + total_cost_usd)
 ```
 
+### 4.6 Persistence Layer (New in v1.0)
+To ensure reliable evaluation over long periods, the CIO-Agent uses a persistent storage mechanism:
+
+- **Database**: SQLite (`tasks.db`)
+- **Persistence**: All task states, messages, and results are saved to disk.
+- **Resumability**: Evaluations can pick up where they left off if the server is restarted.
+- **Scalability**: Capable of handling hundreds of concurrent evaluation tasks without memory exhaustion.
+
 ### 4.5 Look-Ahead Penalty (Temporal Integrity)
 
 Calculated by the `LookAheadDetector` from section 3.2:
