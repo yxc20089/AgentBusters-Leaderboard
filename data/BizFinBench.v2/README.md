@@ -72,7 +72,7 @@ configs:
 <div align="center"></div>
 <p align="center">
 
-**BizFinBench.v2** is the secend release of [BizFinBench](https://github.com/HiThink-Research/BizFinBench). It is built entirely on real-world user queries from Chinese and U.S. equity markets. It bridges the gap between academic evaluation and actual financial operations.
+**BizFinBench.v2** is the second release of [BizFinBench](https://github.com/HiThink-Research/BizFinBench). It is built entirely on real-world user queries from Chinese and U.S. equity markets. It bridges the gap between academic evaluation and actual financial operations.
 
 <img src="static/score_sequence.png" alt="Evaluation Result">
 
