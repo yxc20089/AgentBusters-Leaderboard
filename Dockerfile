@@ -25,7 +25,8 @@ COPY scripts/ ./scripts/
 RUN pip install --no-cache-dir -e .
 
 # Create non-root user for security
-RUN useradd -m -s /bin/bash cioagent
+RUN useradd -m -s /bin/bash cioagent && \
+    chown -R cioagent:cioagent /app
 USER cioagent
 
 # Set environment variables

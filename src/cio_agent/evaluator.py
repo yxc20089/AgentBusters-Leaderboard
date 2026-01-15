@@ -32,6 +32,7 @@ from evaluators.macro import MacroEvaluator
 from evaluators.fundamental import FundamentalEvaluator
 from evaluators.execution import ExecutionEvaluator
 from evaluators.cost_tracker import CostTracker
+from evaluators.options import OptionsEvaluator, OPTIONS_CATEGORIES
 
 logger = structlog.get_logger()
 
@@ -161,27 +162,71 @@ class ComprehensiveEvaluator:
             agent_id=agent_response.agent_id,
         )
 
-        # Phase 1: Macro Score
-        macro_evaluator = MacroEvaluator(
-            ground_truth=task.ground_truth,
-            use_embeddings=False,  # Set True if sentence-transformers available
-        )
-        macro_result = macro_evaluator.score(agent_response.analysis)
+        # Check if this is an options trading task
+        is_options_task = task.category in OPTIONS_CATEGORIES
 
-        # Phase 2: Fundamental Score
-        fundamental_evaluator = FundamentalEvaluator(
-            ground_truth=task.ground_truth,
-        )
-        fundamental_result = fundamental_evaluator.score(
-            agent_response.extracted_financials
-        )
+        if is_options_task:
+            # Use OptionsEvaluator for options trading tasks
+            logger.info("using_options_evaluator", category=task.category.value)
+            options_evaluator = OptionsEvaluator(
+                task=task,
+                llm_client=self.llm_client,
+            )
+            options_result = await options_evaluator.score(agent_response)
 
-        # Phase 3: Execution Score
-        execution_evaluator = ExecutionEvaluator(
-            task=task,
-            llm_client=self.llm_client,
-        )
-        execution_result = await execution_evaluator.score(agent_response)
+            # Map options scores to role score dimensions
+            # Options tasks: Strategy Quality -> Macro, P&L + Greeks -> Fundamental, Risk Mgmt -> Execution
+            from cio_agent.models import MacroScore, FundamentalScore, ExecutionScore as ExecScore
+
+            macro_result = MacroScore(
+                score=options_result.strategy_quality,
+                similarity_score=options_result.strategy_quality,
+                theme_coverage=options_result.strategy_quality / 100,
+                themes_identified=["options strategy"],
+                themes_missed=[],
+                feedback=f"Strategy quality: {options_result.feedback}",
+            )
+
+            fundamental_result = FundamentalScore(
+                score=(options_result.pnl_accuracy + options_result.greeks_accuracy) / 2,
+                correct_fields=2 if options_result.pnl_accuracy > 50 else 1,
+                total_fields=4,
+                field_accuracy={
+                    "pnl": options_result.pnl_accuracy > 60,
+                    "greeks": options_result.greeks_accuracy > 60,
+                },
+                feedback=f"P&L accuracy: {options_result.pnl_accuracy:.0f}, Greeks: {options_result.greeks_accuracy:.0f}",
+            )
+
+            execution_result = ExecScore(
+                score=options_result.risk_management,
+                rubric_score=options_result.score,
+                code_execution_penalty=0.0,
+                methodology_score=options_result.risk_management,
+                feedback=f"Risk management: {options_result.risk_management:.0f}",
+            )
+        else:
+            # Phase 1: Macro Score (standard FAB tasks)
+            macro_evaluator = MacroEvaluator(
+                ground_truth=task.ground_truth,
+                use_embeddings=False,  # Set True if sentence-transformers available
+            )
+            macro_result = macro_evaluator.score(agent_response.analysis)
+
+            # Phase 2: Fundamental Score
+            fundamental_evaluator = FundamentalEvaluator(
+                ground_truth=task.ground_truth,
+            )
+            fundamental_result = fundamental_evaluator.score(
+                agent_response.extracted_financials
+            )
+
+            # Phase 3: Execution Score
+            execution_evaluator = ExecutionEvaluator(
+                task=task,
+                llm_client=self.llm_client,
+            )
+            execution_result = await execution_evaluator.score(agent_response)
 
         # Combine into Role Score
         role_score_value = self._calculate_role_score(

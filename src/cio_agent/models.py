@@ -11,8 +11,14 @@ from typing import Any, Optional
 from pydantic import BaseModel, Field
 
 
+def _utc_now() -> datetime:
+    """Get current UTC time (Python 3.12+ compatible)."""
+    return datetime.now(timezone.utc)
+
+
 class TaskCategory(str, Enum):
-    """FAB task categories covering 9 types of financial analysis tasks."""
+    """FAB task categories covering financial analysis and options trading tasks."""
+    # Original FAB categories (9 types)
     QUANTITATIVE_RETRIEVAL = "Quantitative Retrieval"
     QUALITATIVE_RETRIEVAL = "Qualitative Retrieval"
     NUMERICAL_REASONING = "Numerical Reasoning"
@@ -22,6 +28,17 @@ class TaskCategory(str, Enum):
     TRENDS = "Trends"
     FINANCIAL_MODELING = "Financial Modeling"
     MARKET_ANALYSIS = "Market Analysis"
+
+    # Options Trading categories (Alpha Challenge)
+    OPTIONS_PRICING = "Options Pricing"
+    GREEKS_ANALYSIS = "Greeks Analysis"
+    STRATEGY_CONSTRUCTION = "Strategy Construction"
+    VOLATILITY_TRADING = "Volatility Trading"
+    PNL_ATTRIBUTION = "P&L Attribution"
+    RISK_MANAGEMENT = "Risk Management"
+    COPY_TRADING = "Copy Trading"
+    RACE_TO_10M = "Race to 10M"
+    STRATEGY_DEFENSE = "Strategy Defense"
 
 
 class TaskDifficulty(str, Enum):
@@ -172,7 +189,7 @@ class AgentResponse(BaseModel):
     extracted_financials: FinancialData = Field(default_factory=FinancialData)
     code_executions: list[CodeExecution] = Field(default_factory=list)
     tool_calls: list[ToolCall] = Field(default_factory=list)
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=_utc_now)
     execution_time_seconds: float = 0.0
 
 
@@ -183,7 +200,7 @@ class DebateRebuttal(BaseModel):
     defense: str = Field(description="Agent's defense of their thesis")
     new_evidence_cited: list[str] = Field(default_factory=list)
     tool_calls: list[ToolCall] = Field(default_factory=list)
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=_utc_now)
 
 
 # === Evaluation Models ===
@@ -303,7 +320,7 @@ class EvaluationResult(BaseModel):
     evaluation_id: str
     task_id: str
     agent_id: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=_utc_now)
 
     # Agent's response
     agent_analysis: str = Field(default="", description="Purple agent's full analysis")
@@ -347,7 +364,7 @@ class A2AMessage(BaseModel):
     message_type: A2AMessageType
     sender_id: str
     receiver_id: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=_utc_now)
     payload: dict[str, Any]
 
     @classmethod

@@ -15,6 +15,11 @@ from pydantic import BaseModel, Field
 
 from cio_agent.models import CostBreakdown, ToolCall
 
+
+def _utc_now() -> datetime:
+    """Get current UTC time (Python 3.12+ compatible)."""
+    return datetime.now(timezone.utc)
+
 logger = structlog.get_logger()
 
 
@@ -24,7 +29,7 @@ class LLMCallRecord(BaseModel):
     input_tokens: int
     output_tokens: int
     cost_usd: float
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=_utc_now)
     purpose: str = ""  # e.g., "analysis", "debate", "evaluation"
 
 

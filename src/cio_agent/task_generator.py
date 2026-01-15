@@ -231,6 +231,239 @@ class FABDataset(BaseModel):
                     criteria=["Analyze macro factors", "Assess company fundamentals", "Provide clear recommendation with rationale"],
                 ),
             ),
+
+            # =================================================================
+            # Options Trading Categories (Alpha Challenge)
+            # =================================================================
+
+            # Category 10: Options Pricing
+            FABQuestionTemplate(
+                template_id="OPT_001",
+                category=TaskCategory.OPTIONS_PRICING,
+                template="Calculate the theoretical price of a {ticker} {days_to_expiry}-day call option with strike at {strike_pct}% of current price. Assume 25% implied volatility and 5% risk-free rate.",
+                difficulty=TaskDifficulty.MEDIUM,
+                metric="option_price",
+                rubric=TaskRubric(
+                    criteria=["Use Black-Scholes model correctly", "Calculate accurate price", "Show all Greeks"],
+                    mandatory_elements=["option price", "delta", "gamma", "theta", "vega"],
+                ),
+                requires_code_execution=True,
+            ),
+            FABQuestionTemplate(
+                template_id="OPT_002",
+                category=TaskCategory.OPTIONS_PRICING,
+                template="Price a {ticker} put option expiring in 45 days with a strike 5% below current price. Use historical volatility from the last 30 days.",
+                difficulty=TaskDifficulty.MEDIUM,
+                metric="option_price",
+                rubric=TaskRubric(
+                    criteria=["Calculate historical volatility", "Apply Black-Scholes", "Accurate pricing"],
+                    mandatory_elements=["option price", "implied volatility used"],
+                ),
+                requires_code_execution=True,
+            ),
+
+            # Category 11: Greeks Analysis
+            FABQuestionTemplate(
+                template_id="OPT_010",
+                category=TaskCategory.GREEKS_ANALYSIS,
+                template="Your portfolio has -500 delta exposure from {ticker} options. Design a hedge using options or stock to neutralize the delta.",
+                difficulty=TaskDifficulty.MEDIUM,
+                metric="delta_hedge",
+                rubric=TaskRubric(
+                    criteria=["Understand delta exposure", "Propose valid hedge", "Calculate hedge size"],
+                    mandatory_elements=["hedge instrument", "quantity", "resulting portfolio delta"],
+                ),
+                requires_code_execution=True,
+            ),
+            FABQuestionTemplate(
+                template_id="OPT_011",
+                category=TaskCategory.GREEKS_ANALYSIS,
+                template="Analyze the gamma risk of holding 10 at-the-money {ticker} call options expiring in 5 days. What price move would cause the largest P&L impact?",
+                difficulty=TaskDifficulty.HARD,
+                metric="gamma_analysis",
+                rubric=TaskRubric(
+                    criteria=["Calculate gamma correctly", "Analyze near-expiry behavior", "Quantify P&L scenarios"],
+                ),
+                requires_code_execution=True,
+            ),
+
+            # Category 12: Strategy Construction
+            FABQuestionTemplate(
+                template_id="OPT_020",
+                category=TaskCategory.STRATEGY_CONSTRUCTION,
+                template="Construct an iron condor on {ticker} with 30-day expiration. Select strikes to achieve at least 70% probability of profit.",
+                difficulty=TaskDifficulty.HARD,
+                metric="strategy_construction",
+                rubric=TaskRubric(
+                    criteria=["Select appropriate strikes", "Calculate max profit/loss", "Determine probability of profit", "Execute trades correctly"],
+                    mandatory_elements=["4 option legs", "max profit", "max loss", "breakeven points"],
+                ),
+                requires_code_execution=True,
+            ),
+            FABQuestionTemplate(
+                template_id="OPT_021",
+                category=TaskCategory.STRATEGY_CONSTRUCTION,
+                template="Build a bull call spread on {ticker} targeting 15% upside with limited risk. The position should cost no more than $5,000.",
+                difficulty=TaskDifficulty.MEDIUM,
+                metric="strategy_construction",
+                rubric=TaskRubric(
+                    criteria=["Select appropriate strikes", "Stay within budget", "Calculate risk/reward"],
+                    mandatory_elements=["long call strike", "short call strike", "total cost", "max profit"],
+                ),
+                requires_code_execution=True,
+            ),
+            FABQuestionTemplate(
+                template_id="OPT_022",
+                category=TaskCategory.STRATEGY_CONSTRUCTION,
+                template="Create a protective put strategy for a 100-share position in {ticker}. Choose an expiration and strike that balances cost with downside protection.",
+                difficulty=TaskDifficulty.MEDIUM,
+                metric="strategy_construction",
+                rubric=TaskRubric(
+                    criteria=["Explain strike selection rationale", "Calculate protection level", "Analyze cost of insurance"],
+                ),
+                requires_code_execution=True,
+            ),
+
+            # Category 13: Volatility Trading
+            FABQuestionTemplate(
+                template_id="OPT_030",
+                category=TaskCategory.VOLATILITY_TRADING,
+                template="Analyze {ticker}'s current implied volatility. Is IV overpriced or underpriced relative to historical volatility? Design a trade to exploit any mispricing.",
+                difficulty=TaskDifficulty.HARD,
+                metric="volatility_analysis",
+                rubric=TaskRubric(
+                    criteria=["Calculate IV rank/percentile", "Compare to historical vol", "Design appropriate strategy"],
+                    mandatory_elements=["IV analysis", "HV comparison", "trade recommendation"],
+                ),
+                requires_code_execution=True,
+            ),
+            FABQuestionTemplate(
+                template_id="OPT_031",
+                category=TaskCategory.VOLATILITY_TRADING,
+                template="{ticker} earnings announcement is in 5 days. Current IV is elevated at 60%. Design a volatility crush strategy.",
+                difficulty=TaskDifficulty.EXPERT,
+                metric="volatility_strategy",
+                rubric=TaskRubric(
+                    criteria=["Understand IV crush dynamics", "Select appropriate strategy", "Manage directional risk"],
+                    mandatory_elements=["strategy type", "position sizing", "expected IV after earnings"],
+                ),
+                requires_code_execution=True,
+            ),
+
+            # Category 14: P&L Attribution
+            FABQuestionTemplate(
+                template_id="OPT_040",
+                category=TaskCategory.PNL_ATTRIBUTION,
+                template="Your {ticker} straddle position made $2,500 today. The stock moved +2%, IV dropped 3 points, and 1 day passed. Decompose the P&L by Greek contribution.",
+                difficulty=TaskDifficulty.HARD,
+                metric="pnl_attribution",
+                rubric=TaskRubric(
+                    criteria=["Calculate delta P&L", "Calculate gamma P&L", "Calculate theta P&L", "Calculate vega P&L"],
+                    mandatory_elements=["delta contribution", "gamma contribution", "theta contribution", "vega contribution"],
+                ),
+                requires_code_execution=True,
+            ),
+
+            # Category 15: Risk Management
+            FABQuestionTemplate(
+                template_id="OPT_050",
+                category=TaskCategory.RISK_MANAGEMENT,
+                template="Size a {ticker} strangle position to stay within a $10,000 VaR limit at 95% confidence over 1 day.",
+                difficulty=TaskDifficulty.EXPERT,
+                metric="position_sizing",
+                rubric=TaskRubric(
+                    criteria=["Calculate position VaR", "Size appropriately", "Consider tail risk"],
+                    mandatory_elements=["position size", "VaR calculation", "risk parameters"],
+                ),
+                requires_code_execution=True,
+            ),
+            FABQuestionTemplate(
+                template_id="OPT_051",
+                category=TaskCategory.RISK_MANAGEMENT,
+                template="Stress test your {ticker} options portfolio against: 1) 20% market crash, 2) 50% IV spike, 3) Flash crash scenario. Report expected P&L for each.",
+                difficulty=TaskDifficulty.EXPERT,
+                metric="stress_test",
+                rubric=TaskRubric(
+                    criteria=["Model each scenario correctly", "Calculate P&L impact", "Identify worst case"],
+                    mandatory_elements=["P&L for each scenario", "worst case scenario", "hedging recommendations"],
+                ),
+                requires_code_execution=True,
+            ),
+
+            # Category 16: Copy Trading (Famous Trader Strategies)
+            FABQuestionTemplate(
+                template_id="OPT_060",
+                category=TaskCategory.COPY_TRADING,
+                template="Execute a Warren Buffett-style covered call strategy on {ticker}. Select strikes that generate income while maintaining upside participation.",
+                difficulty=TaskDifficulty.HARD,
+                metric="copy_trading",
+                rubric=TaskRubric(
+                    criteria=["Understand Buffett's value approach", "Select appropriate strike", "Balance income vs upside"],
+                    mandatory_elements=["stock position", "call strike selection", "premium collected", "max profit cap"],
+                ),
+                requires_code_execution=True,
+            ),
+            FABQuestionTemplate(
+                template_id="OPT_061",
+                category=TaskCategory.COPY_TRADING,
+                template="Replicate a Keith Gill (DFV) style deep value LEAPS position on {ticker}. Use fundamental analysis to justify the position.",
+                difficulty=TaskDifficulty.EXPERT,
+                metric="copy_trading",
+                rubric=TaskRubric(
+                    criteria=["Identify deep value characteristics", "Select far-dated options", "Build conviction thesis"],
+                    mandatory_elements=["fundamental analysis", "LEAPS selection", "position sizing", "thesis"],
+                ),
+                requires_code_execution=True,
+            ),
+
+            # Category 17: Race to 10M
+            FABQuestionTemplate(
+                template_id="OPT_070",
+                category=TaskCategory.RACE_TO_10M,
+                template="Starting with $100,000, design and execute an options trading strategy to maximize portfolio growth over 30 days. Target aggressive but not reckless growth.",
+                difficulty=TaskDifficulty.EXPERT,
+                metric="portfolio_growth",
+                rubric=TaskRubric(
+                    criteria=["Design coherent strategy", "Execute trades", "Manage risk", "Track P&L"],
+                    mandatory_elements=["strategy description", "trades executed", "daily P&L", "final portfolio value"],
+                ),
+                requires_code_execution=True,
+            ),
+            FABQuestionTemplate(
+                template_id="OPT_071",
+                category=TaskCategory.RACE_TO_10M,
+                template="You have $50,000 and 60 days. Using options on {ticker} and two other stocks of your choice, try to double your money while limiting max drawdown to 30%.",
+                difficulty=TaskDifficulty.EXPERT,
+                metric="portfolio_growth",
+                rubric=TaskRubric(
+                    criteria=["Stock selection rationale", "Strategy selection", "Risk management", "Execution quality"],
+                    mandatory_elements=["portfolio composition", "P&L history", "max drawdown", "final return"],
+                ),
+                requires_code_execution=True,
+            ),
+
+            # Category 18: Strategy Defense (Adversarial Debate)
+            FABQuestionTemplate(
+                template_id="OPT_080",
+                category=TaskCategory.STRATEGY_DEFENSE,
+                template="You've built a short volatility position on {ticker} collecting $5,000 in premium. Defend this strategy against the counter-argument that a 10% gap down would cause devastating losses.",
+                difficulty=TaskDifficulty.EXPERT,
+                metric="strategy_defense",
+                rubric=TaskRubric(
+                    criteria=["Acknowledge risk honestly", "Present mitigating factors", "Describe contingency plans"],
+                    mandatory_elements=["risk acknowledgment", "hedge plan", "probability analysis"],
+                ),
+            ),
+            FABQuestionTemplate(
+                template_id="OPT_081",
+                category=TaskCategory.STRATEGY_DEFENSE,
+                template="Your iron condor on {ticker} is being challenged due to upcoming earnings. The challenger argues that earnings volatility makes your position extremely risky. Defend or adjust your strategy.",
+                difficulty=TaskDifficulty.EXPERT,
+                metric="strategy_defense",
+                rubric=TaskRubric(
+                    criteria=["Address earnings risk", "Present defense or adjustment", "Show quantitative analysis"],
+                ),
+            ),
         ]
 
         return cls(questions=questions)
@@ -437,6 +670,7 @@ class DynamicTaskGenerator:
 
         # Default ticker based on category/sector
         default_tickers = {
+            # FAB categories
             TaskCategory.QUANTITATIVE_RETRIEVAL: "AAPL",
             TaskCategory.QUALITATIVE_RETRIEVAL: "MSFT",
             TaskCategory.NUMERICAL_REASONING: "GOOGL",
@@ -446,6 +680,16 @@ class DynamicTaskGenerator:
             TaskCategory.TRENDS: "TSLA",
             TaskCategory.FINANCIAL_MODELING: "JPM",
             TaskCategory.MARKET_ANALYSIS: "V",
+            # Options trading categories
+            TaskCategory.OPTIONS_PRICING: "SPY",
+            TaskCategory.GREEKS_ANALYSIS: "AAPL",
+            TaskCategory.STRATEGY_CONSTRUCTION: "SPY",
+            TaskCategory.VOLATILITY_TRADING: "TSLA",
+            TaskCategory.PNL_ATTRIBUTION: "QQQ",
+            TaskCategory.RISK_MANAGEMENT: "SPY",
+            TaskCategory.COPY_TRADING: "AAPL",
+            TaskCategory.RACE_TO_10M: "SPY",
+            TaskCategory.STRATEGY_DEFENSE: "TSLA",
         }
 
         original_ticker = default_tickers.get(template.category, "AAPL")
@@ -471,6 +715,7 @@ class DynamicTaskGenerator:
 
         if has_placeholders:
             # Format the question with substituted values
+            # Include options trading placeholders for Options categories
             question_text = template.template.format(
                 ticker=new_ticker,
                 year=new_year,
@@ -478,6 +723,9 @@ class DynamicTaskGenerator:
                 start_year=new_year - 2,
                 quarter=random.randint(1, 4),
                 comp_ticker=comp_ticker,
+                # Options trading placeholders
+                days_to_expiry=random.choice([7, 14, 30, 45, 60, 90]),
+                strike_pct=random.choice([95, 100, 105, 110]),
             )
             task_id = f"{template_id}_variant_{new_ticker}_{new_year}"
         else:

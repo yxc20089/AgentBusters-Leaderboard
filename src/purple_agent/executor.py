@@ -42,7 +42,17 @@ class FinanceAgentExecutor(AgentExecutor):
     - SEC filing analysis
     - Financial ratio calculation
     - Investment recommendations
+    - Options trading and strategy construction
+    - Greeks analysis and risk management
     """
+
+    # Options trading task keywords
+    OPTIONS_KEYWORDS = [
+        "option", "options", "call", "put", "strike", "expiration", "expiry",
+        "delta", "gamma", "theta", "vega", "greeks", "iron condor", "straddle",
+        "strangle", "spread", "covered call", "protective put", "butterfly",
+        "volatility", "iv", "implied volatility", "black-scholes", "premium",
+    ]
 
     def __init__(
         self,
@@ -219,7 +229,25 @@ class FinanceAgentExecutor(AgentExecutor):
 
         # Detect task type
         user_lower = user_input.lower()
-        if any(word in user_lower for word in ["beat", "miss", "earnings", "expectations"]):
+
+        # Check for options trading tasks first (more specific)
+        if any(word in user_lower for word in self.OPTIONS_KEYWORDS):
+            # Determine specific options task type
+            if any(word in user_lower for word in ["iron condor", "straddle", "strangle", "spread", "butterfly", "construct", "build"]):
+                task_info["task_type"] = "options_strategy"
+            elif any(word in user_lower for word in ["delta", "gamma", "theta", "vega", "greeks", "hedge"]):
+                task_info["task_type"] = "options_greeks"
+            elif any(word in user_lower for word in ["volatility", "iv", "implied volatility", "vol"]):
+                task_info["task_type"] = "options_volatility"
+            elif any(word in user_lower for word in ["price", "premium", "black-scholes", "theoretical"]):
+                task_info["task_type"] = "options_pricing"
+            elif any(word in user_lower for word in ["risk", "var", "stress", "drawdown"]):
+                task_info["task_type"] = "options_risk"
+            elif any(word in user_lower for word in ["p&l", "pnl", "profit", "loss", "attribution"]):
+                task_info["task_type"] = "options_pnl"
+            else:
+                task_info["task_type"] = "options_general"
+        elif any(word in user_lower for word in ["beat", "miss", "earnings", "expectations"]):
             task_info["task_type"] = "beat_or_miss"
         elif any(word in user_lower for word in ["10-k", "10k", "annual report", "sec filing"]):
             task_info["task_type"] = "sec_filing"
@@ -257,15 +285,102 @@ class FinanceAgentExecutor(AgentExecutor):
             Dictionary with gathered financial data
         """
         data: dict[str, Any] = {"tickers": {}}
+        task_type = task_info.get("task_type", "general")
 
         for ticker in task_info.get("tickers", []):
             try:
+                # Always get basic stock data
                 ticker_data = await self.toolkit.get_comprehensive_analysis(ticker)
                 data["tickers"][ticker] = ticker_data
+
+                # For options tasks, gather options-specific data
+                if task_type.startswith("options_"):
+                    options_data = await self._gather_options_data(ticker, task_info)
+                    data["tickers"][ticker]["options"] = options_data
+
             except Exception as e:
                 data["tickers"][ticker] = {"error": str(e)}
 
         return data
+
+    async def _gather_options_data(
+        self,
+        ticker: str,
+        task_info: dict[str, Any],
+    ) -> dict[str, Any]:
+        """
+        Gather options-specific data for a ticker.
+
+        Args:
+            ticker: Stock ticker symbol
+            task_info: Parsed task information
+
+        Returns:
+            Dictionary with options data
+        """
+        options_data: dict[str, Any] = {}
+
+        try:
+            # Get current stock quote for reference
+            quote = await self.toolkit.get_quote(ticker)
+            current_price = quote.get("current_price", 100.0)
+            options_data["spot_price"] = current_price
+
+            # Get volatility analysis
+            vol_analysis = await self.toolkit.get_volatility_analysis(ticker)
+            options_data["volatility"] = vol_analysis
+
+            # Get available expirations
+            expirations = await self.toolkit.get_option_expirations(ticker)
+            options_data["expirations"] = expirations
+
+            # Get options chain for nearest expiration
+            chain = await self.toolkit.get_options_chain(
+                ticker=ticker,
+                expiration="nearest",
+                min_strike=current_price * 0.85,
+                max_strike=current_price * 1.15,
+            )
+            options_data["chain"] = chain
+
+            # For strategy tasks, also get strike analysis
+            task_type = task_info.get("task_type", "")
+            if task_type == "options_strategy":
+                # Calculate sample option prices at various strikes
+                sample_strikes = [
+                    current_price * 0.95,
+                    current_price,
+                    current_price * 1.05,
+                ]
+                sample_prices = []
+                vol = vol_analysis.get("historical_volatility", 0.25)
+
+                for strike in sample_strikes:
+                    call_price = await self.toolkit.calculate_option_price(
+                        spot_price=current_price,
+                        strike_price=strike,
+                        days_to_expiry=30,
+                        volatility=vol,
+                        option_type="call",
+                    )
+                    put_price = await self.toolkit.calculate_option_price(
+                        spot_price=current_price,
+                        strike_price=strike,
+                        days_to_expiry=30,
+                        volatility=vol,
+                        option_type="put",
+                    )
+                    sample_prices.append({
+                        "strike": strike,
+                        "call": call_price,
+                        "put": put_price,
+                    })
+                options_data["sample_prices"] = sample_prices
+
+        except Exception as e:
+            options_data["error"] = str(e)
+
+        return options_data
 
     async def _generate_analysis(
         self,
@@ -365,6 +480,61 @@ Your analysis should be:
 - Year-over-year and quarter-over-quarter changes
 - Segment breakdown if available
 - Key drivers of changes""",
+
+            "options_strategy": """Focus on:
+- Clear strategy identification (iron condor, spread, straddle, etc.)
+- Strike selection rationale
+- All four Greeks for each leg and net position
+- Max profit, max loss, and breakeven points
+- Probability of profit calculation
+- Risk/reward analysis
+- Entry and exit criteria""",
+
+            "options_greeks": """Focus on:
+- Accurate calculation of delta, gamma, theta, vega, rho
+- Interpretation of each Greek for the position
+- Hedging recommendations based on Greeks
+- Portfolio-level Greek aggregation if multiple positions
+- Sensitivity analysis""",
+
+            "options_volatility": """Focus on:
+- Historical volatility calculation
+- Implied volatility analysis
+- IV rank and IV percentile
+- Comparison of IV to HV (premium/discount)
+- Volatility trading opportunities
+- Strategy recommendations based on volatility outlook""",
+
+            "options_pricing": """Focus on:
+- Black-Scholes model application
+- Input parameters (spot, strike, time, vol, rate, dividend)
+- Theoretical price calculation
+- All Greeks values
+- Intrinsic vs extrinsic value breakdown
+- Put-call parity verification""",
+
+            "options_risk": """Focus on:
+- Position sizing methodology
+- Value at Risk (VaR) calculation
+- Maximum drawdown analysis
+- Stress test scenarios
+- Risk limits and stop-loss levels
+- Portfolio hedging strategies""",
+
+            "options_pnl": """Focus on:
+- P&L attribution by Greek (delta, gamma, theta, vega)
+- Realized vs unrealized P&L
+- Impact of underlying price movement
+- Impact of time decay
+- Impact of volatility changes
+- Performance metrics (Sharpe, Sortino)""",
+
+            "options_general": """Focus on:
+- Clear options analysis
+- Relevant Greeks and risk metrics
+- Strategy appropriateness for market conditions
+- Risk management considerations
+- Supporting data and calculations""",
         }
 
         return base_prompt + type_specific.get(task_type, "Provide comprehensive financial analysis.")
@@ -420,6 +590,29 @@ Your analysis should be:
                     filing = data["recent_filing"]
                     if filing.get('form_type'):
                         prompt_parts.append(f"  Recent Filing: {filing.get('form_type')} on {filing.get('filing_date', 'N/A')}")
+
+                # Options data (if present)
+                if "options" in data:
+                    opts = data["options"]
+                    prompt_parts.append("\n  Options Data:")
+                    if opts.get("spot_price"):
+                        prompt_parts.append(f"    Spot Price: ${opts['spot_price']:.2f}")
+                    if opts.get("volatility"):
+                        vol = opts["volatility"]
+                        if vol.get("historical_volatility"):
+                            prompt_parts.append(f"    Historical Volatility: {vol['historical_volatility']*100:.1f}%")
+                        if vol.get("iv_rank"):
+                            prompt_parts.append(f"    IV Rank: {vol['iv_rank']:.1f}%")
+                    if opts.get("expirations") and isinstance(opts["expirations"], dict):
+                        exps = opts["expirations"].get("expirations", [])
+                        if exps:
+                            prompt_parts.append(f"    Available Expirations: {', '.join(exps[:5])}")
+                    if opts.get("sample_prices"):
+                        prompt_parts.append("    Sample Option Prices (30-day):")
+                        for sp in opts["sample_prices"][:3]:
+                            call_price = sp["call"].get("price", 0) if isinstance(sp["call"], dict) else 0
+                            put_price = sp["put"].get("price", 0) if isinstance(sp["put"], dict) else 0
+                            prompt_parts.append(f"      Strike ${sp['strike']:.0f}: Call ${call_price:.2f}, Put ${put_price:.2f}")
 
         prompt_parts.extend([
             "",
@@ -503,11 +696,53 @@ Your analysis should be:
                     response_parts.append(f"- Accession: {filing['accession_number']}")
                 response_parts.append("")
 
+            # Options data
+            if "options" in data:
+                opts = data["options"]
+                response_parts.append("**Options Analysis:**")
+                if opts.get("spot_price"):
+                    response_parts.append(f"- Spot Price: ${opts['spot_price']:.2f}")
+                if opts.get("volatility"):
+                    vol = opts["volatility"]
+                    if vol.get("historical_volatility"):
+                        response_parts.append(f"- Historical Volatility: {vol['historical_volatility']*100:.1f}%")
+                    if vol.get("iv_rank"):
+                        response_parts.append(f"- IV Rank: {vol['iv_rank']:.1f}%")
+                    if vol.get("iv_percentile"):
+                        response_parts.append(f"- IV Percentile: {vol['iv_percentile']:.1f}%")
+
+                if opts.get("sample_prices"):
+                    response_parts.append("\n**Sample Option Prices (30-day expiration):**")
+                    for sp in opts["sample_prices"]:
+                        strike = sp["strike"]
+                        call_data = sp.get("call", {})
+                        put_data = sp.get("put", {})
+
+                        if isinstance(call_data, dict) and isinstance(put_data, dict):
+                            response_parts.append(f"\nStrike ${strike:.0f}:")
+                            response_parts.append(f"  Call: ${call_data.get('price', 0):.2f}")
+                            response_parts.append(f"    Delta: {call_data.get('delta', 0):.3f}")
+                            response_parts.append(f"    Gamma: {call_data.get('gamma', 0):.4f}")
+                            response_parts.append(f"    Theta: {call_data.get('theta', 0):.3f}")
+                            response_parts.append(f"    Vega: {call_data.get('vega', 0):.3f}")
+                            response_parts.append(f"  Put: ${put_data.get('price', 0):.2f}")
+                            response_parts.append(f"    Delta: {put_data.get('delta', 0):.3f}")
+                            response_parts.append(f"    Gamma: {put_data.get('gamma', 0):.4f}")
+                            response_parts.append(f"    Theta: {put_data.get('theta', 0):.3f}")
+                            response_parts.append(f"    Vega: {put_data.get('vega', 0):.3f}")
+                response_parts.append("")
+
         # Task-specific conclusion
         task_type = task_info.get("task_type", "general")
         if task_type == "beat_or_miss":
             response_parts.append("\n**Note:** To determine beat/miss status, compare reported figures against analyst consensus estimates.")
         elif task_type == "recommendation":
             response_parts.append("\n**Note:** This is a data summary. Investment recommendations require additional analysis of market conditions, risk factors, and investment objectives.")
+        elif task_type.startswith("options_"):
+            response_parts.append("\n**Options Trading Considerations:**")
+            response_parts.append("- Greeks shown are calculated using Black-Scholes model")
+            response_parts.append("- Actual market prices may vary due to bid/ask spreads")
+            response_parts.append("- Consider position sizing based on portfolio risk limits")
+            response_parts.append("- Always define max loss and exit criteria before entering trades")
 
         return "\n".join(response_parts)

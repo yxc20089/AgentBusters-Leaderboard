@@ -18,6 +18,11 @@ from mcp_servers.sec_edgar import create_edgar_server
 from mcp_servers.yahoo_finance import create_yahoo_finance_server
 from mcp_servers.sandbox import create_sandbox_server
 
+# Options trading MCP servers
+from mcp_servers.options_chain import create_options_chain_server
+from mcp_servers.trading_sim import create_trading_sim_server
+from mcp_servers.risk_metrics import create_risk_metrics_server
+
 
 @dataclass
 class MCPToolMetrics:
@@ -79,6 +84,11 @@ class MCPToolkit:
         self._yfinance_server = None if self._yfinance_url else create_yahoo_finance_server(simulation_date=simulation_date)
         self._sandbox_server = None if self._sandbox_url else create_sandbox_server()
 
+        # Options trading MCP servers (always in-process for now)
+        self._options_chain_server = create_options_chain_server(simulation_date=simulation_date)
+        self._trading_sim_server = create_trading_sim_server(simulation_date=simulation_date)
+        self._risk_metrics_server = create_risk_metrics_server()
+
         # Metrics
         self._metrics = MCPToolMetrics()
         self._tool_calls: list[dict] = []
@@ -88,10 +98,16 @@ class MCPToolkit:
         edgar_tools = await self._edgar_server.get_tools() if self._edgar_server else None
         yfinance_tools = await self._yfinance_server.get_tools() if self._yfinance_server else None
         sandbox_tools = await self._sandbox_server.get_tools() if self._sandbox_server else None
+        options_chain_tools = await self._options_chain_server.get_tools()
+        trading_sim_tools = await self._trading_sim_server.get_tools()
+        risk_metrics_tools = await self._risk_metrics_server.get_tools()
         return {
             "edgar": edgar_tools,
             "yfinance": yfinance_tools,
             "sandbox": sandbox_tools,
+            "options_chain": options_chain_tools,
+            "trading_sim": trading_sim_tools,
+            "risk_metrics": risk_metrics_tools,
         }
 
     def _record_call(self, server: str, tool: str, result: Any, time_ms: int = 0):
@@ -500,6 +516,589 @@ class MCPToolkit:
         elapsed = int((time.time() - start) * 1000)
 
         self._record_call("sandbox", "analyze_time_series", result, elapsed)
+        return result
+
+    # =========================================================================
+    # Options Chain Tools
+    # =========================================================================
+
+    async def get_options_chain(
+        self,
+        ticker: str,
+        expiration: str | None = None,
+        option_type: str = "all",
+        min_strike: float | None = None,
+        max_strike: float | None = None,
+    ) -> dict[str, Any]:
+        """
+        Get options chain with Greeks from Options Chain MCP.
+
+        Args:
+            ticker: Stock ticker symbol
+            expiration: Expiration date (YYYY-MM-DD), "nearest", or None for all
+            option_type: "call", "put", or "all"
+            min_strike: Minimum strike price filter
+            max_strike: Maximum strike price filter
+
+        Returns:
+            Options chain with contracts and Greeks
+        """
+        import time
+        start = time.time()
+
+        tools = await self._options_chain_server.get_tools()
+        get_chain = tools["get_options_chain"]
+        result = get_chain.fn(
+            ticker=ticker,
+            expiration=expiration,
+            option_type=option_type,
+            min_strike=min_strike,
+            max_strike=max_strike,
+        )
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("options_chain", "get_options_chain", result, elapsed)
+        return result
+
+    async def calculate_option_price(
+        self,
+        spot_price: float,
+        strike_price: float,
+        days_to_expiry: int,
+        volatility: float,
+        risk_free_rate: float = 0.05,
+        option_type: str = "call",
+        dividend_yield: float = 0.0,
+    ) -> dict[str, Any]:
+        """
+        Calculate theoretical option price using Black-Scholes model.
+
+        Args:
+            spot_price: Current stock price
+            strike_price: Option strike price
+            days_to_expiry: Days until expiration
+            volatility: Implied volatility (annualized, e.g., 0.25 for 25%)
+            risk_free_rate: Risk-free interest rate
+            option_type: "call" or "put"
+            dividend_yield: Continuous dividend yield
+
+        Returns:
+            Option price and all Greeks (delta, gamma, theta, vega, rho)
+        """
+        import time
+        start = time.time()
+
+        tools = await self._options_chain_server.get_tools()
+        calc_price = tools["calculate_option_price"]
+        result = calc_price.fn(
+            spot_price=spot_price,
+            strike_price=strike_price,
+            days_to_expiry=days_to_expiry,
+            volatility=volatility,
+            risk_free_rate=risk_free_rate,
+            option_type=option_type,
+            dividend_yield=dividend_yield,
+        )
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("options_chain", "calculate_option_price", result, elapsed)
+        return result
+
+    async def calculate_historical_option_price(
+        self,
+        ticker: str,
+        strike_price: float,
+        expiration: str,
+        historical_date: str,
+        option_type: str = "call",
+    ) -> dict[str, Any]:
+        """
+        Calculate what an option would have been worth on a historical date.
+
+        Args:
+            ticker: Stock ticker symbol
+            strike_price: Option strike price
+            expiration: Expiration date (YYYY-MM-DD)
+            historical_date: Date to price the option (YYYY-MM-DD)
+            option_type: "call" or "put"
+
+        Returns:
+            Historical option price with Greeks
+        """
+        import time
+        start = time.time()
+
+        tools = await self._options_chain_server.get_tools()
+        calc_hist = tools["calculate_historical_option_price"]
+        result = calc_hist.fn(
+            ticker=ticker,
+            strike_price=strike_price,
+            expiration=expiration,
+            historical_date=historical_date,
+            option_type=option_type,
+        )
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("options_chain", "calculate_historical_option_price", result, elapsed)
+        return result
+
+    async def get_volatility_analysis(
+        self,
+        ticker: str,
+        lookback_days: int = 30,
+    ) -> dict[str, Any]:
+        """
+        Get volatility analysis for a ticker.
+
+        Args:
+            ticker: Stock ticker symbol
+            lookback_days: Number of days for historical volatility
+
+        Returns:
+            Historical volatility, IV rank, IV percentile
+        """
+        import time
+        start = time.time()
+
+        tools = await self._options_chain_server.get_tools()
+        get_vol = tools["get_volatility_analysis"]
+        result = get_vol.fn(ticker=ticker, lookback_days=lookback_days)
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("options_chain", "get_volatility_analysis", result, elapsed)
+        return result
+
+    async def get_option_expirations(self, ticker: str) -> dict[str, Any]:
+        """
+        Get available option expiration dates.
+
+        Args:
+            ticker: Stock ticker symbol
+
+        Returns:
+            List of available expiration dates
+        """
+        import time
+        start = time.time()
+
+        tools = await self._options_chain_server.get_tools()
+        get_exp = tools["get_expirations"]
+        result = get_exp.fn(ticker=ticker)
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("options_chain", "get_expirations", result, elapsed)
+        return result
+
+    async def analyze_options_strategy(
+        self,
+        legs: list[dict],
+        spot_price: float,
+    ) -> dict[str, Any]:
+        """
+        Analyze a multi-leg options strategy.
+
+        Args:
+            legs: List of strategy legs, each with:
+                - option_type: "call" or "put"
+                - strike: Strike price
+                - action: "buy" or "sell"
+                - quantity: Number of contracts
+                - premium: Option premium per share
+            spot_price: Current stock price
+
+        Returns:
+            Strategy analysis with max profit/loss, breakevens, risk/reward
+        """
+        import time
+        start = time.time()
+
+        tools = await self._options_chain_server.get_tools()
+        analyze = tools["analyze_strategy"]
+        result = analyze.fn(legs=legs, spot_price=spot_price)
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("options_chain", "analyze_strategy", result, elapsed)
+        return result
+
+    # =========================================================================
+    # Trading Simulator Tools
+    # =========================================================================
+
+    async def create_portfolio(
+        self,
+        starting_cash: float = 100000.0,
+        portfolio_id: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Create a new paper trading portfolio.
+
+        Args:
+            starting_cash: Initial cash balance
+            portfolio_id: Optional custom ID for the portfolio
+
+        Returns:
+            Created portfolio details
+        """
+        import time
+        start = time.time()
+
+        tools = await self._trading_sim_server.get_tools()
+        create = tools["create_portfolio"]
+        result = create.fn(starting_cash=starting_cash, portfolio_id=portfolio_id)
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("trading_sim", "create_portfolio", result, elapsed)
+        return result
+
+    async def execute_options_trade(
+        self,
+        portfolio_id: str,
+        ticker: str,
+        strike: float,
+        expiration: str,
+        option_type: str,
+        action: str,
+        quantity: int,
+        order_type: str = "market",
+        limit_price: float | None = None,
+    ) -> dict[str, Any]:
+        """
+        Execute an options trade in the simulator.
+
+        Args:
+            portfolio_id: Portfolio ID
+            ticker: Stock ticker symbol
+            strike: Strike price
+            expiration: Expiration date (YYYY-MM-DD)
+            option_type: "call" or "put"
+            action: "buy" or "sell"
+            quantity: Number of contracts
+            order_type: "market" or "limit"
+            limit_price: Required for limit orders
+
+        Returns:
+            Trade execution details with fill price
+        """
+        import time
+        start = time.time()
+
+        tools = await self._trading_sim_server.get_tools()
+        execute = tools["execute_trade"]
+        result = execute.fn(
+            portfolio_id=portfolio_id,
+            ticker=ticker,
+            strike=strike,
+            expiration=expiration,
+            option_type=option_type,
+            action=action,
+            quantity=quantity,
+            order_type=order_type,
+            limit_price=limit_price,
+        )
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("trading_sim", "execute_trade", result, elapsed)
+        return result
+
+    async def get_portfolio(self, portfolio_id: str) -> dict[str, Any]:
+        """
+        Get current portfolio state.
+
+        Args:
+            portfolio_id: Portfolio ID
+
+        Returns:
+            Portfolio state with positions and P&L
+        """
+        import time
+        start = time.time()
+
+        tools = await self._trading_sim_server.get_tools()
+        get_port = tools["get_portfolio"]
+        result = get_port.fn(portfolio_id=portfolio_id)
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("trading_sim", "get_portfolio", result, elapsed)
+        return result
+
+    async def close_position(
+        self,
+        portfolio_id: str,
+        position_id: str,
+        quantity: int | None = None,
+    ) -> dict[str, Any]:
+        """
+        Close an existing position.
+
+        Args:
+            portfolio_id: Portfolio ID
+            position_id: Position ID to close
+            quantity: Number of contracts (None for full close)
+
+        Returns:
+            Closing trade details
+        """
+        import time
+        start = time.time()
+
+        tools = await self._trading_sim_server.get_tools()
+        close = tools["close_position"]
+        result = close.fn(
+            portfolio_id=portfolio_id,
+            position_id=position_id,
+            quantity=quantity,
+        )
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("trading_sim", "close_position", result, elapsed)
+        return result
+
+    async def advance_simulation_time(
+        self,
+        portfolio_id: str,
+        days: int,
+    ) -> dict[str, Any]:
+        """
+        Advance simulation time and update positions.
+
+        Args:
+            portfolio_id: Portfolio ID
+            days: Number of days to advance
+
+        Returns:
+            Updated portfolio state with P&L changes
+        """
+        import time
+        start = time.time()
+
+        tools = await self._trading_sim_server.get_tools()
+        advance = tools["advance_time"]
+        result = advance.fn(portfolio_id=portfolio_id, days=days)
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("trading_sim", "advance_time", result, elapsed)
+        return result
+
+    async def get_pnl_report(self, portfolio_id: str) -> dict[str, Any]:
+        """
+        Get detailed P&L report for a portfolio.
+
+        Args:
+            portfolio_id: Portfolio ID
+
+        Returns:
+            Detailed P&L breakdown by position
+        """
+        import time
+        start = time.time()
+
+        tools = await self._trading_sim_server.get_tools()
+        report = tools["get_pnl_report"]
+        result = report.fn(portfolio_id=portfolio_id)
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("trading_sim", "get_pnl_report", result, elapsed)
+        return result
+
+    async def list_portfolios(self) -> dict[str, Any]:
+        """
+        List all portfolios in the simulator.
+
+        Returns:
+            List of portfolio summaries
+        """
+        import time
+        start = time.time()
+
+        tools = await self._trading_sim_server.get_tools()
+        list_port = tools["list_portfolios"]
+        result = list_port.fn()
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("trading_sim", "list_portfolios", result, elapsed)
+        return result
+
+    # =========================================================================
+    # Risk Metrics Tools
+    # =========================================================================
+
+    async def calculate_portfolio_greeks(
+        self,
+        positions: list[dict],
+    ) -> dict[str, Any]:
+        """
+        Calculate aggregate Greeks across positions.
+
+        Args:
+            positions: List of positions, each with:
+                - delta, gamma, theta, vega, rho: Individual Greeks
+                - quantity: Number of contracts
+                - multiplier: Contract multiplier (usually 100)
+
+        Returns:
+            Aggregate portfolio Greeks
+        """
+        import time
+        start = time.time()
+
+        tools = await self._risk_metrics_server.get_tools()
+        calc_greeks = tools["calculate_portfolio_greeks"]
+        result = calc_greeks.fn(positions=positions)
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("risk_metrics", "calculate_portfolio_greeks", result, elapsed)
+        return result
+
+    async def calculate_var(
+        self,
+        returns: list[float],
+        confidence_level: float = 0.95,
+        horizon_days: int = 1,
+        portfolio_value: float = 100000.0,
+        method: str = "historical",
+    ) -> dict[str, Any]:
+        """
+        Calculate Value at Risk for a portfolio.
+
+        Args:
+            returns: List of historical daily returns
+            confidence_level: VaR confidence level (e.g., 0.95, 0.99)
+            horizon_days: Risk horizon in days
+            portfolio_value: Current portfolio value
+            method: "historical", "parametric", or "monte_carlo"
+
+        Returns:
+            VaR calculation with dollar and percentage values
+        """
+        import time
+        start = time.time()
+
+        tools = await self._risk_metrics_server.get_tools()
+        calc_var = tools["calculate_var"]
+        result = calc_var.fn(
+            returns=returns,
+            confidence_level=confidence_level,
+            horizon_days=horizon_days,
+            portfolio_value=portfolio_value,
+            method=method,
+        )
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("risk_metrics", "calculate_var", result, elapsed)
+        return result
+
+    async def calculate_max_drawdown(
+        self,
+        portfolio_values: list[float],
+    ) -> dict[str, Any]:
+        """
+        Calculate maximum drawdown with recovery analysis.
+
+        Args:
+            portfolio_values: List of portfolio values over time
+
+        Returns:
+            Max drawdown percentage, peak/trough dates, recovery info
+        """
+        import time
+        start = time.time()
+
+        tools = await self._risk_metrics_server.get_tools()
+        calc_dd = tools["calculate_max_drawdown"]
+        result = calc_dd.fn(portfolio_values=portfolio_values)
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("risk_metrics", "calculate_max_drawdown", result, elapsed)
+        return result
+
+    async def calculate_risk_adjusted_returns(
+        self,
+        returns: list[float],
+        risk_free_rate: float = 0.05,
+    ) -> dict[str, Any]:
+        """
+        Calculate Sharpe, Sortino, and Calmar ratios.
+
+        Args:
+            returns: List of period returns
+            risk_free_rate: Annual risk-free rate
+
+        Returns:
+            Sharpe ratio, Sortino ratio, Calmar ratio
+        """
+        import time
+        start = time.time()
+
+        tools = await self._risk_metrics_server.get_tools()
+        calc_returns = tools["calculate_risk_adjusted_returns"]
+        result = calc_returns.fn(returns=returns, risk_free_rate=risk_free_rate)
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("risk_metrics", "calculate_risk_adjusted_returns", result, elapsed)
+        return result
+
+    async def stress_test_portfolio(
+        self,
+        positions: list[dict],
+        scenarios: list[dict] | None = None,
+    ) -> dict[str, Any]:
+        """
+        Run stress tests on portfolio positions.
+
+        Args:
+            positions: List of positions with Greeks
+            scenarios: Optional custom scenarios with:
+                - name: Scenario name
+                - spot_change: % change in spot price
+                - vol_change: % change in implied volatility
+
+        Returns:
+            P&L impact for each stress scenario
+        """
+        import time
+        start = time.time()
+
+        tools = await self._risk_metrics_server.get_tools()
+        stress = tools["stress_test"]
+        result = stress.fn(positions=positions, scenarios=scenarios)
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("risk_metrics", "stress_test", result, elapsed)
+        return result
+
+    async def get_pnl_attribution(
+        self,
+        position: dict,
+        spot_change: float,
+        vol_change: float,
+        time_decay_days: float,
+    ) -> dict[str, Any]:
+        """
+        Decompose P&L by Greek contribution.
+
+        Args:
+            position: Position with Greeks and quantity
+            spot_change: Change in spot price ($)
+            vol_change: Change in implied volatility (absolute, e.g., 0.05)
+            time_decay_days: Days of time decay
+
+        Returns:
+            P&L breakdown by delta, gamma, theta, vega
+        """
+        import time
+        start = time.time()
+
+        tools = await self._risk_metrics_server.get_tools()
+        attr = tools["pnl_attribution"]
+        result = attr.fn(
+            position=position,
+            spot_change=spot_change,
+            vol_change=vol_change,
+            time_decay_days=time_decay_days,
+        )
+
+        elapsed = int((time.time() - start) * 1000)
+        self._record_call("risk_metrics", "pnl_attribution", result, elapsed)
         return result
 
     # =========================================================================
