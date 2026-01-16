@@ -324,51 +324,95 @@ Risk Management & Position sizing, hedging strategy, exit criteria definition \\
 
 \subsection{Experimental Setup}
 
-We evaluated a baseline Purple Agent using GPT-4o as the underlying LLM. The agent was tested on:
+We evaluated a baseline Purple Agent using GPT-4o as the underlying LLM. The evaluation was conducted through the Green Agent A2A server using a unified multi-dataset configuration that simultaneously tests across all three dataset types:
 \begin{itemize}
-    \item Synthetic questions generated from the Financial Lake
-    \item Public CSV finance Q\&A dataset
-    \item Options trading tasks (iron condor, volatility, Greeks, risk)
+    \item \textbf{BizFinBench v2}: Financial quantitative computation and event logic reasoning tasks
+    \item \textbf{Public CSV}: Beat/miss analysis and market analysis questions
+    \item \textbf{Options Alpha}: Greeks analysis and strategy construction tasks
 \end{itemize}
 
-\subsection{Results}
+\subsection{Integrated Multi-Dataset Results}
 
 \begin{table}[H]
 \centering
-\caption{Baseline Agent Performance}
+\caption{Multi-Dataset Evaluation Results (Unified Run)}
 \label{tab:results}
-\begin{tabular}{lrrr}
+\begin{tabular}{lrrrr}
 \toprule
-\textbf{Dataset} & \textbf{Tasks} & \textbf{Score} & \textbf{Metric} \\
+\textbf{Dataset} & \textbf{Examples} & \textbf{Accuracy} & \textbf{Mean Score} & \textbf{Metric} \\
 \midrule
-Synthetic Questions & 2 & 60,418 & Alpha Score \\
-Public CSV & 3 & 66.67\% & Accuracy \\
-Options (Iron Condor) & 1 & 50.8/100 & Options Score \\
+BizFinBench & 6 & 66.67\% & 0.667 & Exact/Tolerance Match \\
+Public CSV & 2 & 50.00\% & 0.500 & Rubric Correctness \\
+Options Alpha & 2 & 50.00\% & 0.606 & 4-Dimension Score \\
+\midrule
+\textbf{Total} & \textbf{10} & \textbf{60.00\%} & \textbf{0.621} & Normalized 0-1 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+The unified evaluation demonstrates organic integration across all dataset types with consistent scoring normalization (0-1 scale).
 
 \subsubsection{Options Evaluation Breakdown}
 
 \begin{table}[H]
 \centering
-\caption{Options Task Performance (Iron Condor on SPY)}
+\caption{Options Task Performance by Category}
 \label{tab:options_results}
-\begin{tabular}{lr}
+\begin{tabular}{llrrrr}
 \toprule
-\textbf{Dimension} & \textbf{Score} \\
+\textbf{Task} & \textbf{Category} & \textbf{P\&L} & \textbf{Greeks} & \textbf{Strategy} & \textbf{Risk} \\
 \midrule
-P\&L Accuracy & 68.0/100 \\
-Greeks Accuracy & 0.0/100 \\
-Strategy Quality & 50.0/100 \\
-Risk Management & 85.0/100 \\
+strategy\_001 & Strategy Construction & 100 & 30 & 85 & 70 \\
+greeks\_002 & Greeks Analysis & 80 & 0 & 60 & 60 \\
 \midrule
-\textbf{Final Options Score} & \textbf{50.8/100} \\
+\textbf{Average} & & \textbf{90} & \textbf{15} & \textbf{72.5} & \textbf{65} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The results reveal that while the baseline agent performs well on risk management concepts (85/100), it struggles with explicit Greeks calculations (0/100), indicating a gap between conceptual understanding and numerical precision.
+\begin{table}[H]
+\centering
+\caption{Options Final Scores (Weighted Average)}
+\label{tab:options_final}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Task ID} & \textbf{Raw Score} & \textbf{Normalized} \\
+\midrule
+strategy\_001 (Iron Condor SPX) & 71.25/100 & 0.7125 \\
+greeks\_002 (Portfolio Delta) & 50.0/100 & 0.500 \\
+\midrule
+\textbf{Options Average} & \textbf{60.62/100} & \textbf{0.606} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The results reveal several key patterns:
+\begin{itemize}
+    \item \textbf{P\&L Strength}: The agent excels at profit/loss calculations (90/100 average), correctly identifying max profit, max loss, and breakeven points.
+    \item \textbf{Greeks Gap}: Explicit Greeks calculations remain challenging (15/100), with the agent discussing concepts without extracting numerical values.
+    \item \textbf{Strategy Competence}: Strong performance on strategy construction (72.5/100), demonstrating understanding of multi-leg option structures.
+    \item \textbf{Risk Awareness}: Moderate risk management scoring (65/100), with hedging strategies discussed but position sizing underspecified.
+\end{itemize}
+
+\subsection{BizFinBench Detailed Results}
+
+\begin{table}[H]
+\centering
+\caption{BizFinBench v2 Performance by Task Type}
+\label{tab:bizfin_results}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Task Type} & \textbf{Examples} & \textbf{Correct} & \textbf{Accuracy} \\
+\midrule
+Event Logic Reasoning & 3 & 3 & 100\% \\
+Financial Quantitative Computation & 3 & 1 & 33.3\% \\
+\midrule
+\textbf{BizFinBench Total} & \textbf{6} & \textbf{4} & \textbf{66.67\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The agent demonstrates strong logical reasoning (100\% on event ordering) but struggles with precise numerical calculations (33.3\% on quantitative tasks), where small deviations exceed the 1\% tolerance threshold.
 
 \subsection{Public CSV Detailed Results}
 
@@ -376,31 +420,36 @@ The results reveal that while the baseline agent performs well on risk managemen
 \centering
 \caption{Public CSV Dataset Performance}
 \label{tab:csv_results}
-\begin{tabular}{lrr}
+\begin{tabular}{lrrr}
 \toprule
-\textbf{Question Category} & \textbf{Correct} & \textbf{Score} \\
+\textbf{Question Category} & \textbf{Correctness} & \textbf{Score} & \textbf{Result} \\
 \midrule
-Market Analysis (US Steel Merger) & 4/4 & 100\% \\
-Trends (Netflix ARPU) & 9/9 & 100\% \\
-Beat or Miss (TJX Margin) & 0/2 & 0\% \\
+Market Analysis (US Steel) & 4/4 & 1.0 & Correct \\
+Beat or Miss (TJX Margin) & 0/2 & 0.0 & Incorrect \\
 \midrule
-\textbf{Average} & 13/15 & \textbf{66.67\%} \\
+\textbf{Public CSV Total} & & \textbf{0.50} & \textbf{50\%} \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+The rubric-based evaluation reveals that qualitative analysis questions (market context) score higher than quantitative beat/miss questions requiring specific BPS calculations.
 
 \section{Discussion}
 
 \subsection{Key Findings}
 
+The unified multi-dataset evaluation reveals consistent patterns across all three benchmarks:
+
 \begin{enumerate}
-    \item \textbf{Conceptual vs. Computational}: Agents demonstrate strong conceptual understanding but struggle with precise numerical calculations, particularly in options pricing.
+    \item \textbf{Conceptual vs. Computational Gap}: Agents demonstrate strong conceptual understanding (100\% on event logic reasoning) but struggle with precise numerical calculations (33.3\% on quantitative computation). This pattern persists across datasets---the Options P\&L calculations score 90/100 while Greeks precision drops to 15/100.
 
-    \item \textbf{Category Variance}: Performance varies significantly across categories, with fundamental analysis outperforming quantitative tasks.
+    \item \textbf{Cross-Dataset Consistency}: The integrated evaluation shows similar accuracy ranges across datasets (50-67\%), suggesting the benchmark effectively normalizes difficulty. The 0-1 scoring scale enables meaningful aggregation.
 
-    \item \textbf{Temporal Awareness}: Agents occasionally exhibit lookahead bias, accessing information beyond the simulation date.
+    \item \textbf{Qualitative Outperforms Quantitative}: Market analysis questions (100\% correct) consistently outperform beat/miss calculations (0\% on TJX margin). Options strategy quality (72.5/100) exceeds Greeks accuracy (15/100).
 
-    \item \textbf{Risk Management Strength}: Agents excel at qualitative risk discussions but underperform on quantitative risk metrics.
+    \item \textbf{Organic Integration Validates}: Running all three datasets through the Green Agent A2A server confirms the framework's organic integration---BizFinBench, Public CSV, and Options Alpha coexist without configuration conflicts.
+
+    \item \textbf{Options 4-Dimension Scoring Differentiates}: The granular options breakdown (P\&L, Greeks, Strategy, Risk) reveals that aggregate scores mask important capability differences. An agent scoring 71.25/100 on Iron Condor may excel at P\&L (100) while failing Greeks (30).
 \end{enumerate}
 
 \subsection{Limitations}
@@ -422,9 +471,24 @@ Beat or Miss (TJX Margin) & 0/2 & 0\% \\
 
 \section{Conclusion}
 
-We presented CIO-Agent FAB++, a comprehensive benchmark for evaluating AI finance agents across 18 categories spanning fundamental analysis, options trading, and risk management. Our multi-dimensional scoring methodology, combined with adversarial debate testing, provides nuanced assessment of agent capabilities beyond simple accuracy metrics. The Options Alpha Challenge introduces rigorous quantitative evaluation using Black-Scholes pricing and Greeks verification. Experimental results demonstrate the benchmark's effectiveness in revealing agent strengths and weaknesses across diverse financial reasoning tasks.
+We presented CIO-Agent FAB++, a comprehensive benchmark for evaluating AI finance agents across 18 categories spanning fundamental analysis, options trading, and risk management. Our key contributions include:
 
-The system is publicly available at \url{https://github.com/yxc20089/AgentBusters} with Docker images for immediate deployment.
+\begin{itemize}
+    \item \textbf{Organic Multi-Dataset Integration}: BizFinBench, Public CSV, and Options Alpha Challenge are unified under a single evaluation framework with consistent 0-1 scoring normalization.
+
+    \item \textbf{4-Dimension Options Scoring}: The Options Alpha Challenge provides granular assessment across P\&L accuracy, Greeks precision, strategy quality, and risk management---revealing capability patterns masked by aggregate scores.
+
+    \item \textbf{A2A Protocol Compliance}: Full integration with the Agent-to-Agent protocol enables standardized evaluation through the Green Agent server.
+
+    \item \textbf{Empirical Validation}: Unified evaluation of a baseline GPT-4o agent demonstrates 60\% overall accuracy with consistent patterns: strong conceptual reasoning (100\% event logic) versus weak numerical precision (33\% quantitative computation, 15/100 Greeks).
+\end{itemize}
+
+The multi-dimensional scoring methodology, combined with adversarial debate testing, provides nuanced assessment of agent capabilities beyond simple accuracy metrics. The system is publicly available at \url{https://github.com/yxc20089/AgentBusters} with Docker images for immediate deployment:
+
+\begin{verbatim}
+ghcr.io/yxc20089/agentbusters-green:latest
+ghcr.io/yxc20089/agentbusters-purple:latest
+\end{verbatim}
 
 \section*{Acknowledgments}
 
