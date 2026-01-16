@@ -35,7 +35,7 @@ from cio_agent.eval_config import (
 from cio_agent.datasets import BizFinBenchProvider, CsvFinanceDatasetProvider
 
 # Dataset-specific evaluators
-from evaluators import BizFinBenchEvaluator, PublicCsvEvaluator
+from evaluators import BizFinBenchEvaluator, PublicCsvEvaluator, OptionsEvaluator
 
 
 class EvalRequest(BaseModel):
@@ -137,6 +137,7 @@ class GreenAgent:
                 "bizfinbench": BizFinBenchEvaluator(),
                 "public_csv": PublicCsvEvaluator(),
                 "synthetic": self.evaluator,  # Use ComprehensiveEvaluator
+                "options": None,  # Options use OptionsEvaluator initialized per-task
             }
             
         elif dataset_type == "bizfinbench" and dataset_path:
@@ -780,9 +781,9 @@ class GreenAgent:
                     # Synthetic questions use recommendation extraction
                     extracted = self._extract_recommendation(response)
                     expected = self._extract_recommendation(example.answer) if example.answer else ""
-                    
+
                     is_correct = extracted.lower() == expected.lower() if expected else False
-                    
+
                     result = {
                         "example_id": example.example_id,
                         "dataset_type": example.dataset_type,
@@ -796,7 +797,69 @@ class GreenAgent:
                         "feedback": f"Extracted: {extracted}, Expected: {expected}",
                     }
                     eval_result = type('obj', (object,), {'score': result['score']})()
-                    
+
+                elif example.dataset_type == "options":
+                    # Options Alpha Challenge evaluation
+                    from cio_agent.models import AgentResponse
+
+                    # Map string category to TaskCategory enum
+                    category_map = {
+                        "Options Pricing": TaskCategory.OPTIONS_PRICING,
+                        "Greeks Analysis": TaskCategory.GREEKS_ANALYSIS,
+                        "Strategy Construction": TaskCategory.STRATEGY_CONSTRUCTION,
+                        "Volatility Trading": TaskCategory.VOLATILITY_TRADING,
+                        "P&L Attribution": TaskCategory.PNL_ATTRIBUTION,
+                        "Risk Management": TaskCategory.RISK_MANAGEMENT,
+                        "Copy Trading": TaskCategory.COPY_TRADING,
+                        "Race to 10M": TaskCategory.RACE_TO_10M,
+                        "Strategy Defense": TaskCategory.STRATEGY_DEFENSE,
+                    }
+                    task_category = category_map.get(example.category, TaskCategory.OPTIONS_PRICING)
+
+                    # Create a FABTask for the evaluator
+                    fab_task = FABTask(
+                        task_id=example.example_id,
+                        category=task_category,
+                        difficulty=TaskDifficulty.MEDIUM,
+                        question=example.question,
+                        ground_truth=GroundTruth(
+                            macro_thesis=example.answer,
+                            key_themes=[example.category],
+                        ),
+                        rubric=TaskRubric(criteria=[], penalty_conditions=[]),
+                    )
+
+                    # Create AgentResponse
+                    agent_response = AgentResponse(
+                        analysis=response,
+                        recommendation=self._extract_recommendation(response),
+                    )
+
+                    # Initialize OptionsEvaluator with the task
+                    options_evaluator = OptionsEvaluator(task=fab_task)
+                    options_score = options_evaluator.evaluate(agent_response)
+
+                    # Normalize score from 0-100 to 0-1
+                    normalized_score = options_score.score / 100.0
+
+                    result = {
+                        "example_id": example.example_id,
+                        "dataset_type": example.dataset_type,
+                        "category": example.category,
+                        "question": example.question[:200] + "..." if len(example.question) > 200 else example.question,
+                        "expected": example.answer[:100] + "..." if len(example.answer) > 100 else example.answer,
+                        "predicted": response[:200] + "..." if len(response) > 200 else response,
+                        "score": normalized_score,
+                        "score_raw": options_score.score,
+                        "is_correct": options_score.score >= 70,  # 70/100 threshold
+                        "pnl_accuracy": options_score.pnl_accuracy,
+                        "greeks_accuracy": options_score.greeks_accuracy,
+                        "strategy_quality": options_score.strategy_quality,
+                        "risk_management": options_score.risk_management,
+                        "feedback": options_score.feedback,
+                    }
+                    eval_result = type('obj', (object,), {'score': normalized_score})()
+
                 else:
                     # Generic handling for unknown types
                     result = {

@@ -1,0 +1,372 @@
+{
+  "version": "1.0",
+  "description": "Options Alpha Challenge questions for FAB++ evaluation",
+  "questions": [
+    {
+      "question_id": "opt_pricing_001",
+      "category": "Options Pricing",
+      "difficulty": "medium",
+      "question": "Calculate the fair value of a European call option on AAPL with the following parameters: Current stock price $175, Strike price $180, Risk-free rate 5%, Volatility 25%, Time to expiration 30 days. Use the Black-Scholes model.",
+      "ground_truth": {
+        "call_price": 2.47,
+        "put_price": 6.74,
+        "method": "Black-Scholes"
+      },
+      "rubric": {
+        "components": [
+          {"name": "price_accuracy", "weight": 0.4, "description": "Option price within 5% of BS value"},
+          {"name": "methodology", "weight": 0.3, "description": "Correct application of BS formula"},
+          {"name": "inputs", "weight": 0.2, "description": "Proper handling of inputs (annualized vol, time)"},
+          {"name": "interpretation", "weight": 0.1, "description": "Meaningful interpretation of results"}
+        ]
+      },
+      "ticker": "AAPL",
+      "spot_price": 175.0,
+      "strike": 180.0,
+      "rate": 0.05,
+      "volatility": 0.25,
+      "days_to_expiry": 30
+    },
+    {
+      "question_id": "opt_pricing_002",
+      "category": "Options Pricing",
+      "difficulty": "hard",
+      "question": "NVDA is trading at $450. A 45-day $460 call is priced at $18.50 with implied volatility of 45%. The risk-free rate is 5.25%. Is this option fairly priced, overpriced, or underpriced? Calculate the theoretical value and explain the discrepancy.",
+      "ground_truth": {
+        "theoretical_price": 17.82,
+        "market_price": 18.50,
+        "assessment": "slightly overpriced",
+        "discrepancy_pct": 3.8
+      },
+      "rubric": {
+        "components": [
+          {"name": "calculation", "weight": 0.4, "description": "Correct BS calculation"},
+          {"name": "comparison", "weight": 0.3, "description": "Proper comparison to market price"},
+          {"name": "assessment", "weight": 0.2, "description": "Correct fair value assessment"},
+          {"name": "reasoning", "weight": 0.1, "description": "Explanation of potential causes"}
+        ]
+      },
+      "ticker": "NVDA",
+      "spot_price": 450.0,
+      "strike": 460.0,
+      "rate": 0.0525,
+      "volatility": 0.45,
+      "days_to_expiry": 45,
+      "market_price": 18.50
+    },
+    {
+      "question_id": "greeks_001",
+      "category": "Greeks Analysis",
+      "difficulty": "medium",
+      "question": "Calculate the Greeks (Delta, Gamma, Theta, Vega) for a TSLA $250 call option with 21 days to expiration. TSLA is currently at $245, volatility is 55%, and the risk-free rate is 5%. Explain what each Greek tells us about the position.",
+      "ground_truth": {
+        "delta": 0.42,
+        "gamma": 0.025,
+        "theta": -0.35,
+        "vega": 0.28
+      },
+      "rubric": {
+        "components": [
+          {"name": "delta_accuracy", "weight": 0.25, "description": "Delta within 10% tolerance"},
+          {"name": "gamma_accuracy", "weight": 0.25, "description": "Gamma within 10% tolerance"},
+          {"name": "theta_accuracy", "weight": 0.25, "description": "Theta within 10% tolerance"},
+          {"name": "vega_accuracy", "weight": 0.25, "description": "Vega within 10% tolerance"}
+        ]
+      },
+      "ticker": "TSLA",
+      "spot_price": 245.0,
+      "strike": 250.0,
+      "rate": 0.05,
+      "volatility": 0.55,
+      "days_to_expiry": 21
+    },
+    {
+      "question_id": "greeks_002",
+      "category": "Greeks Analysis",
+      "difficulty": "hard",
+      "question": "You hold a portfolio of SPY options: Long 10 $450 calls (delta 0.55), Short 5 $460 calls (delta 0.35), Long 10 $440 puts (delta -0.30). Calculate the portfolio's net delta and recommend a hedge to make the position delta-neutral.",
+      "ground_truth": {
+        "call_delta_long": 5.5,
+        "call_delta_short": -1.75,
+        "put_delta": -3.0,
+        "net_delta": 0.75,
+        "hedge": "Short 75 shares of SPY"
+      },
+      "rubric": {
+        "components": [
+          {"name": "delta_calculation", "weight": 0.4, "description": "Correct portfolio delta calculation"},
+          {"name": "hedge_direction", "weight": 0.3, "description": "Correct hedge direction (buy/sell)"},
+          {"name": "hedge_size", "weight": 0.2, "description": "Correct hedge quantity"},
+          {"name": "explanation", "weight": 0.1, "description": "Clear explanation of hedge rationale"}
+        ]
+      },
+      "ticker": "SPY",
+      "positions": [
+        {"type": "call", "strike": 450, "quantity": 10, "delta": 0.55},
+        {"type": "call", "strike": 460, "quantity": -5, "delta": 0.35},
+        {"type": "put", "strike": 440, "quantity": 10, "delta": -0.30}
+      ]
+    },
+    {
+      "question_id": "strategy_001",
+      "category": "Strategy Construction",
+      "difficulty": "medium",
+      "question": "Construct an iron condor on SPX (current price $4500) for a neutral outlook. Define the strikes, calculate max profit, max loss, and breakeven points. Assume 30 DTE options with the following prices: 4400P=$8, 4420P=$12, 4580C=$11, 4600C=$7.",
+      "ground_truth": {
+        "strategy": "Iron Condor",
+        "legs": [
+          {"action": "sell", "strike": 4420, "type": "put", "price": 12},
+          {"action": "buy", "strike": 4400, "type": "put", "price": 8},
+          {"action": "sell", "strike": 4580, "type": "call", "price": 11},
+          {"action": "buy", "strike": 4600, "type": "call", "price": 7}
+        ],
+        "max_profit": 8.0,
+        "max_loss": 12.0,
+        "breakeven_lower": 4412,
+        "breakeven_upper": 4588
+      },
+      "rubric": {
+        "components": [
+          {"name": "structure", "weight": 0.3, "description": "Correct iron condor structure"},
+          {"name": "max_profit", "weight": 0.25, "description": "Correct max profit calculation"},
+          {"name": "max_loss", "weight": 0.25, "description": "Correct max loss calculation"},
+          {"name": "breakevens", "weight": 0.2, "description": "Correct breakeven points"}
+        ]
+      },
+      "ticker": "SPX",
+      "spot_price": 4500
+    },
+    {
+      "question_id": "strategy_002",
+      "category": "Strategy Construction",
+      "difficulty": "hard",
+      "question": "AMZN reports earnings in 5 days and is trading at $180. You expect a big move but are unsure of direction. Historical post-earnings moves average 8%. Design an options strategy to profit from this expected volatility. Current ATM straddle costs $14.",
+      "ground_truth": {
+        "strategy": "Long Straddle or Long Strangle",
+        "rationale": "Profit from large move in either direction",
+        "breakeven_move_pct": 7.8,
+        "expected_move_pct": 8.0,
+        "recommendation": "favorable risk/reward"
+      },
+      "rubric": {
+        "components": [
+          {"name": "strategy_choice", "weight": 0.3, "description": "Appropriate volatility strategy"},
+          {"name": "breakeven_analysis", "weight": 0.3, "description": "Correct breakeven calculation"},
+          {"name": "risk_reward", "weight": 0.2, "description": "Proper risk/reward assessment"},
+          {"name": "rationale", "weight": 0.2, "description": "Sound reasoning for strategy"}
+        ]
+      },
+      "ticker": "AMZN",
+      "spot_price": 180,
+      "days_to_expiry": 5,
+      "straddle_cost": 14
+    },
+    {
+      "question_id": "vol_001",
+      "category": "Volatility Trading",
+      "difficulty": "medium",
+      "question": "META's current IV is 35% while its 30-day historical volatility is 28%. The IV percentile is 75% (meaning IV is higher than 75% of readings over the past year). Should you be a net buyer or seller of options? Design a strategy accordingly.",
+      "ground_truth": {
+        "iv_vs_hv": "IV premium of 7%",
+        "iv_percentile_assessment": "elevated",
+        "recommendation": "net seller",
+        "suggested_strategies": ["iron condor", "short strangle", "credit spread"]
+      },
+      "rubric": {
+        "components": [
+          {"name": "iv_analysis", "weight": 0.3, "description": "Correct IV vs HV analysis"},
+          {"name": "percentile_interpretation", "weight": 0.2, "description": "Proper IV percentile interpretation"},
+          {"name": "direction", "weight": 0.3, "description": "Correct buy/sell recommendation"},
+          {"name": "strategy", "weight": 0.2, "description": "Appropriate strategy suggestion"}
+        ]
+      },
+      "ticker": "META",
+      "current_iv": 0.35,
+      "historical_vol": 0.28,
+      "iv_percentile": 75
+    },
+    {
+      "question_id": "vol_002",
+      "category": "Volatility Trading",
+      "difficulty": "expert",
+      "question": "The VIX is at 28 while VIX futures for next month are at 24 (backwardation). SPY 30-day ATM IV is 26%. Analyze this volatility term structure and recommend a volatility trade.",
+      "ground_truth": {
+        "term_structure": "backwardation",
+        "interpretation": "market expects volatility to decrease",
+        "vix_vs_spy_iv": "VIX elevated vs realized",
+        "trade_recommendation": "sell near-term vol, buy longer-term vol (calendar spread)"
+      },
+      "rubric": {
+        "components": [
+          {"name": "structure_analysis", "weight": 0.3, "description": "Correct term structure identification"},
+          {"name": "interpretation", "weight": 0.3, "description": "Sound interpretation of structure"},
+          {"name": "trade_logic", "weight": 0.25, "description": "Logical trade recommendation"},
+          {"name": "risk_awareness", "weight": 0.15, "description": "Awareness of risks"}
+        ]
+      },
+      "vix_spot": 28,
+      "vix_futures": 24,
+      "spy_iv": 0.26
+    },
+    {
+      "question_id": "pnl_001",
+      "category": "P&L Attribution",
+      "difficulty": "medium",
+      "question": "You bought a GOOGL $140 call for $5.50 when the stock was at $138. Now GOOGL is at $142, and the option is worth $7.20. Decompose the P&L into delta, gamma, theta, and vega contributions. Assume: original delta 0.45, gamma 0.03, theta -0.08, vega 0.15. The stock moved $4, IV increased 2%, and 3 days passed.",
+      "ground_truth": {
+        "total_pnl": 1.70,
+        "delta_pnl": 1.80,
+        "gamma_pnl": 0.24,
+        "theta_pnl": -0.24,
+        "vega_pnl": 0.30,
+        "unexplained": -0.40
+      },
+      "rubric": {
+        "components": [
+          {"name": "delta_attribution", "weight": 0.25, "description": "Correct delta P&L"},
+          {"name": "gamma_attribution", "weight": 0.25, "description": "Correct gamma P&L"},
+          {"name": "theta_attribution", "weight": 0.25, "description": "Correct theta P&L"},
+          {"name": "vega_attribution", "weight": 0.25, "description": "Correct vega P&L"}
+        ]
+      },
+      "ticker": "GOOGL",
+      "entry_price": 5.50,
+      "current_price": 7.20,
+      "stock_move": 4,
+      "iv_change": 0.02,
+      "days_passed": 3,
+      "original_greeks": {"delta": 0.45, "gamma": 0.03, "theta": -0.08, "vega": 0.15}
+    },
+    {
+      "question_id": "risk_001",
+      "category": "Risk Management",
+      "difficulty": "medium",
+      "question": "You have a $100,000 options trading account. You want to sell a put spread on QQQ (current price $380). The $370/$360 put spread can be sold for $2.50 credit. Calculate the max loss per spread, position size for 2% account risk, and total buying power required.",
+      "ground_truth": {
+        "max_loss_per_spread": 7.50,
+        "risk_per_spread": 750,
+        "max_account_risk": 2000,
+        "position_size": 2,
+        "buying_power_required": 1500
+      },
+      "rubric": {
+        "components": [
+          {"name": "max_loss_calc", "weight": 0.3, "description": "Correct max loss calculation"},
+          {"name": "position_sizing", "weight": 0.3, "description": "Correct position size for risk"},
+          {"name": "buying_power", "weight": 0.2, "description": "Correct buying power calculation"},
+          {"name": "risk_awareness", "weight": 0.2, "description": "Proper risk management principles"}
+        ]
+      },
+      "ticker": "QQQ",
+      "spot_price": 380,
+      "account_size": 100000,
+      "risk_pct": 0.02,
+      "spread_credit": 2.50,
+      "spread_width": 10
+    },
+    {
+      "question_id": "risk_002",
+      "category": "Risk Management",
+      "difficulty": "hard",
+      "question": "Calculate the 1-day 95% VaR for a portfolio containing: Long 100 shares MSFT ($380), Long 5 MSFT $385 calls (delta 0.48, value $8 each), Short 3 MSFT $390 calls (delta 0.35, value $5 each). MSFT daily volatility is 1.8%.",
+      "ground_truth": {
+        "stock_exposure": 38000,
+        "long_call_delta_exposure": 2400,
+        "short_call_delta_exposure": -1050,
+        "net_delta_exposure": 39350,
+        "daily_vol_dollar": 708.3,
+        "var_95": 1165.65
+      },
+      "rubric": {
+        "components": [
+          {"name": "delta_exposure", "weight": 0.3, "description": "Correct delta exposure calculation"},
+          {"name": "var_methodology", "weight": 0.3, "description": "Correct VaR methodology"},
+          {"name": "var_result", "weight": 0.3, "description": "Accurate VaR calculation"},
+          {"name": "interpretation", "weight": 0.1, "description": "Meaningful interpretation"}
+        ]
+      },
+      "ticker": "MSFT",
+      "spot_price": 380,
+      "daily_vol": 0.018,
+      "confidence": 0.95
+    },
+    {
+      "question_id": "copy_001",
+      "category": "Copy Trading",
+      "difficulty": "medium",
+      "question": "A successful options trader posts the following trade: 'Opened AAPL Feb 16 $185/$190 bull call spread for $2.30 debit. Target: $4.00, Stop: $1.15'. AAPL is at $182. Analyze this trade, calculate the risk/reward, and determine if it's worth copying.",
+      "ground_truth": {
+        "max_profit": 2.70,
+        "max_loss": 2.30,
+        "risk_reward_ratio": 1.17,
+        "breakeven": 187.30,
+        "required_move_pct": 2.9,
+        "assessment": "moderate risk/reward, needs 2.9% move to breakeven"
+      },
+      "rubric": {
+        "components": [
+          {"name": "pnl_analysis", "weight": 0.3, "description": "Correct P&L analysis"},
+          {"name": "risk_reward", "weight": 0.3, "description": "Accurate risk/reward calculation"},
+          {"name": "breakeven", "weight": 0.2, "description": "Correct breakeven calculation"},
+          {"name": "recommendation", "weight": 0.2, "description": "Sound copy recommendation"}
+        ]
+      },
+      "ticker": "AAPL",
+      "spot_price": 182,
+      "spread_strikes": [185, 190],
+      "debit": 2.30,
+      "target": 4.00,
+      "stop": 1.15
+    },
+    {
+      "question_id": "race_001",
+      "category": "Race to 10M",
+      "difficulty": "expert",
+      "question": "You're in a trading competition starting with $100,000 and need to reach $10,000,000 in 12 months. Design an options-based strategy to maximize growth while managing risk of ruin. Consider position sizing, strategy selection, and compounding approach.",
+      "ground_truth": {
+        "required_return": "100x or 9900%",
+        "monthly_compound_rate": "46.8%",
+        "strategy_approach": "concentrated high-conviction plays with strict risk management",
+        "position_sizing": "Kelly criterion or fixed fractional",
+        "risk_of_ruin": "high - requires exceptional skill and luck"
+      },
+      "rubric": {
+        "components": [
+          {"name": "return_analysis", "weight": 0.2, "description": "Realistic return analysis"},
+          {"name": "strategy_selection", "weight": 0.3, "description": "Appropriate strategy choices"},
+          {"name": "risk_management", "weight": 0.3, "description": "Sound risk management approach"},
+          {"name": "feasibility", "weight": 0.2, "description": "Honest feasibility assessment"}
+        ]
+      },
+      "starting_capital": 100000,
+      "target_capital": 10000000,
+      "time_horizon_months": 12
+    },
+    {
+      "question_id": "defense_001",
+      "category": "Strategy Defense",
+      "difficulty": "hard",
+      "question": "You recommended a short strangle on COIN (sold $85 put and $115 call for $8 total credit) when COIN was at $100. COIN has now moved to $120, your position is down $600, and earnings are in 2 days. Defend or adjust your strategy.",
+      "ground_truth": {
+        "current_situation": "tested on upside, near breach",
+        "adjustment_options": ["roll up the call", "close for loss", "add long call hedge"],
+        "earnings_risk": "high - should consider closing",
+        "defense_approach": "close or roll to avoid undefined earnings risk"
+      },
+      "rubric": {
+        "components": [
+          {"name": "situation_analysis", "weight": 0.25, "description": "Accurate situation assessment"},
+          {"name": "adjustment_options", "weight": 0.25, "description": "Valid adjustment alternatives"},
+          {"name": "risk_assessment", "weight": 0.25, "description": "Proper risk evaluation"},
+          {"name": "recommendation", "weight": 0.25, "description": "Sound defensive recommendation"}
+        ]
+      },
+      "ticker": "COIN",
+      "original_price": 100,
+      "current_price": 120,
+      "premium_collected": 8,
+      "current_loss": 600,
+      "days_to_earnings": 2
+    }
+  ]
+}

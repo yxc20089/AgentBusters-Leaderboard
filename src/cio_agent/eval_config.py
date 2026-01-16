@@ -90,8 +90,33 @@ class SyntheticDatasetConfig(BaseModel):
     weight: float = 1.0
 
 
+class OptionsDatasetConfig(BaseModel):
+    """Configuration for Options Alpha Challenge dataset."""
+    type: Literal["options"] = "options"
+    path: str = Field(
+        default="data/options/questions.json",
+        description="Path to options questions JSON file"
+    )
+    categories: Optional[List[str]] = Field(
+        default=None,
+        description="Categories to include. None means all. Options: Options Pricing, Greeks Analysis, Strategy Construction, Volatility Trading, P&L Attribution, Risk Management, Copy Trading, Race to 10M, Strategy Defense"
+    )
+    limit: Optional[int] = Field(
+        default=None,
+        description="Limit number of examples"
+    )
+    shuffle: bool = Field(
+        default=True,
+        description="Shuffle examples"
+    )
+    weight: float = Field(
+        default=1.0,
+        description="Sampling weight relative to other datasets"
+    )
+
+
 # Union type for all dataset configs
-DatasetConfig = Union[BizFinBenchDatasetConfig, PublicCsvDatasetConfig, SyntheticDatasetConfig]
+DatasetConfig = Union[BizFinBenchDatasetConfig, PublicCsvDatasetConfig, SyntheticDatasetConfig, OptionsDatasetConfig]
 
 
 class SamplingConfig(BaseModel):
@@ -222,6 +247,8 @@ class ConfigurableDatasetLoader:
             return self._load_public_csv(config)
         elif config.type == "synthetic":
             return self._load_synthetic(config)
+        elif config.type == "options":
+            return self._load_options(config)
         else:
             raise ValueError(f"Unknown dataset type: {config.type}")
 
@@ -319,7 +346,38 @@ class ConfigurableDatasetLoader:
         
         if config.limit:
             examples = examples[:config.limit]
-        
+
+        return examples
+
+    def _load_options(self, config: "OptionsDatasetConfig") -> List[LoadedExample]:
+        """Load Options Alpha Challenge questions."""
+        from cio_agent.datasets import OptionsDatasetProvider
+
+        provider = OptionsDatasetProvider(
+            path=config.path,
+            categories=config.categories,
+            limit=config.limit,
+            shuffle=config.shuffle,
+        )
+        raw_examples = provider.load()
+
+        examples = []
+        for ex in raw_examples:
+            category = ex.category.value if hasattr(ex.category, 'value') else str(ex.category)
+
+            examples.append(LoadedExample(
+                example_id=ex.example_id,
+                question=ex.question,
+                answer=ex.answer,
+                dataset_type="options",
+                category=category,
+                metadata={
+                    "source": "options",
+                    "rubric": getattr(ex, 'rubric', None),
+                    **ex.metadata,
+                },
+            ))
+
         return examples
 
     def _apply_sampling(self, examples: List[LoadedExample]) -> List[LoadedExample]:
@@ -464,6 +522,10 @@ def create_default_config() -> EvaluationConfig:
             PublicCsvDatasetConfig(
                 path="finance-agent/data/public.csv",
                 limit=20,
+            ),
+            OptionsDatasetConfig(
+                path="data/options/questions.json",
+                limit=10,
             ),
         ],
         sampling=SamplingConfig(

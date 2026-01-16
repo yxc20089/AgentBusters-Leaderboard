@@ -1,8 +1,16 @@
 """
 Base class for dataset-specific evaluators.
 
-Each dataset (public.csv, BizFinBench.v2, etc.) has its own evaluation criteria.
+Each dataset (public.csv, BizFinBench.v2, Options, etc.) has its own evaluation criteria.
 This module provides the abstract base class that all dataset evaluators implement.
+
+SCORING CONVENTION:
+    - All evaluators should return scores normalized to 0.0 - 1.0 scale
+    - BizFinBenchEvaluator: 0.0 or 1.0 (binary correct/incorrect)
+    - PublicCsvEvaluator: 0.0 to 1.0 (correctness - penalties, normalized)
+    - OptionsEvaluator: Returns 0-100 internally, caller should normalize to 0-1
+
+    The GreenAgent normalizes all scores to 0-1 for consistent aggregation.
 """
 
 from abc import ABC, abstractmethod
