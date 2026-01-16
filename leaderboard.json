@@ -1,7 +1,7 @@
 [
   {
     "name": "Overall Performance",
-    "query": "SELECT participants.purple_agent AS id, ROUND(r.overall_score.score, 1) AS \"Score\", r.overall_score.grade AS \"Grade\", r.evaluation_metadata.num_tasks AS \"Tasks\", r.evaluation_metadata.num_successful AS \"Passed\" FROM (SELECT participants, results[1] AS r FROM results) ORDER BY r.overall_score.score DESC"
+    "query": "SELECT participants.purple_agent AS id, ROUND(r.overall_score.score, 1) AS \"Score\", r.evaluation_metadata.num_tasks AS \"Tasks\", r.evaluation_metadata.num_successful AS \"Passed\" FROM (SELECT participants, results[1] AS r FROM results) ORDER BY r.overall_score.score DESC"
   },
   {
     "name": "Section Breakdown",
