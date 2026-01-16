@@ -109,19 +109,37 @@ async def send_message(
 class Messenger:
     """
     A2A Messenger for communicating with Purple Agents.
-    
+
     Maintains conversation context across multiple message exchanges.
+    Caches agent cards to avoid repeated fetches.
     """
-    
-    def __init__(self):
+
+    def __init__(self, timeout: int = DEFAULT_TIMEOUT):
         self._context_ids = {}
+        self._agent_cards = {}
+        self._timeout = timeout
+        self._httpx_client = None
+
+    async def _get_client(self) -> httpx.AsyncClient:
+        """Get or create the shared httpx client."""
+        if self._httpx_client is None:
+            self._httpx_client = httpx.AsyncClient(timeout=self._timeout)
+        return self._httpx_client
+
+    async def _get_agent_card(self, url: str):
+        """Get agent card, using cache if available."""
+        if url not in self._agent_cards:
+            httpx_client = await self._get_client()
+            resolver = A2ACardResolver(httpx_client=httpx_client, base_url=url)
+            self._agent_cards[url] = await resolver.get_agent_card()
+        return self._agent_cards[url]
 
     async def talk_to_agent(
         self,
         message: str,
         url: str,
         new_conversation: bool = False,
-        timeout: int = DEFAULT_TIMEOUT,
+        timeout: int | None = None,
     ) -> str:
         """
         Send a message to a Purple Agent and receive their response.
@@ -130,22 +148,60 @@ class Messenger:
             message: The message to send to the agent
             url: The agent's URL endpoint
             new_conversation: If True, start fresh conversation; if False, continue existing
-            timeout: Timeout in seconds for the request (default: 300)
+            timeout: Timeout in seconds for the request (default: uses instance timeout)
 
         Returns:
             str: The agent's response message
         """
-        outputs = await send_message(
-            message=message,
-            base_url=url,
-            context_id=None if new_conversation else self._context_ids.get(url, None),
-            timeout=timeout,
+        httpx_client = await self._get_client()
+        agent_card = await self._get_agent_card(url)
+
+        config = ClientConfig(
+            httpx_client=httpx_client,
+            streaming=False,
         )
+        factory = ClientFactory(config)
+        client = factory.create(agent_card)
+
+        context_id = None if new_conversation else self._context_ids.get(url, None)
+        outbound_msg = create_message(text=message, context_id=context_id)
+
+        last_event = None
+        outputs = {"response": "", "context_id": None}
+
+        async for event in client.send_message(outbound_msg):
+            last_event = event
+
+        match last_event:
+            case Message() as msg:
+                outputs["context_id"] = msg.context_id
+                outputs["response"] += merge_parts(msg.parts)
+
+            case (task, update):
+                outputs["context_id"] = task.context_id
+                outputs["status"] = task.status.state.value
+                msg = task.status.message
+                if msg:
+                    outputs["response"] += merge_parts(msg.parts)
+                if task.artifacts:
+                    for artifact in task.artifacts:
+                        outputs["response"] += merge_parts(artifact.parts)
+
+            case _:
+                pass
+
         if outputs.get("status", "completed") != "completed":
             raise RuntimeError(f"{url} responded with: {outputs}")
         self._context_ids[url] = outputs.get("context_id", None)
         return outputs["response"]
 
+    async def close(self):
+        """Close the httpx client."""
+        if self._httpx_client is not None:
+            await self._httpx_client.aclose()
+            self._httpx_client = None
+
     def reset(self):
-        """Reset all conversation contexts."""
+        """Reset all conversation contexts and agent card cache."""
         self._context_ids = {}
+        self._agent_cards = {}
