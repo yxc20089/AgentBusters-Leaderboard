@@ -30,4 +30,4 @@ bizfinbench_limit = 4
 public_csv_limit = 3
 options_limit = 3
 
-# Trigger: 2026-01-16 Added eval_config.yaml to green agent
+# Trigger: 2026-01-16 Pass --eval-config in docker-compose command
