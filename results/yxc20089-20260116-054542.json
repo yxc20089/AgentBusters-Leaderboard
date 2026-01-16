@@ -1,0 +1,114 @@
+{
+  "participants": {
+    "purple_agent": "019bc4dd-f03b-7a11-9e64-61fce92c8d95"
+  },
+  "results": [
+    {
+      "benchmark": "FAB++ FAB++ Multi-Dataset Evaluation",
+      "version": "1.0",
+      "purple_agent": "http://purple_agent:9009/",
+      "config_summary": {
+        "total": 20,
+        "by_dataset": {
+          "public_csv": 10,
+          "options": 10
+        },
+        "by_task_type": {},
+        "by_category": {
+          "Complex Retrieval": 2,
+          "Greeks Analysis": 2,
+          "Trends": 1,
+          "Strategy Construction": 2,
+          "Qualitative Retrieval": 2,
+          "Risk Management": 1,
+          "Market Analysis": 1,
+          "P&L Attribution": 1,
+          "Numerical Reasoning": 1,
+          "Options Pricing": 1,
+          "Quantitative Retrieval": 1,
+          "Race to 10M": 1,
+          "Beat or Miss": 2,
+          "Volatility Trading": 1,
+          "Strategy Defense": 1
+        }
+      },
+      "num_evaluated": 10,
+      "num_successful": 0,
+      "average_score": 0.0,
+      "accuracy": 0.0,
+      "by_dataset": {},
+      "results": [
+        {
+          "example_id": "csv_finance_5",
+          "dataset_type": "public_csv",
+          "error": "http://purple_agent:9009/ responded with: {'response': \"Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value='Of AMZN, META, or GOOG, ... most in capex in 2025?', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid\", 'context_id': 'a4f22736-ee51-4884-a668-ebdd549078f5', 'status': 'rejected'}",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "greeks_002",
+          "dataset_type": "options",
+          "error": "http://purple_agent:9009/ responded with: {'response': 'Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value=\"You hold a portfolio of ...position delta-neutral.\", input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid', 'context_id': 'bce93440-e793-4d49-b637-00062e397998', 'status': 'rejected'}",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "csv_finance_1",
+          "dataset_type": "public_csv",
+          "error": "http://purple_agent:9009/ responded with: {'response': 'Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value=\"How has Netflix\\'s (NASDA...nged from 2019 to 2024?\", input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid', 'context_id': 'df8492e5-9245-4be9-b165-37ca95de37cb', 'status': 'rejected'}",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "strategy_001",
+          "dataset_type": "options",
+          "error": "http://purple_agent:9009/ responded with: {'response': \"Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value='Construct an iron condor...2, 4580C=$11, 4600C=$7.', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid\", 'context_id': 'e724bb0f-2092-48a5-b6f7-f412d6a5944f', 'status': 'rejected'}",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "csv_finance_3",
+          "dataset_type": "public_csv",
+          "error": "http://purple_agent:9009/ responded with: {'response': \"Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value='How large was the range ... break for each period.', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid\", 'context_id': '896fbbde-8142-49f1-a285-e1a5815c05f1', 'status': 'rejected'}",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "greeks_001",
+          "dataset_type": "options",
+          "error": "http://purple_agent:9009/ responded with: {'response': \"Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value='Calculate the Greeks (De... us about the position.', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid\", 'context_id': '7430fdba-f4d2-4b73-82bf-eaad5d8223f5', 'status': 'rejected'}",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "csv_finance_4",
+          "dataset_type": "public_csv",
+          "error": "http://purple_agent:9009/ responded with: {'response': 'Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected ident at line 1 column 3 [type=json_invalid, input_value=\"In 2024, who was Nominat...I) Board of Directors? \", input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid', 'context_id': '01b4fd90-ade2-4bb4-a7de-83289cff026b', 'status': 'rejected'}",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "risk_002",
+          "dataset_type": "options",
+          "error": "http://purple_agent:9009/ responded with: {'response': \"Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value='Calculate the 1-day 95% ...ily volatility is 1.8%.', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid\", 'context_id': '107c5efb-bc34-45c1-9542-e2be6e618b74', 'status': 'rejected'}",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "csv_finance_0",
+          "dataset_type": "public_csv",
+          "error": "http://purple_agent:9009/ responded with: {'response': \"Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value='How has US Steel address...ts business operations?', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid\", 'context_id': '96a639ac-1c4d-4c01-9629-301a844b7bd8', 'status': 'rejected'}",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "pnl_001",
+          "dataset_type": "options",
+          "error": "http://purple_agent:9009/ responded with: {'response': \"Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value='You bought a GOOGL $140 ... 2%, and 3 days passed.', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid\", 'context_id': 'f1a6f86f-6d20-4fc2-90fd-b41ecb235c1e', 'status': 'rejected'}",
+          "score": 0.0,
+          "is_correct": false
+        }
+      ]
+    }
+  ]
+}
