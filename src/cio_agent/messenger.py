@@ -6,9 +6,12 @@ Based on the official green-agent-template from RDI-Foundation.
 """
 
 import json
+import logging
 from uuid import uuid4
 
 import httpx
+
+logger = logging.getLogger(__name__)
 from a2a.client import (
     A2ACardResolver,
     ClientConfig,
@@ -156,6 +159,10 @@ class Messenger:
         Returns:
             str: The agent's response message
         """
+        # Log the outgoing question
+        msg_preview = message[:200] + "..." if len(message) > 200 else message
+        logger.info(f"[QUESTION] Sending to {url}: {msg_preview}")
+
         client = await self._get_a2a_client(url)
 
         context_id = None if new_conversation else self._context_ids.get(url, None)
@@ -188,6 +195,11 @@ class Messenger:
         if outputs.get("status", "completed") != "completed":
             raise RuntimeError(f"{url} responded with: {outputs}")
         self._context_ids[url] = outputs.get("context_id", None)
+
+        # Log the response
+        resp_preview = outputs["response"][:200] + "..." if len(outputs["response"]) > 200 else outputs["response"]
+        logger.info(f"[RESPONSE] From {url}: {resp_preview}")
+
         return outputs["response"]
 
     async def close(self):

@@ -361,8 +361,22 @@ Respond with ONLY the task type (e.g., "options_pricing"). Nothing else."""
 
         # Extract ticker symbols (uppercase letters, 1-5 chars)
         tickers = re.findall(r'\b([A-Z]{1,5})\b', user_input)
-        # Filter common words that might match
-        common_words = {"Q", "FY", "EPS", "PE", "ROE", "YOY", "QOQ", "CEO", "CFO", "SEC", "AI", "US", "GDP", "ATM", "OTM", "ITM", "DTE", "IV", "HV", "BS"}
+        # Filter common words that might match (including tech/finance terms)
+        common_words = {
+            # Finance terms
+            "Q", "FY", "EPS", "PE", "ROE", "YOY", "QOQ", "CEO", "CFO", "SEC", "AI", "US", "GDP",
+            "ATM", "OTM", "ITM", "DTE", "IV", "HV", "BS", "NPV", "IRR", "EBIT", "WACC", "DCF",
+            "IPO", "ETF", "NAV", "AUM", "P", "E", "B", "S", "M", "K", "T", "USD", "EUR", "GBP",
+            # Tech/format terms often in BizFinBench questions
+            "JSON", "XML", "HTML", "CSV", "API", "HTTP", "URL", "SQL", "PHP", "CSS", "JS",
+            # Common words in questions
+            "THE", "AND", "FOR", "NOT", "ARE", "BUT", "ALL", "CAN", "HER", "WAS", "ONE", "OUR",
+            "OUT", "YOU", "HAD", "HAS", "HIS", "HOW", "ITS", "MAY", "NEW", "NOW", "OLD", "SEE",
+            "WAY", "WHO", "DID", "GET", "LET", "PUT", "SAY", "SHE", "TOO", "USE", "YES", "NO",
+            "IF", "IN", "IS", "IT", "OF", "ON", "OR", "TO", "UP", "SO", "BY", "AS", "AT", "AN",
+            # Data/analysis terms
+            "DATA", "FILE", "FROM", "INTO", "NULL", "TRUE", "WITH", "YEAR", "DATE", "THIS",
+        }
         task_info["tickers"] = [t for t in tickers if t not in common_words]
 
         # Try LLM classification first, fall back to keywords
