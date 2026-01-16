@@ -23,7 +23,7 @@ from enum import Enum
 from pathlib import Path
 from typing import List, Union
 
-from cio_agent.datasets.base import DatasetExample, DatasetProvider
+from cio_agent.data_providers.base import DatasetExample, DatasetProvider
 from cio_agent.models import (
     FABQuestionTemplate,
     GroundTruth,

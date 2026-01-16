@@ -18,7 +18,7 @@ import logging
 from functools import lru_cache
 from typing import Any, Dict, List, Optional
 
-from cio_agent.datasets.base import DatasetExample, DatasetProvider
+from cio_agent.data_providers.base import DatasetExample, DatasetProvider
 from cio_agent.models import (
     FABQuestionTemplate,
     GroundTruth,

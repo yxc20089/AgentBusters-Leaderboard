@@ -258,7 +258,7 @@ class ConfigurableDatasetLoader:
 
     def _load_bizfinbench(self, config: BizFinBenchDatasetConfig) -> List[LoadedExample]:
         """Load BizFinBench examples from HuggingFace API."""
-        from cio_agent.datasets import BizFinBenchProvider
+        from cio_agent.data_providers import BizFinBenchProvider
 
         examples = []
 
@@ -293,7 +293,7 @@ class ConfigurableDatasetLoader:
 
     def _load_public_csv(self, config: PublicCsvDatasetConfig) -> List[LoadedExample]:
         """Load public.csv examples."""
-        from cio_agent.datasets import CsvFinanceDatasetProvider
+        from cio_agent.data_providers import CsvFinanceDatasetProvider
         
         provider = CsvFinanceDatasetProvider(path=config.path)
         raw_examples = provider.load()
@@ -357,7 +357,7 @@ class ConfigurableDatasetLoader:
 
     def _load_options(self, config: "OptionsDatasetConfig") -> List[LoadedExample]:
         """Load Options Alpha Challenge questions."""
-        from cio_agent.datasets import OptionsDatasetProvider
+        from cio_agent.data_providers import OptionsDatasetProvider
 
         provider = OptionsDatasetProvider(
             path=config.path,

@@ -25,7 +25,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from cio_agent.task_generator import DynamicTaskGenerator, FABDataset
 from cio_agent.evaluator import ComprehensiveEvaluator, EvaluationReporter
 from cio_agent.models import TaskCategory, TaskDifficulty, Task, GroundTruth, TaskRubric
-from cio_agent.datasets.csv_provider import CsvFinanceDatasetProvider
+from cio_agent.data_providers.csv_provider import CsvFinanceDatasetProvider
 from cio_agent.a2a_client import PurpleHTTPAgentClient
 
 # Load environment variables from .env so default model picks up LLM_MODEL/OPENAI_API_BASE

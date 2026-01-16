@@ -23,7 +23,7 @@ from cio_agent.models import (
     FinancialData,
     FABQuestionTemplate,
 )
-from cio_agent.datasets.base import DatasetProvider, DatasetExample
+from cio_agent.data_providers.base import DatasetProvider, DatasetExample
 
 logger = structlog.get_logger()
 

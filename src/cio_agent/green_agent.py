@@ -34,7 +34,7 @@ from cio_agent.eval_config import (
 from cio_agent.agentbeats_results import format_and_save_results
 
 # Dataset providers (for legacy single-dataset mode)
-from cio_agent.datasets import BizFinBenchProvider, CsvFinanceDatasetProvider
+from cio_agent.data_providers import BizFinBenchProvider, CsvFinanceDatasetProvider
 
 # Dataset-specific evaluators
 from evaluators import BizFinBenchEvaluator, PublicCsvEvaluator, OptionsEvaluator
