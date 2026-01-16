@@ -1,0 +1,78 @@
+{
+  "participants": {
+    "purple_agent": "019bc4dd-f03b-7a11-9e64-61fce92c8d95"
+  },
+  "results": [
+    {
+      "benchmark": "FAB++ Finance Agent Benchmark",
+      "version": "1.0.0",
+      "purple_agent": "http://purple_agent:9009/",
+      "ticker": "NVDA",
+      "num_tasks": 10,
+      "num_successful": 10,
+      "average_alpha_score": 63998.33,
+      "results": [
+        {
+          "task_id": "FAB_011_variant_META_2022",
+          "alpha_score": 63100.0,
+          "role_score": 63.1,
+          "debate_multiplier": 1.0
+        },
+        {
+          "task_id": "OPT_020_variant_META_2022",
+          "alpha_score": 68000.0,
+          "role_score": 68.0,
+          "debate_multiplier": 1.0
+        },
+        {
+          "task_id": "OPT_040_variant_AAPL_2023",
+          "alpha_score": 49000.0,
+          "role_score": 49.0,
+          "debate_multiplier": 1.0
+        },
+        {
+          "task_id": "OPT_070_literal_2021",
+          "alpha_score": 74000.0,
+          "role_score": 74.0,
+          "debate_multiplier": 1.0
+        },
+        {
+          "task_id": "OPT_030_variant_NKE_2020",
+          "alpha_score": 62000.0,
+          "role_score": 62.0,
+          "debate_multiplier": 1.0
+        },
+        {
+          "task_id": "FAB_060_variant_AMZN_2023",
+          "alpha_score": 63100.0,
+          "role_score": 63.1,
+          "debate_multiplier": 1.0
+        },
+        {
+          "task_id": "OPT_031_variant_HD_2023",
+          "alpha_score": 77333.33333333334,
+          "role_score": 77.33333333333334,
+          "debate_multiplier": 1.0
+        },
+        {
+          "task_id": "FAB_070_variant_V_2021",
+          "alpha_score": 51250.0,
+          "role_score": 51.25,
+          "debate_multiplier": 1.0
+        },
+        {
+          "task_id": "FAB_070_variant_V_2024",
+          "alpha_score": 68350.0,
+          "role_score": 68.35,
+          "debate_multiplier": 1.0
+        },
+        {
+          "task_id": "FAB_070_variant_MS_2024",
+          "alpha_score": 63850.0,
+          "role_score": 63.85,
+          "debate_multiplier": 1.0
+        }
+      ]
+    }
+  ]
+}

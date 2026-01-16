@@ -1,0 +1,17 @@
+{
+  "image_digests": {
+    "green-agent": "ghcr.io/yxc20089/agentbusters-green@sha256:1d007ad0a53c8296e8921d682b8dbb9c87d3142b499b8355a0c9058e12471858",
+    "purple_agent": "ghcr.io/yxc20089/agentbusters-purple@sha256:9b1242fdeaecc417e3c7ba7c19f5cb20f3069b0cbe3d0399d864f641c2383336",
+    "agentbeats-client": "ghcr.io/agentbeats/agentbeats-client@sha256:13dfe3ef4e583a80e7ce2fe3becd0ce3b879841368a7f4fa40b6ebbabeeb014e"
+  },
+  "timestamp": "2026-01-16T08:28:17Z",
+  "github_actions": {
+    "run_url": "https://github.com/yxc20089/AgentBusters-Leaderboard/actions/runs/21060310907",
+    "run_logs_url": "https://api.github.com/repos/yxc20089/AgentBusters-Leaderboard/actions/runs/21060310907/logs",
+    "ref": "refs/heads/test-unified-scoring",
+    "sha": "f1f3a8b0fe60ae26e5cc03bf73ca277ff7a75f6c",
+    "repository_url": "https://github.com/yxc20089/AgentBusters-Leaderboard",
+    "workflow_ref": "yxc20089/AgentBusters-Leaderboard/.github/workflows/run-scenario.yml@refs/heads/test-unified-scoring",
+    "workflow_sha": "f1f3a8b0fe60ae26e5cc03bf73ca277ff7a75f6c"
+  }
+}
