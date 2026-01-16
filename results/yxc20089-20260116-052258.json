@@ -1,0 +1,68 @@
+{
+  "participants": {
+    "purple_agent": "019bc4dd-f03b-7a11-9e64-61fce92c8d95"
+  },
+  "results": [
+    {
+      "benchmark": "FAB++ Finance Agent Benchmark",
+      "version": "1.0.0",
+      "purple_agent": "http://purple_agent:9009/",
+      "ticker": "NVDA",
+      "num_tasks": 10,
+      "num_successful": 0,
+      "average_alpha_score": 0.0,
+      "results": [
+        {
+          "task_id": "FAB_003_variant_ADBE_2024",
+          "error": "http://purple_agent:9009/ responded with: {'response': 'Invalid request: 2 validation errors for EvalRequest\\nparticipants\\n  Field required [type=missing, input_value={\\'question\\': \"What was AD...Quantitative Retrieval\\'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nconfig\\n  Field required [type=missing, input_value={\\'question\\': \"What was AD...Quantitative Retrieval\\'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing', 'context_id': '4a92b4ed-be72-49d2-af29-c057506f6ab9', 'status': 'rejected'}",
+          "alpha_score": 0.0
+        },
+        {
+          "task_id": "OPT_050_variant_NVDA_2020",
+          "error": "http://purple_agent:9009/ responded with: {'response': \"Invalid request: 2 validation errors for EvalRequest\\nparticipants\\n  Field required [type=missing, input_value={'question': 'Size a NVDA...ory': 'Risk Management'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nconfig\\n  Field required [type=missing, input_value={'question': 'Size a NVDA...ory': 'Risk Management'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\", 'context_id': 'cc53838c-4594-46ed-9c18-9578cb772497', 'status': 'rejected'}",
+          "alpha_score": 0.0
+        },
+        {
+          "task_id": "OPT_001_variant_GOOGL_2021",
+          "error": "http://purple_agent:9009/ responded with: {'response': \"Invalid request: 2 validation errors for EvalRequest\\nparticipants\\n  Field required [type=missing, input_value={'question': 'Calculate t...ory': 'Options Pricing'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nconfig\\n  Field required [type=missing, input_value={'question': 'Calculate t...ory': 'Options Pricing'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\", 'context_id': '7aa09926-dd94-4ed8-b3c1-02c62412fe30', 'status': 'rejected'}",
+          "alpha_score": 0.0
+        },
+        {
+          "task_id": "OPT_022_variant_MSFT_2021",
+          "error": "http://purple_agent:9009/ responded with: {'response': \"Invalid request: 2 validation errors for EvalRequest\\nparticipants\\n  Field required [type=missing, input_value={'question': 'Create a pr...'Strategy Construction'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nconfig\\n  Field required [type=missing, input_value={'question': 'Create a pr...'Strategy Construction'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\", 'context_id': '5f66f376-6af8-4617-9a74-7065d5ac3a17', 'status': 'rejected'}",
+          "alpha_score": 0.0
+        },
+        {
+          "task_id": "FAB_003_variant_MSFT_2022",
+          "error": "http://purple_agent:9009/ responded with: {'response': 'Invalid request: 2 validation errors for EvalRequest\\nparticipants\\n  Field required [type=missing, input_value={\\'question\\': \"What was MS...Quantitative Retrieval\\'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nconfig\\n  Field required [type=missing, input_value={\\'question\\': \"What was MS...Quantitative Retrieval\\'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing', 'context_id': 'c1a1872f-b684-472e-84df-330a60b93ced', 'status': 'rejected'}",
+          "alpha_score": 0.0
+        },
+        {
+          "task_id": "OPT_080_variant_LOW_2024",
+          "error": "http://purple_agent:9009/ responded with: {'response': 'Invalid request: 2 validation errors for EvalRequest\\nparticipants\\n  Field required [type=missing, input_value={\\'question\\': \"You\\'ve buil...ry\\': \\'Strategy Defense\\'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nconfig\\n  Field required [type=missing, input_value={\\'question\\': \"You\\'ve buil...ry\\': \\'Strategy Defense\\'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing', 'context_id': 'fab55ce3-b315-44d6-ac98-529faa7123ea', 'status': 'rejected'}",
+          "alpha_score": 0.0
+        },
+        {
+          "task_id": "FAB_060_variant_SBUX_2020",
+          "error": "http://purple_agent:9009/ responded with: {'response': 'Invalid request: 2 validation errors for EvalRequest\\nparticipants\\n  Field required [type=missing, input_value={\\'question\\': \"What is the...0, \\'category\\': \\'Trends\\'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nconfig\\n  Field required [type=missing, input_value={\\'question\\': \"What is the...0, \\'category\\': \\'Trends\\'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing', 'context_id': 'd79f79be-5a03-4c61-a543-72a3df8c23a9', 'status': 'rejected'}",
+          "alpha_score": 0.0
+        },
+        {
+          "task_id": "OPT_040_variant_CRM_2020",
+          "error": "http://purple_agent:9009/ responded with: {'response': \"Invalid request: 2 validation errors for EvalRequest\\nparticipants\\n  Field required [type=missing, input_value={'question': 'Your CRM st...ory': 'P&L Attribution'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nconfig\\n  Field required [type=missing, input_value={'question': 'Your CRM st...ory': 'P&L Attribution'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\", 'context_id': 'c0fa9d58-0847-453c-9131-e91a64d89009', 'status': 'rejected'}",
+          "alpha_score": 0.0
+        },
+        {
+          "task_id": "FAB_020_variant_ORCL_2023",
+          "error": "http://purple_agent:9009/ responded with: {'response': 'Invalid request: 2 validation errors for EvalRequest\\nparticipants\\n  Field required [type=missing, input_value={\\'question\\': \"Calculate O...: \\'Numerical Reasoning\\'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nconfig\\n  Field required [type=missing, input_value={\\'question\\': \"Calculate O...: \\'Numerical Reasoning\\'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing', 'context_id': 'acacbfa0-c10f-4b40-a633-7c5555543710', 'status': 'rejected'}",
+          "alpha_score": 0.0
+        },
+        {
+          "task_id": "FAB_070_variant_WFC_2021",
+          "error": "http://purple_agent:9009/ responded with: {'response': 'Invalid request: 2 validation errors for EvalRequest\\nparticipants\\n  Field required [type=missing, input_value={\\'question\\': \"Build a sim...\\': \\'Financial Modeling\\'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing\\nconfig\\n  Field required [type=missing, input_value={\\'question\\': \"Build a sim...\\': \\'Financial Modeling\\'}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.12/v/missing', 'context_id': '55c887a3-81be-4167-b815-8256462bb535', 'status': 'rejected'}",
+          "alpha_score": 0.0
+        }
+      ]
+    }
+  ]
+}
