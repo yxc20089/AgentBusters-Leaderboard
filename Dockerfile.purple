@@ -53,5 +53,6 @@ ENV HOST=0.0.0.0
 ENV PORT=9110
 ENV PYTHONPATH=/app/src:/app
 
-# Run the Purple Agent server
-CMD ["purple-agent", "serve", "--host", "0.0.0.0", "--port", "9110"]
+# Run the Purple Agent server (ENTRYPOINT + CMD for docker-compose compatibility)
+ENTRYPOINT ["purple-agent", "serve"]
+CMD ["--host", "0.0.0.0", "--port", "9110"]
