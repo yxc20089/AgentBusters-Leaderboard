@@ -178,6 +178,7 @@ def format_depends_on(services: list) -> str:
 def generate_docker_compose(scenario: dict[str, Any]) -> str:
     green = scenario["green_agent"]
     participants = scenario.get("participants", [])
+    config = scenario.get("config", {})
 
     participant_names = [p["name"] for p in participants]
 
@@ -193,10 +194,29 @@ def generate_docker_compose(scenario: dict[str, Any]) -> str:
 
     all_services = ["green-agent"] + participant_names
 
+    # Build green agent environment with config values
+    green_env = green.get("env", {}).copy()
+
+    # Add purple agent URL (first participant with name purple_agent)
+    for p in participants:
+        if p["name"] == "purple_agent":
+            green_env["PURPLE_AGENT_URL"] = f"http://purple_agent:{DEFAULT_PORT}"
+            if "agentbeats_id" in p:
+                green_env["AGENTBEATS_PURPLE_AGENT_ID"] = p["agentbeats_id"]
+            break
+
+    # Add config values as environment variables
+    if "num_tasks" in config:
+        green_env["EVAL_NUM_TASKS"] = str(config["num_tasks"])
+    if "conduct_debate" in config:
+        green_env["EVAL_CONDUCT_DEBATE"] = str(config["conduct_debate"]).lower()
+    if "timeout_seconds" in config:
+        green_env["EVAL_TIMEOUT_SECONDS"] = str(config["timeout_seconds"])
+
     return COMPOSE_TEMPLATE.format(
         green_image=green["image"],
         green_port=DEFAULT_PORT,
-        green_env=format_env_vars(green.get("env", {})),
+        green_env=format_env_vars(green_env),
         green_depends=format_depends_on(participant_names),
         participant_services=participant_services,
         client_depends=format_depends_on(all_services)
