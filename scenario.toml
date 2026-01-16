@@ -30,4 +30,4 @@ bizfinbench_limit = 4
 public_csv_limit = 3
 options_limit = 3
 
-# Trigger: 2026-01-16 added --card-url CLI option
+# Trigger: 2026-01-16 fixed SQLite conflict
