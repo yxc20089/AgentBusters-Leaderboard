@@ -30,7 +30,7 @@ jobs:
 
       - name: Pull images
         run: |
-          if ! docker compose pull; then
+          if ! docker compose pull --policy always; then
             echo ""
             echo "Error: Failed to pull one or more images."
             echo "Ensure all images are publicly accessible."
