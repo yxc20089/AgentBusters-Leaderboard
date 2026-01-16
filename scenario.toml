@@ -30,4 +30,4 @@ bizfinbench_limit = 4
 public_csv_limit = 3
 options_limit = 3
 
-# Trigger: 2026-01-16 rebuild with HuggingFace dynamic data
+# Trigger: 2026-01-16 rebuild with LLM-based evaluation (no PyTorch)
