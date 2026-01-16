@@ -39,33 +39,14 @@ from cio_agent.datasets import BizFinBenchProvider, CsvFinanceDatasetProvider
 from evaluators import BizFinBenchEvaluator, PublicCsvEvaluator, OptionsEvaluator
 
 
-class Participant(BaseModel):
-    """A participant in the evaluation (from agentbeats-client)."""
-    role: str
-    endpoint: HttpUrl
-    agentbeats_id: Optional[str] = None
-
-
 class EvalRequest(BaseModel):
     """
     Request format sent by the AgentBeats platform to green agents.
 
     The platform sends this JSON structure when initiating an assessment.
-    Participants are sent as an array of {role, endpoint, agentbeats_id} objects.
     """
-    participants: List[Participant]  # List of participant objects
+    participants: dict[str, HttpUrl]  # role -> agent URL
     config: dict[str, Any]
-
-    def get_participant_url(self, role: str) -> Optional[str]:
-        """Get the endpoint URL for a participant by role."""
-        for p in self.participants:
-            if p.role == role:
-                return str(p.endpoint)
-        return None
-
-    def get_participant_roles(self) -> set[str]:
-        """Get all participant roles."""
-        return {p.role for p in self.participants}
 
 
 class GreenAgent:
@@ -181,7 +162,7 @@ class GreenAgent:
 
     def validate_request(self, request: EvalRequest) -> tuple[bool, str]:
         """Validate the assessment request."""
-        missing_roles = set(self.required_roles) - request.get_participant_roles()
+        missing_roles = set(self.required_roles) - set(request.participants.keys())
         if missing_roles:
             return False, f"Missing roles: {missing_roles}"
 
@@ -213,7 +194,7 @@ class GreenAgent:
             return
 
         # Extract configuration
-        purple_agent_url = request.get_participant_url("purple_agent")
+        purple_agent_url = str(request.participants["purple_agent"])
         ticker = request.config.get("ticker", "NVDA")
         task_category = request.config.get("task_category", "beat_or_miss")
         num_tasks = request.config.get("num_tasks", 1)
