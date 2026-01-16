@@ -18,8 +18,11 @@ COPY pyproject.toml .
 COPY src/ ./src/
 COPY scripts/ ./scripts/
 
-# Install the package
-RUN uv pip install --system -e ".[dev]"
+# Install CPU-only PyTorch first (much smaller than full PyTorch with CUDA)
+RUN uv pip install --system torch --index-url https://download.pytorch.org/whl/cpu
+
+# Install the package (without dev dependencies)
+RUN uv pip install --system -e .
 
 # Expose A2A port
 EXPOSE 9110
