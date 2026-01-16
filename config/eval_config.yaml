@@ -23,6 +23,12 @@ datasets:
     shuffle: true
     weight: 1.0
 
+  - type: synthetic
+    path: "data/synthetic_questions/questions.json"
+    limit: 10
+    shuffle: true
+    weight: 1.0
+
 sampling:
   strategy: stratified
   total_limit: 30
