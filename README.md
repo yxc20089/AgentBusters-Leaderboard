@@ -58,27 +58,41 @@ cp .env.example .env
 
 ## Overview
 
-The CIO-Agent FAB++ system evaluates AI agents on financial analysis tasks using:
+The CIO-Agent FAB++ system evaluates AI agents on financial analysis tasks using a **unified scoring system** across three weighted sections:
 
-- **FAB++ (Finance Agent Benchmark)**: Dynamic variant with 537+ questions across **18 categories**
+| Section | Weight | Datasets | Skills Tested |
+|---------|--------|----------|---------------|
+| **Knowledge Retrieval** | 30% | BizFinBench, Public CSV | Data extraction, financial facts |
+| **Analytical Reasoning** | 35% | Synthetic Questions | Logic puzzles, multi-step calculations |
+| **Options Trading** | 35% | Options Alpha | Derivatives, Greeks, strategies |
+
+### Final Score Calculation
+
+```
+OverallScore = 0.30 × Knowledge + 0.35 × Analysis + 0.35 × Options
+```
+
+All section scores are normalized to 0-100 scale. Example: Knowledge (83.33) + Analysis (50.00) + Options (51.25) → **Overall: 60.44/100**
+
+### Benchmark Datasets
+
+1. **BizFinBench v2** (Knowledge): Event logic reasoning, quantitative computation
+2. **Public CSV** (Knowledge): Beat/miss analysis, market analysis from FAB benchmark
+3. **Synthetic Questions** (Analysis): 20 olympiad-style finance logic problems covering:
+   - Capital budgeting (NPV, IRR)
+   - Portfolio theory (beta, leverage)
+   - Fixed income (duration, immunization)
+   - Corporate finance (FCFF, M&M)
+   - Options & derivatives (put-call parity, swaps)
+4. **Options Alpha** (Options): Greeks analysis, strategy construction, P&L analysis
+
+### Key Features
+
+- **Unified Scoring**: All evaluators normalized to 0-100, weighted by section
 - **MCP Servers**: 6 servers for financial data, options pricing, and trading simulation
-- **Options Alpha Challenge**: Black-Scholes pricing, Greeks analysis, strategy construction
-- **Adversarial Debate**: Counter-argument generation to test conviction
-- **Alpha Score**: Comprehensive evaluation metric
-
-### Evaluation Categories
-
-**Core Finance (6 categories):**
-- Beat or Miss, Macro Analysis, Fundamental Analysis
-- Quantitative Reasoning, SEC Filing Analysis, Trend Analysis
-
-**Options Alpha (6 categories):**
-- Options Pricing, Greeks Analysis, Strategy Construction
-- Volatility Trading, P&L Attribution, Risk Management
-
-**Advanced (6 categories):**
-- Copy Trading, Race to 10M, Strategy Defense
-- Financial Data Description, Multi-turn Perception, Sentiment Analysis
+- **Options Alpha Challenge**: Black-Scholes pricing, Greeks analysis, multi-leg strategies
+- **Adversarial Debate**: Optional counter-argument generation to test conviction
+- **Dynamic Weight Redistribution**: When sections are disabled, weights redistribute proportionally
 
 ### Architecture
 
