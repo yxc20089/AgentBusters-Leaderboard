@@ -1,10 +1,10 @@
 [
   {
     "name": "Overall Performance",
-    "query": "SELECT id, ROUND(score * 100, 1) AS \"Score (%)\", ROUND(accuracy * 100, 1) AS \"Accuracy (%)\", tasks_evaluated AS \"Tasks\", tasks_successful AS \"Passed\" FROM (SELECT participant_id AS id, score, accuracy, tasks_evaluated, tasks_successful, ROW_NUMBER() OVER (PARTITION BY participant_id ORDER BY score DESC, timestamp DESC) AS rn FROM (SELECT json_keys(results.participants)[1] AS participant_id, CAST(results.participants[json_keys(results.participants)[1]].score AS DOUBLE) AS score, CAST(results.participants[json_keys(results.participants)[1]].accuracy AS DOUBLE) AS accuracy, CAST(results.participants[json_keys(results.participants)[1]].tasks_evaluated AS INTEGER) AS tasks_evaluated, CAST(results.participants[json_keys(results.participants)[1]].tasks_successful AS INTEGER) AS tasks_successful, results.timestamp FROM results)) WHERE rn = 1 ORDER BY score DESC;"
+    "query": "SELECT participants.purple_agent AS id, ROUND(r.average_score * 100, 1) AS \"Score (%)\", ROUND(r.accuracy * 100, 1) AS \"Accuracy (%)\", r.num_evaluated AS \"Tasks\", r.num_successful AS \"Passed\" FROM (SELECT participants, results[1] AS r FROM results) ORDER BY r.average_score DESC"
   },
   {
     "name": "By Dataset",
-    "query": "SELECT id, ROUND(bizfinbench * 100, 1) AS \"BizFinBench (%)\", ROUND(public_csv * 100, 1) AS \"CSV (%)\", ROUND(options * 100, 1) AS \"Options (%)\" FROM (SELECT participant_id AS id, bizfinbench, public_csv, options, ROW_NUMBER() OVER (PARTITION BY participant_id ORDER BY score DESC) AS rn FROM (SELECT json_keys(results.participants)[1] AS participant_id, CAST(results.participants[json_keys(results.participants)[1]].score AS DOUBLE) AS score, CAST(results.participants[json_keys(results.participants)[1]].dataset_scores.bizfinbench.mean_score AS DOUBLE) AS bizfinbench, CAST(results.participants[json_keys(results.participants)[1]].dataset_scores.public_csv.mean_score AS DOUBLE) AS public_csv, CAST(results.participants[json_keys(results.participants)[1]].dataset_scores.options.mean_score AS DOUBLE) AS options FROM results)) WHERE rn = 1 ORDER BY id;"
+    "query": "SELECT participants.purple_agent AS id, ROUND(r.by_dataset.bizfinbench.mean_score * 100, 1) AS \"BizFinBench (%)\", ROUND(r.by_dataset.public_csv.mean_score * 100, 1) AS \"CSV (%)\", ROUND(r.by_dataset.options.mean_score * 100, 1) AS \"Options (%)\" FROM (SELECT participants, results[1] AS r FROM results) ORDER BY r.average_score DESC"
   }
 ]
