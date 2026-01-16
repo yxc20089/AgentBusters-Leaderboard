@@ -1,0 +1,116 @@
+{
+  "participants": {
+    "purple_agent": "019bc4dd-f03b-7a11-9e64-61fce92c8d95"
+  },
+  "results": [
+    {
+      "benchmark": "FAB++ FAB++ Multi-Dataset Evaluation",
+      "version": "1.0",
+      "purple_agent": "http://purple_agent:9009/",
+      "config_summary": {
+        "total": 30,
+        "by_dataset": {
+          "bizfinbench": 10,
+          "public_csv": 10,
+          "options": 10
+        },
+        "by_task_type": {
+          "financial_quantitative_computation": 5,
+          "event_logic_reasoning": 5
+        },
+        "by_category": {
+          "Quantitative Retrieval": 1,
+          "Race to 10M": 1,
+          "Complex Retrieval": 2,
+          "Greeks Analysis": 2,
+          "Numerical Reasoning": 1,
+          "Options Pricing": 2,
+          "Qualitative Retrieval": 2,
+          "Volatility Trading": 2,
+          "Risk Management": 2,
+          "Beat or Miss": 2,
+          "Market Analysis": 1,
+          "Trends": 1,
+          "Strategy Construction": 1
+        }
+      },
+      "num_evaluated": 10,
+      "num_successful": 0,
+      "average_score": 0.0,
+      "accuracy": 0.0,
+      "by_dataset": {},
+      "results": [
+        {
+          "example_id": "bizfinbench_financial_quantitative_computation_en_817",
+          "dataset_type": "bizfinbench",
+          "error": "JSON-RPC Error code=-32602 data=None message='Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value=\\'You are an expert in dat...e to find the answer\">}\\', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid'",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "bizfinbench_event_logic_reasoning_en_807",
+          "dataset_type": "bizfinbench",
+          "error": "JSON-RPC Error code=-32602 data=None message=\"Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 2 column 1 [type=json_invalid, input_value='\\\\n### Role-playing\\\\nYou ...utside the JSON object.', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid\"",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "csv_finance_7",
+          "dataset_type": "public_csv",
+          "error": "JSON-RPC Error code=-32602 data=None message=\"Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value='What was the total consi...d at transaction close?', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid\"",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "race_001",
+          "dataset_type": "options",
+          "error": "JSON-RPC Error code=-32602 data=None message='Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value=\"You\\'re in a trading comp...d compounding approach.\", input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid'",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "bizfinbench_financial_quantitative_computation_en_861",
+          "dataset_type": "bizfinbench",
+          "error": "JSON-RPC Error code=-32602 data=None message='Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value=\\'You are an expert in dat...e to find the answer\">}\\', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid'",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "bizfinbench_event_logic_reasoning_en_1505",
+          "dataset_type": "bizfinbench",
+          "error": "JSON-RPC Error code=-32602 data=None message=\"Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 2 column 1 [type=json_invalid, input_value='\\\\n### Role-playing\\\\nYou ...utside the JSON object.', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid\"",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "csv_finance_5",
+          "dataset_type": "public_csv",
+          "error": "JSON-RPC Error code=-32602 data=None message=\"Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value='Of AMZN, META, or GOOG, ... most in capex in 2025?', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid\"",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "greeks_001",
+          "dataset_type": "options",
+          "error": "JSON-RPC Error code=-32602 data=None message=\"Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value='Calculate the Greeks (De... us about the position.', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid\"",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "bizfinbench_financial_quantitative_computation_en_560",
+          "dataset_type": "bizfinbench",
+          "error": "JSON-RPC Error code=-32602 data=None message='Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value=\\'You are an expert in dat...e to find the answer\">}\\', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid'",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "bizfinbench_event_logic_reasoning_en_1468",
+          "dataset_type": "bizfinbench",
+          "error": "JSON-RPC Error code=-32602 data=None message=\"Invalid request: 1 validation error for EvalRequest\\n  Invalid JSON: expected value at line 2 column 1 [type=json_invalid, input_value='\\\\n### Role-playing\\\\nYou ...utside the JSON object.', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.12/v/json_invalid\"",
+          "score": 0.0,
+          "is_correct": false
+        }
+      ]
+    }
+  ]
+}
