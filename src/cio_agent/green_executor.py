@@ -5,14 +5,16 @@ Handles incoming A2A requests and routes them to the Green Agent.
 Based on the official green-agent-template from RDI-Foundation.
 """
 
-from typing import Optional
+from typing import Any, Optional
 
+from pydantic import BaseModel, HttpUrl, ValidationError
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
 from a2a.server.tasks import TaskUpdater
 from a2a.types import (
     TaskState,
     UnsupportedOperationError,
+    InvalidParamsError,
     InvalidRequestError,
 )
 from a2a.utils.errors import ServerError
@@ -22,6 +24,12 @@ from a2a.utils import (
 )
 
 from cio_agent.green_agent import GreenAgent
+
+
+class EvalRequest(BaseModel):
+    """Request from agentbeats-client with participants and config."""
+    participants: dict[str, HttpUrl]
+    config: dict[str, Any] = {}
 
 
 TERMINAL_STATES = {
@@ -35,11 +43,11 @@ TERMINAL_STATES = {
 class GreenAgentExecutor(AgentExecutor):
     """
     A2A AgentExecutor for the FAB++ Green Agent.
-    
+
     Manages agent instances per context and handles the A2A protocol
     lifecycle for assessment requests.
     """
-    
+
     def __init__(
         self,
         eval_config: Optional[str] = None,
@@ -52,7 +60,7 @@ class GreenAgentExecutor(AgentExecutor):
     ):
         """
         Initialize the executor.
-        
+
         Args:
             eval_config: Path to evaluation config YAML file (recommended).
                         When provided, other dataset params are ignored.
@@ -76,7 +84,7 @@ class GreenAgentExecutor(AgentExecutor):
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         """
         Execute an assessment request.
-        
+
         Args:
             context: The A2A request context
             event_queue: Queue for publishing task events
@@ -84,6 +92,13 @@ class GreenAgentExecutor(AgentExecutor):
         msg = context.message
         if not msg:
             raise ServerError(error=InvalidRequestError(message="Missing message in request"))
+
+        # Parse EvalRequest from agentbeats-client
+        request_text = context.get_user_input()
+        try:
+            eval_request = EvalRequest.model_validate_json(request_text)
+        except ValidationError as e:
+            raise ServerError(error=InvalidParamsError(message=f"Invalid request: {e}"))
 
         task = context.current_task
         if task and task.status.state in TERMINAL_STATES:
@@ -113,9 +128,16 @@ class GreenAgentExecutor(AgentExecutor):
 
         updater = TaskUpdater(event_queue, task.id, context_id)
 
-        await updater.start_work()
+        await updater.update_status(
+            TaskState.working,
+            new_agent_text_message(
+                f"Starting assessment.\n{eval_request.model_dump_json()}",
+                context_id=context_id,
+            ),
+        )
+
         try:
-            await agent.run(msg, updater)
+            await agent.run_eval(eval_request, updater)
             if not updater._terminal_state_reached:
                 await updater.complete()
         except Exception as e:

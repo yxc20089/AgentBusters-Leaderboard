@@ -150,10 +150,38 @@ class GreenAgent:
             examples = self.dataset_provider.load()
             self._examples = examples[:limit] if limit else examples
 
+    async def run_eval(self, request: Any, updater: TaskUpdater) -> None:
+        """
+        Run evaluation with EvalRequest from agentbeats-client.
+
+        Args:
+            request: EvalRequest with participants and config
+            updater: TaskUpdater for reporting progress and results
+        """
+        # Get participant URL from request (first participant)
+        participants = request.participants
+        if not participants:
+            raise ValueError("No participants provided in request")
+
+        purple_agent_url = str(list(participants.values())[0])
+        config = request.config or {}
+
+        # Get config values with defaults
+        num_tasks = int(config.get("num_tasks", os.environ.get("EVAL_NUM_TASKS", "10")))
+        conduct_debate = config.get("conduct_debate", os.environ.get("EVAL_CONDUCT_DEBATE", "false"))
+        if isinstance(conduct_debate, str):
+            conduct_debate = conduct_debate.lower() == "true"
+
+        await self._run_evaluation(
+            purple_agent_url=purple_agent_url,
+            num_tasks=num_tasks,
+            conduct_debate=conduct_debate,
+            updater=updater,
+        )
 
     async def run(self, message: Message, updater: TaskUpdater) -> None:
         """
-        Run the FAB++ evaluation assessment.
+        Run the FAB++ evaluation assessment (legacy method).
 
         Args:
             message: The incoming A2A message (plain text trigger)
@@ -163,10 +191,33 @@ class GreenAgent:
 
         # Get configuration from environment variables (set by docker-compose/scenario)
         purple_agent_url = os.environ.get("PURPLE_AGENT_URL", "http://purple_agent:9009")
-        ticker = os.environ.get("EVAL_TICKER", "NVDA")
-        task_category = os.environ.get("EVAL_TASK_CATEGORY", "beat_or_miss")
         num_tasks = int(os.environ.get("EVAL_NUM_TASKS", "10"))
         conduct_debate = os.environ.get("EVAL_CONDUCT_DEBATE", "false").lower() == "true"
+
+        await self._run_evaluation(
+            purple_agent_url=purple_agent_url,
+            num_tasks=num_tasks,
+            conduct_debate=conduct_debate,
+            updater=updater,
+        )
+
+    async def _run_evaluation(
+        self,
+        purple_agent_url: str,
+        num_tasks: int,
+        conduct_debate: bool,
+        updater: TaskUpdater,
+    ) -> None:
+        """
+        Internal method to run the actual evaluation.
+
+        Args:
+            purple_agent_url: URL of the purple agent to evaluate
+            num_tasks: Number of tasks to evaluate
+            conduct_debate: Whether to conduct adversarial debate
+            updater: TaskUpdater for reporting progress and results
+        """
+        ticker = os.environ.get("EVAL_TICKER", "NVDA")
 
         # Report starting
         await updater.update_status(
