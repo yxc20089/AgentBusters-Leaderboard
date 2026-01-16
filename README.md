@@ -6,6 +6,8 @@
 
 A dynamic finance agent benchmark system for the [AgentBeats Competition](https://rdi.berkeley.edu/agentx-agentbeats). This project implements both **Green Agent** (Evaluator) and **Purple Agent** (Finance Analyst) using the A2A (Agent-to-Agent) protocol.
 
+**[Technical Report (PDF)](paper/agentbusters.pdf)**
+
 ## 🚀 AgentBeats Platform Submission
 
 This codebase is designed to work with the [AgentBeats platform](https://agentbeats.dev). The Green Agent follows the official [green-agent-template](https://github.com/RDI-Foundation/green-agent-template).
