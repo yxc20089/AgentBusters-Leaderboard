@@ -1,0 +1,183 @@
+{
+  "participants": {
+    "purple_agent": "019bc4dd-f03b-7a11-9e64-61fce92c8d95"
+  },
+  "results": [
+    {
+      "benchmark": "FAB++ FAB++ Multi-Dataset Evaluation",
+      "version": "1.0",
+      "purple_agent": "http://purple_agent:9009/",
+      "config_summary": {
+        "total": 30,
+        "by_dataset": {
+          "bizfinbench": 10,
+          "public_csv": 10,
+          "options": 10
+        },
+        "by_task_type": {
+          "financial_quantitative_computation": 5,
+          "event_logic_reasoning": 5
+        },
+        "by_category": {
+          "Quantitative Retrieval": 1,
+          "Race to 10M": 1,
+          "Complex Retrieval": 2,
+          "Greeks Analysis": 2,
+          "Numerical Reasoning": 1,
+          "Options Pricing": 2,
+          "Qualitative Retrieval": 2,
+          "Volatility Trading": 2,
+          "Risk Management": 2,
+          "Beat or Miss": 2,
+          "Market Analysis": 1,
+          "Trends": 1,
+          "Strategy Construction": 1
+        }
+      },
+      "num_evaluated": 10,
+      "num_successful": 9,
+      "average_score": 0.6208,
+      "accuracy": 0.5556,
+      "by_dataset": {
+        "bizfinbench": {
+          "count": 6,
+          "mean_score": 0.5,
+          "accuracy": 0.5
+        },
+        "public_csv": {
+          "count": 2,
+          "mean_score": 1.0,
+          "accuracy": 1.0
+        },
+        "options": {
+          "count": 1,
+          "mean_score": 0.5875,
+          "accuracy": 0.0
+        }
+      },
+      "results": [
+        {
+          "example_id": "bizfinbench_financial_quantitative_computation_en_817",
+          "dataset_type": "bizfinbench",
+          "task_type": "financial_quantitative_computation",
+          "language": "en",
+          "question": "You are an expert in data calculation. Please answer the <User Question> based on the provided <Formula List> and <Related Data>, and give your reasons. You need to answer in the specified format.\n###...",
+          "expected": "-2.4847%",
+          "predicted": "To calculate the Operating Profit Compound Annual Growth Rate (CAGR) for China Railway Construction Corporation Limited as of 2024 with N=3, we will use the following formula:\n\n\\[\n\\text{Operating Prof...",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "Predicted: -2.658, Expected: -2.4847, Tolerance: 0.01"
+        },
+        {
+          "example_id": "bizfinbench_event_logic_reasoning_en_807",
+          "dataset_type": "bizfinbench",
+          "task_type": "event_logic_reasoning",
+          "language": "en",
+          "question": "\n### Role-playing\nYou are an experienced financial time attribution and root cause analysis expert. Please follow the 'Task Requirements' to summarize and organize the causes and effects of the 'Speci...",
+          "expected": "1,4,2,3",
+          "predicted": "```json\n{\n  \"answer\": \"1,4,2,3\"\n}\n``````json\n{\n  \"answer\": \"1,4,2,3\"\n}\n```",
+          "score": 1.0,
+          "is_correct": true,
+          "feedback": "Predicted: '1,4,2,3', Expected: '1,4,2,3'"
+        },
+        {
+          "example_id": "csv_finance_7",
+          "dataset_type": "public_csv",
+          "category": "Quantitative Retrieval",
+          "question": "What was the total consideration cost TKO paid to acquired Endeavor assets measured at transaction close?",
+          "expected": "$3.25 Billion",
+          "predicted": "To provide a comprehensive financial analysis of the total consideration cost TKO paid to acquire Endeavor assets at the transaction close, we need to examine the specifics of the transaction, includi...",
+          "score": 1.0,
+          "is_correct": true,
+          "correct_count": 1,
+          "total_count": 1,
+          "feedback": "Correctness: 1/1, Contradictions: 0"
+        },
+        {
+          "example_id": "race_001",
+          "dataset_type": "options",
+          "error": "1 validation error for Task\nticker\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.12/v/string_type",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "bizfinbench_financial_quantitative_computation_en_861",
+          "dataset_type": "bizfinbench",
+          "task_type": "financial_quantitative_computation",
+          "language": "en",
+          "question": "You are an expert in data calculation. Please answer the <User Question> based on the provided <Formula List> and <Related Data>, and give your reasons. You need to answer in the specified format.\n###...",
+          "expected": "10.0586%",
+          "predicted": "To calculate the Operating Cash Flow Net Amount CAGR for FORTIOR for the period from 2021 to 2024, we will use the provided formula:\n\n\\[\n\\text{Operating Cash Flow Net Amount CAGR} = \\left( \\left( \\fra...",
+          "score": 1.0,
+          "is_correct": true,
+          "feedback": "Predicted: 10.0348, Expected: 10.0586, Tolerance: 0.01"
+        },
+        {
+          "example_id": "bizfinbench_event_logic_reasoning_en_1505",
+          "dataset_type": "bizfinbench",
+          "task_type": "event_logic_reasoning",
+          "language": "en",
+          "question": "\n### Role-playing\nYou are an experienced financial time attribution and root cause analysis expert. Please follow the 'Task Requirements' to summarize and organize the causes and effects of the 'Speci...",
+          "expected": "3,4,1,6,5,2",
+          "predicted": "```json\n{\n  \"answer\": \"3,4,6,1,5,2\"\n}\n``````json\n{\n  \"answer\": \"3,4,6,1,5,2\"\n}\n```",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "Predicted: '3,4,6,1,5,2', Expected: '3,4,1,6,5,2'"
+        },
+        {
+          "example_id": "csv_finance_5",
+          "dataset_type": "public_csv",
+          "category": "Complex Retrieval",
+          "question": "Of AMZN, META, or GOOG, who plans to spend the most in capex in 2025?",
+          "expected": "FY 2025 capital expenditure guidance\nAMZN: $105.2 billion (management guided 2025 = Q4 2024 run-rate...",
+          "predicted": "To determine which company among Amazon (AMZN), Meta Platforms (META), and Alphabet (GOOG) plans to spend the most in capital expenditures (capex) in 2025, we need to analyze the most recent financial...",
+          "score": 1.0,
+          "is_correct": true,
+          "correct_count": 4,
+          "total_count": 4,
+          "feedback": "Correctness: 4/4, Contradictions: 0"
+        },
+        {
+          "example_id": "greeks_001",
+          "dataset_type": "options",
+          "category": "Greeks Analysis",
+          "question": "Calculate the Greeks (Delta, Gamma, Theta, Vega) for a TSLA $250 call option with 21 days to expiration. TSLA is currently at $245, volatility is 55%, and the risk-free rate is 5%. Explain what each G...",
+          "expected": "delta: 0.42; gamma: 0.025; theta: -0.35; vega: 0.28",
+          "predicted": "To calculate the Greeks for a TSLA $250 call option with 21 days to expiration, we will employ the Black-Scholes model. The given parameters are:\n\n- Current Stock Price (S): $245\n- Strike Price (K): $...",
+          "score": 0.5875,
+          "score_raw": 58.75,
+          "is_correct": false,
+          "pnl_accuracy": 80.0,
+          "greeks_accuracy": 30.0,
+          "strategy_quality": 80.0,
+          "risk_management": 45.0,
+          "feedback": "Multiple P&L calculations present. Calculation methodology shown. Greeks discussed but values not extracted. Strong market context analysis. Position sizing addressed."
+        },
+        {
+          "example_id": "bizfinbench_financial_quantitative_computation_en_560",
+          "dataset_type": "bizfinbench",
+          "task_type": "financial_quantitative_computation",
+          "language": "en",
+          "question": "You are an expert in data calculation. Please answer the <User Question> based on the provided <Formula List> and <Related Data>, and give your reasons. You need to answer in the specified format.\n###...",
+          "expected": "-8.6697%",
+          "predicted": "To calculate the Working Asset to Total Asset Ratio for Jiangsu Expressway Company Limited for the 2024 Annual Report, we will use the following formula:\n\n\\[\n\\text{Working Asset to Total Asset Ratio} ...",
+          "score": 1.0,
+          "is_correct": true,
+          "feedback": "Predicted: -8.6679, Expected: -8.6697, Tolerance: 0.01"
+        },
+        {
+          "example_id": "bizfinbench_event_logic_reasoning_en_1468",
+          "dataset_type": "bizfinbench",
+          "task_type": "event_logic_reasoning",
+          "language": "en",
+          "question": "\n### Role-playing\nYou are an experienced financial time attribution and root cause analysis expert. Please follow the 'Task Requirements' to summarize and organize the causes and effects of the 'Speci...",
+          "expected": "6,5,1,3,2,4",
+          "predicted": "```json\n{\n  \"answer\": \"6,1,3,5,2,4\"\n}\n``````json\n{\n  \"answer\": \"6,1,3,5,2,4\"\n}\n```",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "Predicted: '6,1,3,5,2,4', Expected: '6,5,1,3,2,4'"
+        }
+      ]
+    }
+  ]
+}

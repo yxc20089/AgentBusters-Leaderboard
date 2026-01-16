@@ -1,0 +1,33 @@
+# FAB++ (Finance Agent Benchmark Plus Plus) Assessment Configuration
+# AgentBeats Competition 2026 - Team AgentBusters
+
+[green_agent]
+# CIO-Agent Green Agent - FAB++ Evaluator
+agentbeats_id = "019bc421-99d0-7ee3-ae27-658145eff474"
+env = { OPENAI_API_KEY = "${OPENAI_API_KEY}" }
+
+[[participants]]
+# Purple Agent (Finance Analyst) to be evaluated
+# Submitters: Fill in your agent's agentbeats_id
+agentbeats_id = "019bc4dd-f03b-7a11-9e64-61fce92c8d95"
+name = "purple_agent"
+env = { OPENAI_API_KEY = "${OPENAI_API_KEY}" }
+
+[config]
+# Assessment configuration
+num_tasks = 10
+conduct_debate = false
+timeout_seconds = 300
+
+# Datasets to evaluate on
+datasets = ["bizfinbench", "public_csv", "options"]
+
+# Sampling strategy: "stratified", "random", "sequential"
+sampling_strategy = "stratified"
+
+# Per-dataset limits (for balanced evaluation)
+bizfinbench_limit = 4
+public_csv_limit = 3
+options_limit = 3
+
+# Trigger: 2026-01-16 LLM-based ticker extraction
