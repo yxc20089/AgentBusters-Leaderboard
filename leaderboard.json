@@ -5,6 +5,6 @@
   },
   {
     "name": "Section Breakdown",
-    "query": "SELECT participants.purple_agent AS id, ROUND(r.section_scores.knowledge_retrieval.score, 1) AS \"Knowledge\", ROUND(r.section_scores.analytical_reasoning.score, 1) AS \"Analysis\", ROUND(r.section_scores.options_trading.score, 1) AS \"Options\" FROM (SELECT participants, results[1] AS r FROM results) ORDER BY r.overall_score.score DESC"
+    "query": "SELECT participants.purple_agent AS id, ROUND(r.section_scores.knowledge_retrieval.score, 1) AS \"Knowledge\", ROUND(r.section_scores.options_trading.score, 1) AS \"Options\" FROM (SELECT participants, results[1] AS r FROM results) ORDER BY r.overall_score.score DESC"
   }
 ]
