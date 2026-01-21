@@ -32,5 +32,10 @@ sampling:
   total_limit: 10
   seed: 42
 
+llm_eval:
+  enabled: true
+  model: gpt-4o-mini
+  temperature: 0.0
+
 debate: false
 timeout_seconds: 60

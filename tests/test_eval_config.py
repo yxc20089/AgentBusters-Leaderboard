@@ -20,7 +20,7 @@ class TestEvaluationConfig:
         config = create_default_config()
         
         assert config.name == "FAB++ Default Evaluation"
-        assert len(config.datasets) == 2
+        assert len(config.datasets) == 3
         assert config.sampling.strategy == "stratified"
         assert config.sampling.total_limit == 50
 

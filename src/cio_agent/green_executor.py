@@ -57,6 +57,12 @@ class GreenAgentExecutor(AgentExecutor):
         task_type: Optional[str] = None,
         language: str = "en",
         limit: Optional[int] = None,
+        eval_use_llm: Optional[bool] = None,
+        eval_llm_model: Optional[str] = None,
+        eval_llm_temperature: Optional[float] = None,
+        store_predicted: bool = False,
+        truncate_predicted: Optional[bool] = None,
+        predicted_max_chars: Optional[int] = None,
     ):
         """
         Initialize the executor.
@@ -71,6 +77,12 @@ class GreenAgentExecutor(AgentExecutor):
             task_type: For BizFinBench, the specific task type to evaluate
             language: Language for BizFinBench ('en' or 'cn')
             limit: Optional limit on number of examples
+            eval_use_llm: Optional override to enable/disable LLM grading
+            eval_llm_model: Optional LLM model override for grading
+            eval_llm_temperature: Optional temperature override for grading
+            store_predicted: Whether to store predicted outputs in results
+            truncate_predicted: Optional override to truncate predicted outputs
+            predicted_max_chars: Optional max length for predicted outputs
         """
         self.agents: dict[str, GreenAgent] = {}  # context_id to agent instance
         self.eval_config = eval_config
@@ -80,6 +92,12 @@ class GreenAgentExecutor(AgentExecutor):
         self.task_type = task_type
         self.language = language
         self.limit = limit
+        self.eval_use_llm = eval_use_llm
+        self.eval_llm_model = eval_llm_model
+        self.eval_llm_temperature = eval_llm_temperature
+        self.store_predicted = store_predicted
+        self.truncate_predicted = truncate_predicted
+        self.predicted_max_chars = predicted_max_chars
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         """
@@ -129,6 +147,12 @@ class GreenAgentExecutor(AgentExecutor):
             task_type=self.task_type,
             language=self.language,
             limit=self.limit,
+            eval_use_llm=self.eval_use_llm,
+            eval_llm_model=self.eval_llm_model,
+            eval_llm_temperature=self.eval_llm_temperature,
+            store_predicted=self.store_predicted,
+            truncate_predicted=self.truncate_predicted,
+            predicted_max_chars=self.predicted_max_chars,
         )
         self.agents[context_id] = agent
 

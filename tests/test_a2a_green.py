@@ -14,6 +14,17 @@ from a2a.client import A2ACardResolver, ClientConfig, ClientFactory
 from a2a.types import Message, Role, Part, TextPart
 
 
+# Override the global agent fixture to skip when no server is running.
+@pytest.fixture
+def agent(request):
+    url = request.config.getoption("--agent-url")
+    try:
+        httpx.get(f"{url}/.well-known/agent.json", timeout=2)
+    except Exception:
+        pytest.skip("Green agent not running - skipping A2A integration tests")
+    return url
+
+
 # A2A validation helpers - adapted from a2a-inspector
 def validate_agent_card(card_data: dict) -> list[str]:
     """Validate agent card structure and required fields."""

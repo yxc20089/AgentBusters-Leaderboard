@@ -292,6 +292,22 @@ class SamplingConfig(BaseModel):
     )
 
 
+class LLMEvaluationConfig(BaseModel):
+    """Configuration for LLM-as-judge dataset evaluation."""
+    enabled: Optional[bool] = Field(
+        default=None,
+        description="Enable LLM grading for dataset evaluators (bizfinbench/public_csv)."
+    )
+    model: Optional[str] = Field(
+        default=None,
+        description="Model override for LLM grading (defaults to LLM_MODEL/EVAL_LLM_MODEL)."
+    )
+    temperature: Optional[float] = Field(
+        default=None,
+        description="Sampling temperature override for LLM grading."
+    )
+
+
 class EvaluationConfig(BaseModel):
     """Main evaluation configuration."""
     name: str = Field(
@@ -314,6 +330,10 @@ class EvaluationConfig(BaseModel):
     timeout_seconds: int = Field(
         default=300,
         description="Timeout per question in seconds"
+    )
+    llm_eval: LLMEvaluationConfig = Field(
+        default_factory=LLMEvaluationConfig,
+        description="LLM-as-judge configuration for dataset evaluators."
     )
 
     @classmethod
@@ -485,7 +505,7 @@ class ConfigurableDatasetLoader:
         """Load synthetic questions."""
         import json
         
-        with open(config.path, "r") as f:
+        with open(config.path, "r", encoding="utf-8") as f:
             data = json.load(f)
         
         # Handle wrapped format {"questions": [...]} or direct list

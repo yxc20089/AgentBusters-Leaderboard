@@ -11,9 +11,17 @@ evaluation strategies:
 
 import logging
 import re
-from typing import Optional
+from typing import Any, Optional
 
 from evaluators.base import BaseDatasetEvaluator, EvalResult
+from evaluators.llm_utils import (
+    build_llm_client,
+    call_llm,
+    coerce_bool,
+    extract_json,
+    get_llm_model,
+    get_llm_temperature,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,16 +42,40 @@ class BizFinBenchEvaluator(BaseDatasetEvaluator):
     
     # Default numerical tolerance (1%)
     DEFAULT_TOLERANCE = 0.01
+    LLM_MAX_TOKENS = 800
+    STRUCTURED_TASKS = {
+        "financial_quantitative_computation",
+        "event_logic_reasoning",
+        "user_sentiment_analysis",
+        "stock_price_predict",
+    }
     
-    def __init__(self, tolerance: float = None):
+    def __init__(
+        self,
+        tolerance: float = None,
+        use_llm: bool = False,
+        llm_client: Any = None,
+        llm_model: Optional[str] = None,
+        llm_temperature: Optional[float] = None,
+    ):
         """
         Initialize BizFinBench evaluator.
         
         Args:
             tolerance: Numerical tolerance for quantitative tasks.
                        If None, uses DEFAULT_TOLERANCE (currently 0.01 = 1%).
+            use_llm: Whether to use LLM for evaluation (more accurate)
+            llm_client: LLM client for LLM-based evaluation
+            llm_model: Optional LLM model override
+            llm_temperature: Optional temperature override
         """
         self.tolerance = tolerance or self.DEFAULT_TOLERANCE
+        self.use_llm = use_llm
+        self.llm_client = llm_client
+        self.llm_model = llm_model or get_llm_model()
+        self.llm_temperature = (
+            llm_temperature if llm_temperature is not None else get_llm_temperature()
+        )
     
     def evaluate(
         self,
@@ -74,21 +106,140 @@ class BizFinBenchEvaluator(BaseDatasetEvaluator):
         # Normalize inputs
         predicted = predicted.strip()
         expected = expected.strip()
-        
+
         # Route to task-specific evaluator
         if task_type == "financial_quantitative_computation":
-            return self._eval_numerical(predicted, expected)
+            result = self._eval_numerical(predicted, expected)
         elif task_type == "event_logic_reasoning":
-            return self._eval_exact_sequence(predicted, expected)
+            result = self._eval_exact_sequence(predicted, expected)
         elif task_type == "user_sentiment_analysis":
-            return self._eval_classification(predicted, expected)
+            result = self._eval_classification(predicted, expected)
         elif task_type == "stock_price_predict":
-            return self._eval_numerical(predicted, expected)
+            result = self._eval_numerical(predicted, expected)
         elif task_type == "conterfactual":
-            return self._eval_normalized_match(predicted, expected)
+            result = self._eval_normalized_match(predicted, expected)
         else:
             # Default: normalized string match
-            return self._eval_normalized_match(predicted, expected)
+            result = self._eval_normalized_match(predicted, expected)
+
+        llm_failure = None
+        llm_raw_output = None
+        if self.use_llm:
+            use_llm_now = task_type not in self.STRUCTURED_TASKS or result.score < 1.0
+            if use_llm_now:
+                llm_result, llm_failure, llm_raw_output = self._llm_evaluate(
+                    predicted=predicted,
+                    expected=expected,
+                    task_type=task_type,
+                    question=kwargs.get("question"),
+                )
+                if llm_result is not None:
+                    return llm_result
+
+        if self.use_llm:
+            if result.details is None:
+                result.details = {}
+            result.details["llm_used"] = False
+            if llm_failure:
+                result.details["llm_failure"] = llm_failure
+            if llm_raw_output:
+                result.details["llm_raw_output"] = llm_raw_output
+
+        return result
+
+    def _get_llm_client(self) -> Optional[Any]:
+        if self.llm_client is None:
+            self.llm_client = build_llm_client()
+        return self.llm_client
+
+    def _llm_evaluate(
+        self,
+        predicted: str,
+        expected: str,
+        task_type: Optional[str] = None,
+        question: Optional[str] = None,
+    ) -> tuple[Optional[EvalResult], Optional[str], Optional[str]]:
+        client = self._get_llm_client()
+        if not client:
+            return None, "llm_client_unavailable", None
+
+        pred_num = self._extract_number(predicted)
+        exp_num = self._extract_number(expected)
+
+        system_prompt = "You are a strict grader for BizFinBench answers."
+        prompt = f"""TASK TYPE: {task_type or "unknown"}
+
+QUESTION:
+{question or "N/A"}
+
+REFERENCE ANSWER:
+{expected}
+
+CANDIDATE ANSWER:
+{predicted}
+
+PARSED NUMBERS (for numeric tasks):
+expected_number: {exp_num if exp_num is not None else "N/A"}
+predicted_number: {pred_num if pred_num is not None else "N/A"}
+relative_tolerance: {self.tolerance}
+
+Rules:
+- For financial_quantitative_computation and stock_price_predict, the answer is correct only if the numeric
+  value matches within the tolerance.
+- For event_logic_reasoning, the answer must match the expected ordered sequence (ignore whitespace and
+  formatting differences).
+- For user_sentiment_analysis, the label/sentiment must match.
+- For other tasks, require semantic equivalence of key facts. Do not give credit for partially correct answers.
+
+Return JSON only:
+{{"correct": true, "score": 1, "reason": "short reason"}}
+"""
+
+        raw = None
+        try:
+            raw = call_llm(
+                client=client,
+                prompt=prompt,
+                model=self.llm_model,
+                system_prompt=system_prompt,
+                temperature=self.llm_temperature,
+                max_tokens=self.LLM_MAX_TOKENS,
+            )
+            data = extract_json(raw)
+            if not data:
+                return None, "llm_invalid_json", raw
+        except Exception as e:
+            logger.warning("llm_bizfinbench_failed: %s", e)
+            return None, f"llm_call_failed: {e}", raw
+
+        correct = coerce_bool(data.get("correct"))
+        score_val = data.get("score")
+        score = 0.0
+        if isinstance(correct, bool):
+            score = 1.0 if correct else 0.0
+        else:
+            try:
+                score = float(score_val)
+            except (TypeError, ValueError):
+                score = 0.0
+            score = 1.0 if score >= 0.5 else 0.0
+            correct = score >= 1.0
+
+        reason = data.get("reason") or "LLM evaluation"
+
+        return EvalResult(
+            score=score,
+            correct_count=1 if correct else 0,
+            total_count=1,
+            feedback=reason,
+            details={
+                "llm_used": True,
+                "llm_model": self.llm_model,
+                "llm_correct": bool(correct),
+                "llm_score_raw": score_val,
+                "llm_raw_output": raw,
+            }
+        ), None, raw
     
     def _extract_number(self, text: str) -> Optional[float]:
         """Extract numerical value from text."""

@@ -41,6 +41,7 @@ from cio_agent.data_providers import BizFinBenchProvider, CsvFinanceDatasetProvi
 
 # Dataset-specific evaluators
 from evaluators import BizFinBenchEvaluator, PublicCsvEvaluator, OptionsEvaluator
+from evaluators.llm_utils import build_llm_client, should_use_llm
 
 
 class GreenAgent:
@@ -69,6 +70,19 @@ class GreenAgent:
     # Required config keys (optional ones will have defaults)
     required_config_keys: list[str] = []
 
+    def validate_request(self, request: "EvalRequest") -> tuple[bool, str]:
+        """Validate required roles and config keys for an evaluation request."""
+        missing_roles = [role for role in self.required_roles if role not in request.participants]
+        if missing_roles:
+            return False, f"Missing roles: {', '.join(missing_roles)}"
+
+        missing_keys = [key for key in self.required_config_keys if key not in request.config]
+        if missing_keys:
+            return False, f"Missing config keys: {', '.join(missing_keys)}"
+
+        return True, "ok"
+
+
     def __init__(
         self,
         eval_config: Optional[Union[EvaluationConfig, str, Path]] = None,
@@ -78,6 +92,12 @@ class GreenAgent:
         task_type: Optional[str] = None,
         language: str = "en",
         limit: Optional[int] = None,
+        eval_use_llm: Optional[bool] = None,
+        eval_llm_model: Optional[str] = None,
+        eval_llm_temperature: Optional[float] = None,
+        store_predicted: bool = False,
+        truncate_predicted: Optional[bool] = None,
+        predicted_max_chars: Optional[int] = None,
     ):
         """
         Initialize the Green Agent.
@@ -93,6 +113,12 @@ class GreenAgent:
             task_type: For BizFinBench, the specific task type to evaluate
             language: Language for BizFinBench ('en' or 'cn')
             limit: Optional limit on number of examples
+            eval_use_llm: Optional override to enable/disable LLM grading
+            eval_llm_model: Optional LLM model override for grading
+            eval_llm_temperature: Optional temperature override for grading
+            store_predicted: Whether to store predicted outputs in results
+            truncate_predicted: Optional override to truncate predicted outputs
+            predicted_max_chars: Optional max length for predicted outputs
         """
         self.messenger = Messenger()
         self.evaluator = ComprehensiveEvaluator()
@@ -126,11 +152,55 @@ class GreenAgent:
             
             self.dataset_loader = ConfigurableDatasetLoader(self.eval_config)
             self._loaded_examples = self.dataset_loader.load()
-            
+
+        config_llm = self.eval_config.llm_eval if self.eval_config else None
+        config_use_llm = config_llm.enabled if config_llm and config_llm.enabled is not None else None
+        config_llm_model = config_llm.model if config_llm and config_llm.model else None
+        config_llm_temp = (
+            config_llm.temperature if config_llm and config_llm.temperature is not None else None
+        )
+
+        if eval_use_llm is not None:
+            self.use_llm = eval_use_llm
+        elif config_use_llm is not None:
+            self.use_llm = config_use_llm
+        else:
+            self.use_llm = should_use_llm()
+
+        self.llm_model = eval_llm_model or config_llm_model
+        self.llm_temperature = (
+            eval_llm_temperature if eval_llm_temperature is not None else config_llm_temp
+        )
+        self.llm_client = build_llm_client() if self.use_llm else None
+        if self.use_llm and self.llm_client is None:
+            self.use_llm = False
+
+        self.store_predicted = store_predicted
+        if truncate_predicted is None:
+            truncate_predicted = True
+        self.truncate_predicted = truncate_predicted
+
+        if predicted_max_chars is None:
+            predicted_max_chars = 200
+        self.predicted_max_chars = predicted_max_chars
+        if self.truncate_predicted and self.predicted_max_chars <= 0:
+            self.predicted_max_chars = 200
+
+        if self.eval_config is not None:
             # Initialize evaluators for each dataset type present
             self._evaluators = {
-                "bizfinbench": BizFinBenchEvaluator(),
-                "public_csv": PublicCsvEvaluator(),
+                "bizfinbench": BizFinBenchEvaluator(
+                    use_llm=self.use_llm,
+                    llm_client=self.llm_client,
+                    llm_model=self.llm_model,
+                    llm_temperature=self.llm_temperature,
+                ),
+                "public_csv": PublicCsvEvaluator(
+                    use_llm=self.use_llm,
+                    llm_client=self.llm_client,
+                    llm_model=self.llm_model,
+                    llm_temperature=self.llm_temperature,
+                ),
                 "synthetic": self.evaluator,  # Use ComprehensiveEvaluator
                 "options": None,  # Options use OptionsEvaluator initialized per-task
                 "crypto": None,  # Crypto uses CryptoTradingEvaluator initialized per-scenario
@@ -144,13 +214,23 @@ class GreenAgent:
                 language=language,
                 limit=limit,
             )
-            self.dataset_evaluator = BizFinBenchEvaluator()
+            self.dataset_evaluator = BizFinBenchEvaluator(
+                use_llm=self.use_llm,
+                llm_client=self.llm_client,
+                llm_model=self.llm_model,
+                llm_temperature=self.llm_temperature,
+            )
             self._examples = self.dataset_provider.load()
             
         elif dataset_type == "public_csv" and dataset_path:
             # Legacy single public.csv dataset
             self.dataset_provider = CsvFinanceDatasetProvider(path=dataset_path)
-            self.dataset_evaluator = PublicCsvEvaluator()
+            self.dataset_evaluator = PublicCsvEvaluator(
+                use_llm=self.use_llm,
+                llm_client=self.llm_client,
+                llm_model=self.llm_model,
+                llm_temperature=self.llm_temperature,
+            )
             examples = self.dataset_provider.load()
             self._examples = examples[:limit] if limit else examples
 
@@ -573,6 +653,15 @@ class GreenAgent:
             return "Hold"
         return "Unknown"
 
+    def _format_predicted(self, response: str) -> str:
+        if not self.store_predicted:
+            return ""
+        if not self.truncate_predicted or self.predicted_max_chars <= 0:
+            return response
+        if len(response) <= self.predicted_max_chars:
+            return response
+        return response[: self.predicted_max_chars] + "..."
+
     def _convert_synthetic_to_tasks(self, num_tasks: int) -> list[FABTask]:
         """
         Convert synthetic question dicts to FABTask objects.
@@ -671,6 +760,7 @@ class GreenAgent:
                     new_conversation=True,
                     timeout=300,
                 )
+                predicted_text = self._format_predicted(response)
                 
                 # Use dataset-specific evaluator
                 if self.dataset_type == "bizfinbench":
@@ -678,17 +768,22 @@ class GreenAgent:
                         predicted=response,
                         expected=example.answer,
                         task_type=self.task_type,
+                        question=example.question,
                     )
                     result = {
                         "example_id": example.example_id,
                         "task_type": self.task_type,
                         "question": example.question[:200] + "..." if len(example.question) > 200 else example.question,
                         "expected": example.answer[:100] + "..." if len(example.answer) > 100 else example.answer,
-                        "predicted": response[:200] + "..." if len(response) > 200 else response,
+                        "predicted": predicted_text,
                         "score": eval_result.score,
                         "is_correct": eval_result.is_correct,
                         "feedback": eval_result.feedback,
                     }
+                    if eval_result.details:
+                        for key in ("llm_used", "llm_failure", "llm_raw_output"):
+                            if key in eval_result.details:
+                                result[key] = eval_result.details.get(key)
                     
                 elif self.dataset_type == "public_csv":
                     # Build rubric from example
@@ -703,19 +798,31 @@ class GreenAgent:
                         predicted=response,
                         expected=example.answer,
                         rubric=rubric_list if rubric_list else None,
+                        question=example.question,
                     )
                     result = {
                         "example_id": example.example_id,
                         "category": example.category.value if hasattr(example.category, 'value') else str(example.category),
                         "question": example.question[:200] + "..." if len(example.question) > 200 else example.question,
                         "expected": example.answer[:100] + "..." if len(example.answer) > 100 else example.answer,
-                        "predicted": response[:200] + "..." if len(response) > 200 else response,
+                        "predicted": predicted_text,
                         "score": eval_result.score,
                         "is_correct": eval_result.score >= 0.8,  # Threshold for correctness
                         "correct_count": eval_result.correct_count,
                         "total_count": eval_result.total_count,
                         "feedback": eval_result.feedback,
                     }
+                    if eval_result.details:
+                        for key in (
+                            "llm_used",
+                            "llm_failure",
+                            "llm_raw_output",
+                            "llm_partial",
+                            "llm_item_count_expected",
+                            "llm_item_count_actual",
+                        ):
+                            if key in eval_result.details:
+                                result[key] = eval_result.details.get(key)
                 else:
                     result = {
                         "example_id": example.example_id,
@@ -748,6 +855,13 @@ class GreenAgent:
                 })
         
         return all_results
+
+
+class EvalRequest(BaseModel):
+    """Evaluation request payload."""
+
+    participants: dict[str, str]
+    config: dict[str, Any] = {}
 
     async def _evaluate_with_config(
         self,
@@ -790,6 +904,7 @@ class GreenAgent:
                         new_conversation=True,
                         timeout=self.eval_config.timeout_seconds if self.eval_config else 300,
                     )
+                predicted_text = self._format_predicted(response)
                 
                 # Get appropriate evaluator (options handled specially below)
                 evaluator = self._evaluators.get(example.dataset_type)
@@ -809,6 +924,7 @@ class GreenAgent:
                         predicted=response,
                         expected=example.answer,
                         task_type=example.task_type,
+                        question=example.question,
                     )
                     result = {
                         "example_id": example.example_id,
@@ -817,11 +933,15 @@ class GreenAgent:
                         "language": example.language,
                         "question": example.question[:200] + "..." if len(example.question) > 200 else example.question,
                         "expected": example.answer[:100] + "..." if len(example.answer) > 100 else example.answer,
-                        "predicted": response[:200] + "..." if len(response) > 200 else response,
+                        "predicted": predicted_text,
                         "score": eval_result.score,
                         "is_correct": eval_result.is_correct,
                         "feedback": eval_result.feedback,
                     }
+                    if eval_result.details:
+                        for key in ("llm_used", "llm_failure", "llm_raw_output"):
+                            if key in eval_result.details:
+                                result[key] = eval_result.details.get(key)
                     
                 elif example.dataset_type == "public_csv":
                     # Build rubric from metadata if available
@@ -839,6 +959,7 @@ class GreenAgent:
                         predicted=response,
                         expected=example.answer,
                         rubric=rubric_list if rubric_list else None,
+                        question=example.question,
                     )
                     result = {
                         "example_id": example.example_id,
@@ -846,13 +967,24 @@ class GreenAgent:
                         "category": example.category,
                         "question": example.question[:200] + "..." if len(example.question) > 200 else example.question,
                         "expected": example.answer[:100] + "..." if len(example.answer) > 100 else example.answer,
-                        "predicted": response[:200] + "..." if len(response) > 200 else response,
+                        "predicted": predicted_text,
                         "score": eval_result.score,
                         "is_correct": eval_result.score >= 0.8,
                         "correct_count": eval_result.correct_count,
                         "total_count": eval_result.total_count,
                         "feedback": eval_result.feedback,
                     }
+                    if eval_result.details:
+                        for key in (
+                            "llm_used",
+                            "llm_failure",
+                            "llm_raw_output",
+                            "llm_partial",
+                            "llm_item_count_expected",
+                            "llm_item_count_actual",
+                        ):
+                            if key in eval_result.details:
+                                result[key] = eval_result.details.get(key)
                     
                 elif example.dataset_type == "synthetic":
                     # Synthetic questions use recommendation extraction
@@ -868,7 +1000,7 @@ class GreenAgent:
                         "question": example.question[:200] + "..." if len(example.question) > 200 else example.question,
                         "expected": expected,
                         "predicted": extracted,
-                        "predicted_full": response[:200] + "..." if len(response) > 200 else response,
+                        "predicted_full": predicted_text,
                         "score": 1.0 if is_correct else 0.0,
                         "is_correct": is_correct,
                         "feedback": f"Extracted: {extracted}, Expected: {expected}",
@@ -933,7 +1065,7 @@ class GreenAgent:
                         "category": example.category,
                         "question": example.question[:200] + "..." if len(example.question) > 200 else example.question,
                         "expected": example.answer[:100] + "..." if len(example.answer) > 100 else example.answer,
-                        "predicted": response[:200] + "..." if len(response) > 200 else response,
+                        "predicted": predicted_text,
                         "score": options_score.score,  # Keep as 0-100 scale
                         "is_correct": options_score.score >= 70,  # 70/100 threshold
                         "pnl_accuracy": options_score.pnl_accuracy,
@@ -1006,7 +1138,7 @@ class GreenAgent:
                         "example_id": example.example_id,
                         "dataset_type": example.dataset_type,
                         "question": example.question[:200] + "..." if len(example.question) > 200 else example.question,
-                        "predicted": response[:200] + "..." if len(response) > 200 else response,
+                        "predicted": predicted_text,
                         "score": 0.0,  # No evaluator, no score
                         "is_correct": False,
                         "feedback": "No evaluator configured for this dataset type",

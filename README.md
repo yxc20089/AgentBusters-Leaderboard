@@ -12,7 +12,7 @@ A dynamic finance agent benchmark system for the [AgentBeats Competition](https:
 
 This codebase is designed to work with the [AgentBeats platform](https://agentbeats.dev). The Green Agent follows the official [green-agent-template](https://github.com/RDI-Foundation/green-agent-template).
 
-### Quick Start (AgentBeats minimal: Green only)
+### Quick Start
 
 ```bash
 # Create and activate virtual environment
@@ -24,10 +24,23 @@ source .venv/bin/activate        # Linux/Mac
 pip install -e ".[dev]"
 
 # Start Green Agent (A2A server)
-python src/cio_agent/a2a_server.py --host 0.0.0.0 --port 9109
+python src/cio_agent/a2a_server.py --host 0.0.0.0 --port 9109 --eval-config .\config\eval_config.yaml --store-predicted --predicted-max-chars 200
 
-# Verify agent card
-curl http://localhost:9109/.well-known/agent.json
+# Start Purple Agent
+purple-agent serve --host 0.0.0.0 --port 9110 --card-url http://127.0.0.1:9110
+
+# Start MCP server
+python -m src.mcp_servers.sec_edgar --transport http --host 0.0.0.0 --port 8101
+python -m src.mcp_servers.yahoo_finance --transport http --host 0.0.0.0 --port 8102
+python -m src.mcp_servers.sandbox --transport http --host 0.0.0.0 --port 8103
+
+# Run the evaluation
+python scripts/run_a2a_eval.py --green-url http://127.0.0.1:9109 --purple-url http://127.0.0.1:9110 --num-tasks 25 -v -o results/eval_output.json
+# gpt 4o total score: 42.44
+
+# with debate
+python scripts/run_a2a_eval.py --green-url http://127.0.0.1:9109 --purple-url http://127.0.0.1:9110 --num-tasks 25 --conduct-debate -v -o results/eval_output_debate.json
+# gpt 4o total score: 43.65
 ```
 
 ## Prerequisites
@@ -288,6 +301,7 @@ python scripts/run_a2a_eval.py \
 # 1. SQLite Database (persistent, auto-created)
 #    File: tasks.db
 #    Contains: task status, context_id, artifacts (full evaluation results)
+#    Note: predicted/predicted_full are empty unless you start Green with --store-predicted
 
 # 2. JSON file (optional, via -o flag)
 python scripts/run_a2a_eval.py --num-tasks 10 -o results/eval_output.json
@@ -428,6 +442,10 @@ curl -X POST http://localhost:9109/ \
 #   strategy: stratified  # Options: sequential, random, stratified, weighted
 #   total_limit: 100
 #   seed: 42
+# llm_eval:
+#   enabled: true
+#   model: gpt-4o-mini
+#   temperature: 0.0
 
 
 # MCP helpers and CSV batch eval
@@ -455,20 +473,22 @@ python -m scripts.run_bizfin_eval \
 # List task types by language:
 python -c "from cio_agent.datasets import BizFinBenchProvider; print(BizFinBenchProvider.list_task_types_by_language())"
 
-# Dataset-specific evaluators (exact-match scoring, no LLM needed):
-# BizFinBench: numerical matching (±1% tolerance), sequence matching, classification
+# Dataset-specific evaluators (exact-match scoring by default, optional LLM grading):
+# BizFinBench: numerical matching (+/-1% tolerance), sequence matching, classification
 python -m scripts.run_bizfin_simple \
 	--dataset-path data/BizFinBench.v2 \
 	--task-type financial_quantitative_computation \
 	--language en \
 	--purple-endpoint http://localhost:9110 \
 	--output /tmp/bizfin_results.json --limit 5
+# Optional: --eval-llm --eval-llm-model gpt-4o-mini
 
 # public.csv: correctness/contradiction rubric evaluation
 python -m scripts.run_csv_simple \
 	--dataset-path finance-agent/data/public.csv \
 	--purple-endpoint http://localhost:9110 \
 	--output /tmp/csv_results.json --limit 5
+# Optional: --eval-llm --eval-llm-model gpt-4o-mini
 
 
 # Alternative direct startup (stdio by default)
@@ -491,7 +511,7 @@ Tip: Using hosted APIs instead of local vLLM? You can skip Terminal 1 and just c
 LLM_PROVIDER=openai
 OPENAI_API_KEY=sk-your-key
 LLM_MODEL=gpt-4o
-# Do not set OPENAI_API_BASE when using OpenAI's hosted API
+# Do not set OPENAI_API_BASE or OPENAI_BASE_URL when using OpenAI's hosted API
 ```
 
 ```dotenv
@@ -506,6 +526,7 @@ Tip: For vLLM-backed LLM calls, set these in `.env` (auto-loaded):
 ```dotenv
 LLM_PROVIDER=openai
 OPENAI_API_BASE=http://localhost:8000/v1
+OPENAI_BASE_URL=http://localhost:8000/v1  # alias for OPENAI_API_BASE
 OPENAI_API_KEY=dummy
 LLM_MODEL=openai/gpt-oss-20b
 ```
@@ -649,6 +670,29 @@ MCP_YFINANCE_URL=http://localhost:8102
 MCP_SANDBOX_URL=http://localhost:8103
 ```
 
+**LLM grading for dataset evaluators (bizfinbench/public_csv):**
+```dotenv
+EVAL_USE_LLM=true
+EVAL_LLM_MODEL=gpt-4o-mini
+EVAL_LLM_TEMPERATURE=0.0
+```
+Uses `OPENAI_API_KEY` + `OPENAI_BASE_URL`/`OPENAI_API_BASE` (OpenAI-compatible) or `ANTHROPIC_API_KEY`.
+
+CLI override example:
+```bash
+python src/cio_agent/a2a_server.py --host 0.0.0.0 --port 9109 \
+  --eval-llm --eval-llm-model gpt-4o-mini --eval-llm-temperature 0.0
+```
+
+**Predicted output storage (recommended for memory control):**
+```bash
+python src/cio_agent/a2a_server.py --host 0.0.0.0 --port 9109 \
+  --eval-config config/eval_config.yaml \
+  --store-predicted --predicted-max-chars 200
+```
+By default, predicted outputs are omitted from results (fields are empty).  
+Use `--store-predicted` to include them, and `--no-truncate-predicted` to keep full outputs.
+
 The agents will automatically load `.env` on startup. Alternatively, you can use `export` commands instead of `.env` file.
 
 ### Environment Variables Reference
@@ -659,7 +703,11 @@ The agents will automatically load `.env` on startup. Alternatively, you can use
 | `LLM_MODEL` | Model name | `gpt-4o`, `claude-3.5-sonnet`, `openai/gpt-oss-20b` |
 | `OPENAI_API_KEY` | OpenAI API key | `sk-...` |
 | `OPENAI_API_BASE` | Custom API endpoint (for local vLLM) | `http://localhost:8000/v1` |
+| `OPENAI_BASE_URL` | Alias for `OPENAI_API_BASE` | `http://localhost:8000/v1` |
 | `ANTHROPIC_API_KEY` | Anthropic API key | `sk-ant-...` |
+| `EVAL_USE_LLM` | Enable LLM grading for dataset evaluators | `true` |
+| `EVAL_LLM_MODEL` | Model override for LLM grading | `gpt-4o-mini` |
+| `EVAL_LLM_TEMPERATURE` | Temperature for LLM grading | `0.0` |
 | `MCP_EDGAR_URL` | SEC EDGAR MCP server | `http://localhost:8101` |
 | `MCP_YFINANCE_URL` | Yahoo Finance MCP server | `http://localhost:8102` |
 | `MCP_SANDBOX_URL` | Sandbox MCP server | `http://localhost:8103` |

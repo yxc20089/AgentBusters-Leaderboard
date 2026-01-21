@@ -18,33 +18,32 @@ class TestBizFinBenchProvider:
         return Path("data/BizFinBench.v2")
 
     def test_list_task_types(self):
-        """Test that all 9 task types are available."""
+        """Test that all task types are available."""
         task_types = BizFinBenchProvider.list_task_types()
-        assert len(task_types) == 9
+        assert len(task_types) == 7
         assert "financial_quantitative_computation" in task_types
         assert "event_logic_reasoning" in task_types
         assert "stock_price_predict" in task_types
 
     def test_list_task_types_english(self):
-        """Test that English has 8 task types (no financial_report_analysis)."""
+        """Test that English task types are available."""
         en_tasks = BizFinBenchProvider.list_task_types("en")
-        assert len(en_tasks) == 8
-        assert "financial_report_analysis" not in en_tasks
+        assert len(en_tasks) == 7
         assert "event_logic_reasoning" in en_tasks
 
     def test_list_task_types_chinese(self):
-        """Test that Chinese has all 9 task types."""
+        """Test that Chinese task types are available."""
         cn_tasks = BizFinBenchProvider.list_task_types("cn")
-        assert len(cn_tasks) == 9
-        assert "financial_report_analysis" in cn_tasks
+        assert len(cn_tasks) == 7
+        assert "event_logic_reasoning" in cn_tasks
 
     def test_list_task_types_by_language(self):
         """Test list_task_types_by_language returns both languages."""
         by_lang = BizFinBenchProvider.list_task_types_by_language()
         assert "en" in by_lang
         assert "cn" in by_lang
-        assert len(by_lang["en"]) == 8
-        assert len(by_lang["cn"]) == 9
+        assert len(by_lang["en"]) == 7
+        assert len(by_lang["cn"]) == 7
 
     def test_task_category_mapping(self):
         """Test that all task types have category mappings."""

@@ -116,6 +116,9 @@ class BizFinBenchProvider(DatasetProvider):
         self.language = language if language != "zh" else "cn"
         self.limit = limit
 
+        if self.language not in ("en", "cn"):
+            raise ValueError(f"Invalid language: {language}. Use 'en' or 'cn'.")
+
         # Validate task type
         if task_type not in self.TASK_FILES:
             raise ValueError(
@@ -141,12 +144,22 @@ class BizFinBenchProvider(DatasetProvider):
         Return list of available task types.
 
         Args:
-            language: Optional filter (not used, all tasks available in en/cn)
+            language: Optional filter (en/cn). Both languages share task types.
 
         Returns:
             List of task type names
         """
+        if language is not None and language not in ("en", "cn"):
+            raise ValueError(f"Invalid language: {language}. Use 'en' or 'cn'.")
         return list(cls.TASK_FILES.keys())
+
+    @classmethod
+    def list_task_types_by_language(cls) -> Dict[str, List[str]]:
+        """Return available task types grouped by language."""
+        return {
+            "en": cls.list_task_types("en"),
+            "cn": cls.list_task_types("cn"),
+        }
 
     def _fetch_from_huggingface(self) -> List[Dict[str, Any]]:
         """

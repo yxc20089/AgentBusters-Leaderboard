@@ -213,6 +213,7 @@ class MacroScore(BaseModel):
     themes_identified: list[str] = Field(default_factory=list)
     themes_missed: list[str] = Field(default_factory=list)
     feedback: str = ""
+    llm_raw_output: Optional[str] = None
 
 
 class FundamentalScore(BaseModel):
@@ -231,6 +232,7 @@ class ExecutionScore(BaseModel):
     code_execution_penalty: float = Field(default=0.0, ge=0, le=1)
     methodology_score: float = Field(ge=0, le=100)
     feedback: str = ""
+    llm_raw_output: Optional[str] = None
 
 
 class RoleScore(BaseModel):

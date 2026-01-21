@@ -183,16 +183,17 @@ class ExecutionEvaluator:
     async def _llm_rubric_score(
         self,
         response: AgentResponse,
-    ) -> tuple[float, str]:
+    ) -> tuple[float, str, Optional[str]]:
         """
         Use LLM to score response against rubric.
 
         Returns:
-            Tuple of (score, feedback)
+            Tuple of (score, feedback, raw_output)
         """
         if not self.llm_client:
             # Fallback to heuristic scoring
-            return self._heuristic_rubric_score(response)
+            score, feedback = self._heuristic_rubric_score(response)
+            return score, feedback, None
 
         rubric = self.task.rubric
         prompt = f"""
@@ -223,14 +224,16 @@ class ExecutionEvaluator:
         {{"score": <0-100>, "feedback": "<brief feedback>"}}
         """
 
+        raw_output = None
         try:
-            result = await self.llm_client.generate(prompt)
+            raw_output = await self.llm_client.generate(prompt)
             import json
-            parsed = json.loads(result)
-            return parsed.get("score", 50), parsed.get("feedback", "")
+            parsed = json.loads(raw_output)
+            return parsed.get("score", 50), parsed.get("feedback", ""), raw_output
         except Exception as e:
             logger.warning("llm_rubric_failed", error=str(e))
-            return self._heuristic_rubric_score(response)
+            score, feedback = self._heuristic_rubric_score(response)
+            return score, feedback, raw_output
 
     def _heuristic_rubric_score(
         self,
@@ -283,7 +286,7 @@ class ExecutionEvaluator:
             ExecutionScore with detailed breakdown
         """
         # Get rubric score
-        rubric_score, rubric_feedback = await self._llm_rubric_score(response)
+        rubric_score, rubric_feedback, llm_raw_output = await self._llm_rubric_score(response)
 
         # Check code execution requirement
         code_penalty = 0.0
@@ -334,4 +337,5 @@ class ExecutionEvaluator:
             code_execution_penalty=code_penalty,
             methodology_score=methodology_score,
             feedback=combined_feedback,
+            llm_raw_output=llm_raw_output,
         )

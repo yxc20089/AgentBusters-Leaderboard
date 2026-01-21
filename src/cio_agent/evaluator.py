@@ -540,6 +540,10 @@ Alpha = ({result.alpha_score.role_score:.2f} × {result.alpha_score.debate_multi
                 "lookahead_penalty": result.lookahead_penalty.penalty,
                 "alpha_score": result.alpha_score.score,
             },
+            "llm_outputs": {
+                "macro_raw": result.role_score.macro.llm_raw_output,
+                "execution_raw": result.role_score.execution.llm_raw_output,
+            },
             "debate": {
                 "counter_argument": result.debate_result.counter_argument,
                 "agent_rebuttal": result.debate_result.agent_rebuttal,

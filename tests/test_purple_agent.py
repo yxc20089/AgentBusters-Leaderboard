@@ -155,44 +155,48 @@ class TestFinanceAgentExecutor:
         """Create executor without LLM (uses in-process MCP servers)."""
         return FinanceAgentExecutor()
 
-    def test_parse_task_ticker_extraction(self, executor):
+    @pytest.mark.asyncio
+    async def test_parse_task_ticker_extraction(self, executor):
         """Test ticker extraction from question."""
-        task_info = executor._parse_task(
+        task_info = await executor._parse_task(
             "Did NVDA beat or miss Q3 FY2026 expectations?"
         )
 
         assert "NVDA" in task_info["tickers"]
 
-    def test_parse_task_type_detection(self, executor):
+    @pytest.mark.asyncio
+    async def test_parse_task_type_detection(self, executor):
         """Test task type detection."""
         # Beat/miss task
-        task_info = executor._parse_task(
+        task_info = await executor._parse_task(
             "Did AAPL beat or miss earnings expectations?"
         )
         assert task_info["task_type"] == "beat_or_miss"
 
         # SEC filing task
-        task_info = executor._parse_task(
+        task_info = await executor._parse_task(
             "Summarize MSFT's latest 10-K filing"
         )
         assert task_info["task_type"] == "sec_filing"
 
         # Ratio calculation
-        task_info = executor._parse_task(
+        task_info = await executor._parse_task(
             "What is NVDA's P/E ratio?"
         )
         assert task_info["task_type"] == "ratio_calculation"
 
-    def test_parse_task_fiscal_year_extraction(self, executor):
+    @pytest.mark.asyncio
+    async def test_parse_task_fiscal_year_extraction(self, executor):
         """Test fiscal year extraction."""
-        task_info = executor._parse_task(
+        task_info = await executor._parse_task(
             "Analyze Q3 FY2026 results"
         )
         assert task_info["fiscal_year"] == 2026
 
-    def test_parse_task_quarter_extraction(self, executor):
+    @pytest.mark.asyncio
+    async def test_parse_task_quarter_extraction(self, executor):
         """Test quarter extraction."""
-        task_info = executor._parse_task(
+        task_info = await executor._parse_task(
             "Analyze Q3 earnings report"
         )
         assert task_info["quarter"] == 3

@@ -13,9 +13,17 @@ Rubric format:
 
 import logging
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from evaluators.base import BaseDatasetEvaluator, EvalResult
+from evaluators.llm_utils import (
+    build_llm_client,
+    call_llm,
+    coerce_bool,
+    extract_json,
+    get_llm_model,
+    get_llm_temperature,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,17 +46,30 @@ class PublicCsvEvaluator(BaseDatasetEvaluator):
     # Scoring constants
     CONTRADICTION_PENALTY = 0.5  # Penalty per contradiction found
     MIN_WORD_LENGTH = 4  # Minimum word length for substring matching
+    LLM_MAX_TOKENS = 1200
     
-    def __init__(self, use_llm: bool = False, llm_client: Any = None):
+    def __init__(
+        self,
+        use_llm: bool = False,
+        llm_client: Any = None,
+        llm_model: Optional[str] = None,
+        llm_temperature: Optional[float] = None,
+    ):
         """
         Initialize Public CSV evaluator.
         
         Args:
             use_llm: Whether to use LLM for evaluation (more accurate)
             llm_client: LLM client for LLM-based evaluation
+            llm_model: Optional LLM model override
+            llm_temperature: Optional temperature override
         """
         self.use_llm = use_llm
         self.llm_client = llm_client
+        self.llm_model = llm_model or get_llm_model()
+        self.llm_temperature = (
+            llm_temperature if llm_temperature is not None else get_llm_temperature()
+        )
     
     def evaluate(
         self,
@@ -72,6 +93,18 @@ class PublicCsvEvaluator(BaseDatasetEvaluator):
         if not rubric:
             # No rubric provided, fall back to simple comparison
             return self._simple_compare(predicted, expected or "")
+
+        llm_failure = None
+        llm_raw_output = None
+        if self.use_llm:
+            llm_result, llm_failure, llm_raw_output = self._llm_evaluate_rubric(
+                predicted=predicted,
+                expected=expected or "",
+                rubric=rubric,
+                question=kwargs.get("question"),
+            )
+            if llm_result is not None:
+                return llm_result
         
         # Evaluate each rubric item
         correct_count = 0
@@ -115,19 +148,176 @@ class PublicCsvEvaluator(BaseDatasetEvaluator):
         normalized_score = score / max_score if max_score > 0 else 0.0
         normalized_score = min(1.0, normalized_score)  # Cap at 1.0
         
+        details = {
+            "correctness_met": correct_count,
+            "correctness_total": total_correctness,
+            "contradictions_found": penalty_count,
+            "item_results": item_results,
+        }
+        if self.use_llm:
+            details["llm_used"] = False
+            if llm_failure:
+                details["llm_failure"] = llm_failure
+            if llm_raw_output:
+                details["llm_raw_output"] = llm_raw_output
+
         return EvalResult(
             score=normalized_score,
             max_score=1.0,
             correct_count=correct_count,
             total_count=total_correctness,
             feedback=f"Correctness: {correct_count}/{total_correctness}, Contradictions: {penalty_count}",
-            details={
-                "correctness_met": correct_count,
-                "correctness_total": total_correctness,
-                "contradictions_found": penalty_count,
-                "item_results": item_results,
-            }
+            details=details,
         )
+
+    def _get_llm_client(self) -> Optional[Any]:
+        if self.llm_client is None:
+            self.llm_client = build_llm_client()
+        return self.llm_client
+
+    def _llm_evaluate_rubric(
+        self,
+        predicted: str,
+        expected: str,
+        rubric: List[Dict[str, str]],
+        question: Optional[str] = None,
+    ) -> tuple[Optional[EvalResult], Optional[str], Optional[str]]:
+        client = self._get_llm_client()
+        if not client:
+            return None, "llm_client_unavailable", None
+
+        rubric_lines = []
+        for idx, item in enumerate(rubric):
+            operator = item.get("operator", "correctness")
+            criteria = item.get("criteria", "")
+            rubric_lines.append(f"{idx + 1}. [{operator}] {criteria}")
+
+        system_prompt = (
+            "You are a strict finance QA grader. "
+            "Use only the provided candidate answer and rubric. "
+            "Do not infer missing facts."
+        )
+
+        prompt = f"""QUESTION:
+{question or "N/A"}
+
+REFERENCE ANSWER (if provided):
+{expected or "N/A"}
+
+CANDIDATE ANSWER:
+{predicted}
+
+RUBRIC ITEMS (in order):
+{chr(10).join(rubric_lines)}
+
+Rules:
+- For correctness: met=true only if the answer explicitly states or clearly implies the criterion.
+- For contradiction: violated=true only if the answer directly contradicts the criterion. If the answer is silent, violated=false.
+
+Return JSON only:
+{{"items":[{{"operator":"correctness","met":true}},{{"operator":"contradiction","violated":false}}]}}
+"""
+
+        raw = None
+        try:
+            raw = call_llm(
+                client=client,
+                prompt=prompt,
+                model=self.llm_model,
+                system_prompt=system_prompt,
+                temperature=self.llm_temperature,
+                max_tokens=self.LLM_MAX_TOKENS,
+            )
+            data = extract_json(raw)
+            if not data or "items" not in data:
+                logger.warning("llm_public_csv_invalid_json")
+                return None, "llm_invalid_json", raw
+        except Exception as e:
+            logger.warning("llm_public_csv_failed: %s", e)
+            return None, f"llm_call_failed: {e}", raw
+
+        items = data.get("items", [])
+        expected_count = len(rubric)
+        actual_count = len(items)
+        partial_mismatch = actual_count != expected_count
+        if partial_mismatch:
+            logger.warning(
+                "llm_public_csv_item_mismatch: expected=%s got=%s",
+                expected_count,
+                actual_count,
+            )
+
+        correct_count = 0
+        penalty_count = 0
+        item_results = []
+
+        for idx, rubric_item in enumerate(rubric):
+            eval_item = items[idx] if idx < actual_count else None
+            missing = not isinstance(eval_item, dict)
+            if missing:
+                eval_item = {}
+            operator = rubric_item.get("operator", "correctness")
+            criteria = rubric_item.get("criteria", "")
+            if operator == "correctness":
+                is_met = coerce_bool(eval_item.get("met"))
+                if is_met is None:
+                    is_met = False
+                if is_met:
+                    correct_count += 1
+                item_result = {
+                    "operator": "correctness",
+                    "criteria": criteria[:100] + "..." if len(criteria) > 100 else criteria,
+                    "met": is_met,
+                }
+                if missing:
+                    item_result["missing"] = True
+                item_results.append(item_result)
+            elif operator == "contradiction":
+                has_contradiction = coerce_bool(eval_item.get("violated"))
+                if has_contradiction is None:
+                    has_contradiction = False
+                if has_contradiction:
+                    penalty_count += 1
+                item_result = {
+                    "operator": "contradiction",
+                    "criteria": criteria[:100] + "..." if len(criteria) > 100 else criteria,
+                    "violated": has_contradiction,
+                }
+                if missing:
+                    item_result["missing"] = True
+                item_results.append(item_result)
+
+        total_correctness = sum(1 for r in rubric if r.get("operator") == "correctness")
+        max_score = total_correctness if total_correctness > 0 else 1
+        score = correct_count - (penalty_count * self.CONTRADICTION_PENALTY)
+        score = max(0.0, score)
+        normalized_score = score / max_score if max_score > 0 else 0.0
+        normalized_score = min(1.0, normalized_score)
+
+        details = {
+            "llm_used": True,
+            "llm_model": self.llm_model,
+            "correctness_met": correct_count,
+            "correctness_total": total_correctness,
+            "contradictions_found": penalty_count,
+            "item_results": item_results,
+        }
+        if raw is not None:
+            details["llm_raw_output"] = raw
+        if partial_mismatch:
+            details["llm_partial"] = True
+            details["llm_item_count_expected"] = expected_count
+            details["llm_item_count_actual"] = actual_count
+
+        return EvalResult(
+            score=normalized_score,
+            max_score=1.0,
+            correct_count=correct_count,
+            total_count=total_correctness,
+            feedback=f"LLM rubric scoring: Correctness {correct_count}/{total_correctness}, "
+                     f"Contradictions {penalty_count}",
+            details=details,
+        ), None, raw
     
     def _check_correctness(self, predicted: str, criteria: str) -> bool:
         """
@@ -167,8 +357,9 @@ class PublicCsvEvaluator(BaseDatasetEvaluator):
         """
         Check if prediction contradicts the reference.
         
-        Note: Without LLM support, this method always returns False to avoid
-        false positives. Set use_llm=True for actual contradiction detection.
+        Note: This heuristic method is conservative and returns False to avoid
+        false positives. LLM-based contradiction detection is handled at the
+        rubric level in _llm_evaluate_rubric.
         
         Args:
             predicted: The prediction to check
@@ -180,9 +371,7 @@ class PublicCsvEvaluator(BaseDatasetEvaluator):
         if not reference or not predicted:
             return False
         
-        # TODO: Implement LLM-based contradiction detection when use_llm=True
-        # For now, be conservative and never flag contradictions without LLM
-        # to avoid false positives
+        # Be conservative and never flag contradictions without LLM
         return False
     
     def _extract_key_elements(self, text: str) -> List[str]:

@@ -49,5 +49,9 @@ sampling:
   seed: 42  # Random seed for reproducibility
 
 # Evaluation settings
+# llm_eval:
+#   enabled: true
+#   model: gpt-4o-mini
+#   temperature: 0.0
 debate: false  # Whether to conduct adversarial debate
 timeout_seconds: 300  # Timeout per question

@@ -11,7 +11,8 @@ Usage:
         --language en \
         --purple-endpoint http://localhost:9110 \
         --output /tmp/results.json \
-        --limit 5
+        --limit 5 \
+        --eval-llm
 """
 
 import argparse
@@ -25,6 +26,7 @@ from typing import Any, Dict, List
 
 from cio_agent.datasets.bizfinbench_provider import BizFinBenchProvider
 from evaluators.bizfinbench_evaluator import BizFinBenchEvaluator
+from evaluators.llm_utils import should_use_llm
 
 
 def _parse_args() -> argparse.Namespace:
@@ -67,6 +69,27 @@ def _parse_args() -> argparse.Namespace:
         type=float,
         default=120.0,
         help="Request timeout in seconds",
+    )
+    eval_group = parser.add_mutually_exclusive_group()
+    eval_group.add_argument(
+        "--eval-llm",
+        action="store_true",
+        help="Enable LLM grading for BizFinBench evaluation",
+    )
+    eval_group.add_argument(
+        "--no-eval-llm",
+        action="store_true",
+        help="Disable LLM grading for BizFinBench evaluation",
+    )
+    parser.add_argument(
+        "--eval-llm-model",
+        type=str,
+        help="Model override for LLM grading (e.g., gpt-4o-mini)",
+    )
+    parser.add_argument(
+        "--eval-llm-temperature",
+        type=float,
+        help="Temperature for LLM grading (default 0.0)",
     )
     return parser.parse_args()
 
@@ -111,7 +134,18 @@ async def main() -> None:
     print("-" * 60)
     
     # Initialize evaluator
-    evaluator = BizFinBenchEvaluator()
+    if args.eval_llm:
+        use_llm = True
+    elif args.no_eval_llm:
+        use_llm = False
+    else:
+        use_llm = should_use_llm()
+
+    evaluator = BizFinBenchEvaluator(
+        use_llm=use_llm,
+        llm_model=args.eval_llm_model,
+        llm_temperature=args.eval_llm_temperature,
+    )
     
     results: List[Dict[str, Any]] = []
     
@@ -132,6 +166,7 @@ async def main() -> None:
                 predicted=predicted,
                 expected=example.answer,
                 task_type=args.task_type,
+                question=example.question,
             )
             
             results.append({

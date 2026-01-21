@@ -103,7 +103,9 @@ def print_results(result: dict, output_file: str = None):
     if "error" in result:
         print(f"\n❌ Error: {result['error']}")
         return False
-    
+
+    _inject_llm_outputs(result)
+
     print("\n" + "="*60)
     print("📊 EVALUATION RESULTS")
     print("="*60)
@@ -129,7 +131,7 @@ def print_results(result: dict, output_file: str = None):
                     root = part.get("root", part)
                     if root.get("kind") == "text":
                         print(root.get("text", ""))
-                    elif root.get("kind") == "data":
+                    elif root.get("kind") == "data" or "data" in root:
                         print(json.dumps(root.get("data", {}), indent=2))
     else:
         print(json.dumps(result, indent=2))
@@ -141,6 +143,48 @@ def print_results(result: dict, output_file: str = None):
         print(f"\n💾 Results saved to: {output_file}")
     
     return True
+
+
+def _inject_llm_outputs(result: dict) -> None:
+    """Attach aggregated LLM raw outputs to the evaluation data, if available."""
+    if not isinstance(result, dict):
+        return
+    task = None
+    if "result" in result and isinstance(result["result"], dict):
+        task = result["result"].get("task", result["result"])
+    if not isinstance(task, dict):
+        return
+
+    artifacts = task.get("artifacts", [])
+    for artifact in artifacts:
+        for part in artifact.get("parts", []):
+            root = part.get("root", part)
+            if not isinstance(root, dict):
+                continue
+            data = None
+            if root.get("kind") == "data":
+                data = root.get("data")
+            elif "data" in root:
+                data = root.get("data")
+            if not isinstance(data, dict):
+                continue
+
+            results = data.get("results")
+            if not isinstance(results, list):
+                continue
+
+            llm_outputs: dict[str, dict[str, str]] = {}
+            for idx, entry in enumerate(results):
+                if not isinstance(entry, dict):
+                    continue
+                raw_output = entry.get("llm_raw_output")
+                if not raw_output:
+                    continue
+                dataset = entry.get("dataset_type", "unknown")
+                example_id = entry.get("example_id") or entry.get("task_id") or str(idx)
+                llm_outputs.setdefault(dataset, {})[example_id] = raw_output
+
+            data["llm_outputs"] = llm_outputs
 
 
 async def poll_for_completion(

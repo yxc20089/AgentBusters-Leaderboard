@@ -98,7 +98,7 @@ class MacroEvaluator:
 
         return len(intersection) / len(union)
 
-    def _calculate_llm_similarity(self, text1: str, text2: str) -> float:
+    def _calculate_llm_similarity(self, text1: str, text2: str) -> tuple[float, Optional[str]]:
         """
         Calculate semantic similarity using LLM evaluation.
 
@@ -106,7 +106,7 @@ class MacroEvaluator:
         returning a score from 0.0 to 1.0.
         """
         if not self._openai_client:
-            return self._calculate_keyword_similarity(text1, text2)
+            return self._calculate_keyword_similarity(text1, text2), None
 
         prompt = f"""You are an expert evaluator assessing the semantic similarity between two financial analyses.
 
@@ -140,10 +140,10 @@ Respond with ONLY a single integer from 0 to 100, nothing else."""
             )
             score_text = response.choices[0].message.content.strip()
             score = int(score_text)
-            return min(max(score / 100.0, 0.0), 1.0)  # Clamp to [0, 1]
+            return min(max(score / 100.0, 0.0), 1.0), score_text  # Clamp to [0, 1]
         except Exception as e:
             logger.warning("LLM similarity failed, falling back to keyword matching", error=str(e))
-            return self._calculate_keyword_similarity(text1, text2)
+            return self._calculate_keyword_similarity(text1, text2), None
 
     def _count_themes_mentioned(
         self,
@@ -201,11 +201,13 @@ Respond with ONLY a single integer from 0 to 100, nothing else."""
             )
 
         # Calculate semantic similarity
+        llm_raw_output = None
         if self.use_llm:
-            similarity_score = self._calculate_llm_similarity(
+            similarity_score, llm_raw_output = self._calculate_llm_similarity(
                 agent_macro_analysis,
                 self.ground_truth.macro_thesis
-            ) * 100
+            )
+            similarity_score = similarity_score * 100
         else:
             similarity_score = self._calculate_keyword_similarity(
                 agent_macro_analysis,
@@ -261,4 +263,5 @@ Respond with ONLY a single integer from 0 to 100, nothing else."""
             themes_identified=themes_found,
             themes_missed=themes_missed,
             feedback=" ".join(feedback_parts),
+            llm_raw_output=llm_raw_output,
         )
