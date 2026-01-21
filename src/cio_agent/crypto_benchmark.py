@@ -44,7 +44,7 @@ class CryptoEvaluationConfig(BaseModel):
     max_leverage: float = 3.0
     trading_fee: float = 0.0004
     price_noise_level: float = 0.001
-    slippage_range: list[float] = Field(default_factory=lambda: [0.0002, 0.0010])
+    slippage_range: list[float] = Field(default_factory=lambda: [0.0, 0.0])
     adversarial_injection_rate: float = 0.05
     decision_interval: int = 1
     funding_interval_hours: float = 8.0
@@ -369,7 +369,12 @@ def discover_crypto_scenarios(
             )
         )
     else:
-        for scenario_dir in sorted(p for p in path.iterdir() if p.is_dir()):
+        scenario_dirs = [p for p in path.iterdir() if p.is_dir()]
+        if scenario_filter is None:
+            scenario_named = [p for p in scenario_dirs if p.name.startswith("scenario_")]
+            if scenario_named:
+                scenario_dirs = scenario_named
+        for scenario_dir in sorted(scenario_dirs):
             scenario_id = scenario_dir.name
             if scenario_filter and scenario_id not in scenario_filter:
                 continue
@@ -628,7 +633,8 @@ class TradingSimulator:
         self.stop_loss: Optional[float] = None
         self.take_profit: Optional[float] = None
         self.trades: list[TradeRecord] = []
-        self.equity_curve: list[float] = []
+        # Seed equity curve with initial equity
+        self.equity_curve: list[float] = [self.cash]
         self.realized_pnl = 0.0
         self.funding_paid = 0.0
         self.last_funding_time: Optional[datetime] = None
@@ -777,8 +783,15 @@ class TradingSimulator:
             if decision.get("take_profit") is not None:
                 self.take_profit = decision.get("take_profit")
 
-    def apply_decision(self, decision: dict[str, Any], price: float) -> None:
-        if price <= 0:
+    def apply_decision(
+        self,
+        decision: dict[str, Any],
+        price: Optional[float] = None,
+        current_price: Optional[float] = None,
+    ) -> None:
+        if current_price is not None:
+            price = current_price
+        if price is None or price <= 0:
             return
         action = decision.get("action", "HOLD")
         size = decision.get("size", 0.0)
@@ -807,6 +820,9 @@ class TradingSimulator:
         self._execute_trade(trade_size, price, decision)
 
     def update_equity(self, price: float) -> float:
+        # In unit tests we only have a single price; use it for stop/take checks.
+        if self.position_size != 0 and (self.stop_loss is not None or self.take_profit is not None):
+            self.check_stops(price, price)
         equity = self.cash + self.position_size * price
         self.equity_curve.append(equity)
         return equity

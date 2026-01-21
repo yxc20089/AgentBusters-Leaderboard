@@ -857,11 +857,6 @@ class GreenAgent:
         return all_results
 
 
-class EvalRequest(BaseModel):
-    """Evaluation request payload."""
-
-    participants: dict[str, str]
-    config: dict[str, Any] = {}
 
     async def _evaluate_with_config(
         self,
@@ -1170,5 +1165,13 @@ class EvalRequest(BaseModel):
                 })
         
         return all_results
+
+
+
+class EvalRequest(BaseModel):
+    """Evaluation request payload."""
+
+    participants: dict[str, str]
+    config: dict[str, Any] = {}
 
 

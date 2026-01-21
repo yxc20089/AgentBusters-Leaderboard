@@ -621,11 +621,13 @@ class ConfigurableDatasetLoader:
     def _anonymize_scenario_id(self, original_id: str, index: int) -> str:
         """Generate anonymous scenario ID from original."""
         import hashlib
+        if original_id.startswith("scenario_"):
+            return original_id
         # Use seed from config if available for consistency
         seed = self.config.sampling.seed or 42
         text = f"{seed}|{original_id}|{index}"
         digest = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
-        return f"eval_{digest}"
+        return f"scenario_{digest}"
 
     def _load_crypto_from_postgres(self, config: "CryptoDatasetConfig") -> List[LoadedExample]:
         """Load crypto scenarios directly from PostgreSQL with hidden windows."""
