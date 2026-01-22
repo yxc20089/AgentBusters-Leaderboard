@@ -8,6 +8,7 @@ Sections and Weights:
 - Knowledge Retrieval (30%): bizfinbench, public_csv
 - Analytical Reasoning (35%): synthetic
 - Options Trading (35%): options
+- Crypto Trading (20%): crypto
 """
 
 from dataclasses import dataclass, field
@@ -20,6 +21,7 @@ class ScoreSection(str, Enum):
     KNOWLEDGE_RETRIEVAL = "knowledge_retrieval"
     ANALYTICAL_REASONING = "analytical_reasoning"
     OPTIONS_TRADING = "options_trading"
+    CRYPTO_TRADING = "crypto_trading"
 
 
 # Dataset to section mapping
@@ -28,6 +30,7 @@ DATASET_SECTION_MAP: dict[str, ScoreSection] = {
     "public_csv": ScoreSection.KNOWLEDGE_RETRIEVAL,
     "synthetic": ScoreSection.ANALYTICAL_REASONING,
     "options": ScoreSection.OPTIONS_TRADING,
+    "crypto": ScoreSection.CRYPTO_TRADING,
 }
 
 # Default section weights (sum to 1.0)
@@ -35,6 +38,7 @@ DEFAULT_SECTION_WEIGHTS: dict[ScoreSection, float] = {
     ScoreSection.KNOWLEDGE_RETRIEVAL: 0.30,
     ScoreSection.ANALYTICAL_REASONING: 0.35,
     ScoreSection.OPTIONS_TRADING: 0.35,
+    ScoreSection.CRYPTO_TRADING: 0.25,
 }
 
 # Grade thresholds
@@ -163,8 +167,8 @@ class UnifiedScorer:
         if dataset_type in ("bizfinbench", "public_csv", "synthetic"):
             # These evaluators return 0.0-1.0
             return min(100.0, max(0.0, score * 100.0))
-        elif dataset_type == "options":
-            # Options evaluator returns 0-100
+        elif dataset_type in ("options", "crypto"):
+            # Options and crypto evaluators return 0-100
             return min(100.0, max(0.0, score))
         else:
             # Unknown - assume 0-1 if <= 1, otherwise cap at 100

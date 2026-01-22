@@ -109,6 +109,30 @@ class FinanceAgentExecutor(AgentExecutor):
         )
 
         try:
+            # Check if this is a crypto trading decision request
+            trading_decision = self._try_parse_trading_decision(user_input)
+            if trading_decision is not None:
+                # Handle crypto trading decision
+                response = await self._handle_trading_decision(trading_decision)
+
+                # Publish completed status with response (no separate artifact needed)
+                await event_queue.enqueue_event(
+                    TaskStatusUpdateEvent(
+                        task_id=task_id,
+                        context_id=context_id,
+                        status=TaskStatus(
+                            state=TaskState.completed,
+                            message=Message(
+                                message_id=uuid4().hex,
+                                role=Role.agent,
+                                parts=[TextPart(text=response)],
+                            ),
+                        ),
+                        final=True,
+                    )
+                )
+                return
+
             # Parse the task and extract relevant information (LLM + keyword fallback)
             task_info = await self._parse_task(user_input)
 
@@ -221,6 +245,173 @@ class FinanceAgentExecutor(AgentExecutor):
         "quantitative",         # Quantitative computation (BizFinBench)
         "general",              # General financial questions
     ]
+
+    def _try_parse_trading_decision(self, user_input: str) -> dict | None:
+        """
+        Try to parse the input as a crypto trading decision request.
+
+        Returns the parsed state dict if valid, None otherwise.
+        """
+        try:
+            data = json.loads(user_input)
+            if isinstance(data, dict) and data.get("type") == "trading_decision":
+                return data.get("state", {})
+        except (json.JSONDecodeError, TypeError):
+            pass
+        return None
+
+    async def _handle_trading_decision(self, state: dict) -> str:
+        """
+        Handle a crypto trading decision request.
+
+        Uses LLM to analyze market state and make trading decisions.
+
+        Args:
+            state: Market state including ohlcv, indicators, account info
+
+        Returns:
+            JSON string with trading decision
+        """
+        # Extract market data
+        symbol = state.get("symbol", "UNKNOWN")
+        ohlcv = state.get("ohlcv", {})
+        indicators = state.get("indicators", {})
+        account = state.get("account", {})
+        market_metrics = state.get("market_metrics", {})
+
+        current_price = ohlcv.get("close", 0)
+        balance = account.get("balance", 10000)
+        equity = account.get("equity", balance)
+        positions = account.get("positions", [])
+
+        # Build prompt for LLM
+        prompt = f"""You are a crypto trading AI. Analyze this market state and make a trading decision.
+
+MARKET STATE:
+Symbol: {symbol}
+Current Price: {current_price}
+OHLCV: Open={ohlcv.get('open')}, High={ohlcv.get('high')}, Low={ohlcv.get('low')}, Close={ohlcv.get('close')}, Volume={ohlcv.get('volume')}
+
+INDICATORS:
+- EMA 20: {indicators.get('ema_20')}
+- EMA 50: {indicators.get('ema_50')}
+- RSI: {indicators.get('rsi')}
+- MACD: {indicators.get('macd')}
+- ATR: {indicators.get('atr')}
+
+MARKET METRICS:
+- Funding Rate: {market_metrics.get('funding_rate')}
+- Open Interest: {market_metrics.get('open_interest')}
+
+ACCOUNT:
+- Balance: ${balance:.2f}
+- Equity: ${equity:.2f}
+- Current Positions: {len(positions)}
+
+RULES:
+1. Respond ONLY with a valid JSON object
+2. action must be one of: "BUY", "SELL", "HOLD", "CLOSE"
+3. size is position size (0.0 to 1.0 of equity)
+4. stop_loss and take_profit are price levels
+
+Respond with ONLY this JSON format:
+{{"action": "BUY|SELL|HOLD|CLOSE", "size": 0.1, "stop_loss": null, "take_profit": null, "reasoning": "brief reason"}}"""
+
+        # Use LLM if available
+        if self.llm_client is not None:
+            try:
+                if hasattr(self.llm_client, "chat"):
+                    response = await asyncio.to_thread(
+                        lambda: self.llm_client.chat.completions.create(
+                            model=self.model,
+                            messages=[{"role": "user", "content": prompt}],
+                            temperature=0.3,
+                            max_tokens=200,
+                        )
+                    )
+                    llm_response = response.choices[0].message.content.strip()
+                elif hasattr(self.llm_client, "messages"):
+                    response = await asyncio.to_thread(
+                        lambda: self.llm_client.messages.create(
+                            model=self.model,
+                            max_tokens=200,
+                            messages=[{"role": "user", "content": prompt}],
+                        )
+                    )
+                    llm_response = response.content[0].text.strip()
+                else:
+                    llm_response = None
+
+                if llm_response:
+                    # Try to extract JSON from response
+                    try:
+                        # Handle markdown code blocks
+                        if "```" in llm_response:
+                            start = llm_response.find("{")
+                            end = llm_response.rfind("}") + 1
+                            if start != -1 and end > start:
+                                llm_response = llm_response[start:end]
+                        decision = json.loads(llm_response)
+                        # Validate and normalize
+                        return json.dumps({
+                            "action": str(decision.get("action", "HOLD")).upper(),
+                            "size": float(decision.get("size", 0.0)),
+                            "stop_loss": decision.get("stop_loss"),
+                            "take_profit": decision.get("take_profit"),
+                            "reasoning": decision.get("reasoning", ""),
+                        })
+                    except (json.JSONDecodeError, TypeError, ValueError):
+                        pass
+
+            except Exception as e:
+                # Log error but continue to fallback
+                pass
+
+        # Fallback: Simple rule-based decision
+        rsi = indicators.get("rsi", 50)
+        ema_20 = indicators.get("ema_20", current_price)
+        ema_50 = indicators.get("ema_50", current_price)
+
+        action = "HOLD"
+        size = 0.0
+        reasoning = "No clear signal"
+
+        if rsi and ema_20 and ema_50:
+            if rsi < 30 and current_price > ema_20:
+                action = "BUY"
+                size = 0.1
+                reasoning = "RSI oversold with price above EMA20"
+            elif rsi > 70 and current_price < ema_20:
+                action = "SELL"
+                size = 0.1
+                reasoning = "RSI overbought with price below EMA20"
+            elif ema_20 > ema_50 and current_price > ema_20:
+                action = "BUY"
+                size = 0.05
+                reasoning = "Bullish EMA crossover"
+            elif ema_20 < ema_50 and current_price < ema_20:
+                action = "SELL"
+                size = 0.05
+                reasoning = "Bearish EMA crossover"
+
+        atr = indicators.get("atr", current_price * 0.02)
+        stop_loss = None
+        take_profit = None
+
+        if action == "BUY" and atr:
+            stop_loss = current_price - (atr * 2)
+            take_profit = current_price + (atr * 3)
+        elif action == "SELL" and atr:
+            stop_loss = current_price + (atr * 2)
+            take_profit = current_price - (atr * 3)
+
+        return json.dumps({
+            "action": action,
+            "size": size,
+            "stop_loss": stop_loss,
+            "take_profit": take_profit,
+            "reasoning": reasoning,
+        })
 
     async def _extract_tickers_with_llm(self, user_input: str) -> list[str] | None:
         """

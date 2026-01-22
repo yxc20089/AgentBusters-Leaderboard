@@ -98,6 +98,7 @@ All section scores are normalized to 0-100 scale. Example: Knowledge (83.33) + A
    - Corporate finance (FCFF, M&M)
    - Options & derivatives (put-call parity, swaps)
 4. **Options Alpha** (Options): Greeks analysis, strategy construction, P&L analysis
+5. **Crypto Trading Scenarios** (Optional): Multi-round trading evaluation on market states
 
 ### Key Features
 
@@ -106,6 +107,29 @@ All section scores are normalized to 0-100 scale. Example: Knowledge (83.33) + A
 - **Options Alpha Challenge**: Black-Scholes pricing, Greeks analysis, multi-leg strategies
 - **Adversarial Debate**: Optional counter-argument generation to test conviction
 - **Dynamic Weight Redistribution**: When sections are disabled, weights redistribute proportionally
+
+## Crypto Trading Benchmark (Optional Track)
+
+The repo includes an optional crypto trading benchmark that evaluates
+multi-round trading decisions on historical scenarios (baseline, noisy,
+adversarial, meta-consistency). Use `config/eval_crypto.yaml` to run it
+and see `docs/CRYPTO_BENCHMARK.md` for data format and integration
+details.
+
+> Do not commit hidden seeds or evaluation data. Keep `~/.agentbusters/hidden_seeds.yaml` and `data/crypto/hidden/` private.
+
+### Anti-Overfitting Design
+
+The crypto benchmark implements a **Hidden Windows** strategy to prevent overfitting:
+
+| Protection Layer | Mechanism |
+|------------------|-----------|
+| **Private Seed** | Master seed stored in `~/.agentbusters/` (not in repo) |
+| **Dynamic Selection** | Evaluation windows selected deterministically from seed |
+| **Anonymous IDs** | Scenario IDs are SHA256 hashes (cannot reverse to timestamps) |
+| **Quarterly Rotation** | Seeds refreshed periodically to prevent long-term optimization |
+
+For production deployment with PostgreSQL and hidden windows, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ### Architecture
 
@@ -151,7 +175,7 @@ All section scores are normalized to 0-100 scale. Example: Knowledge (83.33) + A
 Use these exact commands to run the whole stack locally with openai/gpt-oss-20b. Each terminal runs one long-lived process; keep them open.
 
 ```bash
-# Terminal 1 — Local LLM (vLLM: openai/gpt-oss-20b)
+# (Optional) Terminal 1 — Local LLM (vLLM: openai/gpt-oss-20b)
 # conda activate /chronos_data/conda_envs/py313
 # Install vLLM
 # pip install vllm
@@ -160,6 +184,8 @@ Use these exact commands to run the whole stack locally with openai/gpt-oss-20b.
 #export LD_LIBRARY_PATH="/chronos_data/huixu/libcuda_stub:$LD_LIBRARY_PATH"
 vllm serve openai/gpt-oss-20b --port 8000
 # For multi-GPU: add --tensor-parallel-size=2
+
+You can also set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` in `.env`.
 
 # Terminal 2–4 — MCP Servers (OPTIONAL - can skip these!)
 # Purple Agent can run MCP servers in-process (no external servers needed).
@@ -170,28 +196,38 @@ vllm serve openai/gpt-oss-20b --port 8000
 
 # Option B: Run external MCP servers (for debugging/multi-agent)
 # Terminal 2 — SEC EDGAR MCP
-python -m src.mcp_servers.sec_edgar --transport http --host 0.0.0.0 --port 8101
+# python -m src.mcp_servers.sec_edgar --transport http --host 0.0.0.0 --port 8101
 
-# Terminal 3 — Yahoo Finance MCP
-python -m src.mcp_servers.yahoo_finance --transport http --host 0.0.0.0 --port 8102
+# # Terminal 3 — Yahoo Finance MCP
+# python -m src.mcp_servers.yahoo_finance --transport http --host 0.0.0.0 --port 8102
 
-# Terminal 4 — Sandbox MCP
-python -m src.mcp_servers.sandbox --transport http --host 0.0.0.0 --port 8103
+# # Terminal 4 — Sandbox MCP
+# python -m src.mcp_servers.sandbox --transport http --host 0.0.0.0 --port 8103
 
 # Terminal 5 — Purple Agent (Finance Analyst, A2A server for AgentBeats)
 # Recommended: Production-grade A2A server with full LLM support
-purple-agent serve --host 0.0.0.0 --port 9110
+purple-agent serve --host 0.0.0.0 --port 9110 --card-url http://localhost:9110
 
 # Alternatively: Simple test agent (minimal A2A + REST)
-# python src/simple_purple_agent.py --host 0.0.0.0 --port 9110
+# python src/simple_purple_agent.py --host 0.0.0.0 --port 9110 --card-url http://localhost:9110
 
 # Quick one-off analysis (no server needed)
 # purple-agent analyze "Did NVIDIA beat or miss Q3 FY2026 expectations?" --ticker NVDA
 
 # Terminal 6 — Green Agent (Evaluator, A2A server)
 # No CLI wrapper for serve command—start the server directly
-python src/cio_agent/a2a_server.py --host 0.0.0.0 --port 9109
+python src/cio_agent/a2a_server.py --host 0.0.0.0 --port 9109 --eval-config config/eval_crypto.yaml
 
+# Terminal 7 Run Evaluation:
+python scripts/run_a2a_eval.py --green-url http://localhost:9109 --purple-url http://localhost:9110 --num-tasks 1 --timeout 300 -v
+```
+
+#### More Useful Commands (Optional)
+
+```bash
+################################################################################
+# 1. QUICK START - Most Common Commands
+################################################################################
 # Quick smoke checks (discovery/health)
 curl http://localhost:9109/.well-known/agent.json   # Green agent card
 curl http://localhost:9110/health                   # Purple agent health
@@ -224,14 +260,6 @@ cio-agent evaluate --task-id FAB_001 --purple-endpoint http://localhost:9110
 python scripts/run_demo.py
 # Optional: override Purple endpoint
 # PURPLE_ENDPOINT=http://localhost:9110 python scripts/run_demo.py
-```
-
-#### More Useful Commands (Optional)
-
-```bash
-################################################################################
-# 1. QUICK START - Most Common Commands
-################################################################################
 
 # Purple Agent utilities
 purple-agent info NVDA                    # Pulls quote/statistics/SEC snapshot via MCP

@@ -1,0 +1,95 @@
+{
+  "metadata": {
+    "source": "sample",
+    "exchange": "binance",
+    "generated_at": "2026-01-17T00:00:00Z",
+    "description": "Sample BTCUSDT micro window for smoke tests",
+    "timeframe": "1m"
+  },
+  "market_states": [
+    {
+      "timestamp": "2022-01-01T00:00:00Z",
+      "symbol": "BTCUSDT",
+      "ohlcv": { "open": 47000.0, "high": 47100.0, "low": 46950.0, "close": 47050.0, "volume": 1200.0 },
+      "indicators": { "ema_20": 47020.0, "ema_50": 47080.0, "rsi": 48.0, "macd": -5.0, "atr": 150.0 },
+      "market_metrics": { "funding_rate": 0.0001, "open_interest": 1500000000.0, "cvd": 0.0 }
+    },
+    {
+      "timestamp": "2022-01-01T00:01:00Z",
+      "symbol": "BTCUSDT",
+      "ohlcv": { "open": 47050.0, "high": 47090.0, "low": 46980.0, "close": 47010.0, "volume": 1150.0 },
+      "indicators": { "ema_20": 47010.0, "ema_50": 47070.0, "rsi": 47.0, "macd": -6.0, "atr": 152.0 },
+      "market_metrics": { "funding_rate": 0.0001, "open_interest": 1500000000.0, "cvd": 0.0 }
+    },
+    {
+      "timestamp": "2022-01-01T00:02:00Z",
+      "symbol": "BTCUSDT",
+      "ohlcv": { "open": 47010.0, "high": 47060.0, "low": 46890.0, "close": 46920.0, "volume": 1320.0 },
+      "indicators": { "ema_20": 46990.0, "ema_50": 47050.0, "rsi": 45.5, "macd": -8.0, "atr": 158.0 },
+      "market_metrics": { "funding_rate": 0.0001, "open_interest": 1500000000.0, "cvd": 0.0 }
+    },
+    {
+      "timestamp": "2022-01-01T00:03:00Z",
+      "symbol": "BTCUSDT",
+      "ohlcv": { "open": 46920.0, "high": 46980.0, "low": 46850.0, "close": 46960.0, "volume": 1280.0 },
+      "indicators": { "ema_20": 46980.0, "ema_50": 47040.0, "rsi": 46.2, "macd": -7.0, "atr": 154.0 },
+      "market_metrics": { "funding_rate": 0.0001, "open_interest": 1500000000.0, "cvd": 0.0 }
+    },
+    {
+      "timestamp": "2022-01-01T00:04:00Z",
+      "symbol": "BTCUSDT",
+      "ohlcv": { "open": 46960.0, "high": 47020.0, "low": 46910.0, "close": 46990.0, "volume": 1250.0 },
+      "indicators": { "ema_20": 46985.0, "ema_50": 47035.0, "rsi": 46.8, "macd": -6.5, "atr": 153.0 },
+      "market_metrics": { "funding_rate": 0.0001, "open_interest": 1500000000.0, "cvd": 0.0 }
+    },
+    {
+      "timestamp": "2022-01-01T00:05:00Z",
+      "symbol": "BTCUSDT",
+      "ohlcv": { "open": 46990.0, "high": 47120.0, "low": 46970.0, "close": 47080.0, "volume": 1400.0 },
+      "indicators": { "ema_20": 47010.0, "ema_50": 47030.0, "rsi": 48.5, "macd": -4.0, "atr": 162.0 },
+      "market_metrics": { "funding_rate": 0.0001, "open_interest": 1500000000.0, "cvd": 0.0 }
+    },
+    {
+      "timestamp": "2022-01-01T00:06:00Z",
+      "symbol": "BTCUSDT",
+      "ohlcv": { "open": 47080.0, "high": 47110.0, "low": 47020.0, "close": 47040.0, "volume": 1180.0 },
+      "indicators": { "ema_20": 47015.0, "ema_50": 47028.0, "rsi": 47.9, "macd": -4.8, "atr": 158.0 },
+      "market_metrics": { "funding_rate": 0.0001, "open_interest": 1500000000.0, "cvd": 0.0 }
+    },
+    {
+      "timestamp": "2022-01-01T00:07:00Z",
+      "symbol": "BTCUSDT",
+      "ohlcv": { "open": 47040.0, "high": 47070.0, "low": 46960.0, "close": 46980.0, "volume": 1100.0 },
+      "indicators": { "ema_20": 47000.0, "ema_50": 47020.0, "rsi": 46.5, "macd": -5.5, "atr": 155.0 },
+      "market_metrics": { "funding_rate": 0.0001, "open_interest": 1500000000.0, "cvd": 0.0 }
+    },
+    {
+      "timestamp": "2022-01-01T00:08:00Z",
+      "symbol": "BTCUSDT",
+      "ohlcv": { "open": 46980.0, "high": 47030.0, "low": 46880.0, "close": 46910.0, "volume": 1500.0 },
+      "indicators": { "ema_20": 46970.0, "ema_50": 47005.0, "rsi": 44.8, "macd": -7.2, "atr": 166.0 },
+      "market_metrics": { "funding_rate": 0.0001, "open_interest": 1500000000.0, "cvd": 0.0 }
+    },
+    {
+      "timestamp": "2022-01-01T00:09:00Z",
+      "symbol": "BTCUSDT",
+      "ohlcv": { "open": 46910.0, "high": 46950.0, "low": 46840.0, "close": 46890.0, "volume": 1600.0 },
+      "indicators": { "ema_20": 46950.0, "ema_50": 46990.0, "rsi": 44.2, "macd": -8.0, "atr": 168.0 },
+      "market_metrics": { "funding_rate": 0.0001, "open_interest": 1500000000.0, "cvd": 0.0 }
+    },
+    {
+      "timestamp": "2022-01-01T00:10:00Z",
+      "symbol": "BTCUSDT",
+      "ohlcv": { "open": 46890.0, "high": 46940.0, "low": 46820.0, "close": 46870.0, "volume": 1550.0 },
+      "indicators": { "ema_20": 46935.0, "ema_50": 46980.0, "rsi": 43.9, "macd": -8.6, "atr": 165.0 },
+      "market_metrics": { "funding_rate": 0.0001, "open_interest": 1500000000.0, "cvd": 0.0 }
+    },
+    {
+      "timestamp": "2022-01-01T00:11:00Z",
+      "symbol": "BTCUSDT",
+      "ohlcv": { "open": 46870.0, "high": 46980.0, "low": 46860.0, "close": 46940.0, "volume": 1300.0 },
+      "indicators": { "ema_20": 46940.0, "ema_50": 46975.0, "rsi": 45.1, "macd": -7.0, "atr": 160.0 },
+      "market_metrics": { "funding_rate": 0.0001, "open_interest": 1500000000.0, "cvd": 0.0 }
+    }
+  ]
+}

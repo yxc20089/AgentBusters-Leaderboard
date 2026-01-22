@@ -1,0 +1,97 @@
+# AgentBusters Crypto Trading Benchmark Configuration (safe defaults)
+# Keep evaluation data private and do NOT commit hidden seeds or scenarios.
+# Prefer anonymized scenario IDs or private manifests for production runs.
+
+name: "AgentBusters Crypto Trading Benchmark"
+version: "1.0"
+
+datasets:
+  # Example 1: JSON file-based scenarios (private/hidden data by default)
+  - type: crypto
+    path: data/crypto/hidden
+    download_on_missing: false
+    limit: 1  # Only 1 scenario for quick testing
+    shuffle: false
+    weight: 1.0
+    stride: 1
+    max_steps: 20  # Only 20 bars
+    evaluation:
+      initial_balance: 10000.0
+      max_leverage: 3.0
+      trading_fee: 0.0004
+      price_noise_level: 0.001
+      slippage_range: [0.0002, 0.0010]
+      adversarial_injection_rate: 0.05
+      decision_interval: 5  # Only decide every 5 bars = 4 decisions
+      funding_interval_hours: 8.0
+      score_weights:
+        baseline: 1.0  # Only baseline for quick test
+        noisy: 0.0
+        adversarial: 0.0
+        meta: 0.0
+      metric_weights:
+        sharpe: 0.50
+        total_return: 0.25
+        max_drawdown: 0.15
+        win_rate: 0.10
+      meta_transforms:
+        - identity  # Only 1 transform = 1 episode
+
+  # Example 2: PostgreSQL direct query mode with hidden windows
+  # Uncomment and configure for production use
+  # - type: crypto
+  #   path: data/crypto/hidden  # fallback for exported hidden windows
+  #   pg_enabled: true
+  #   pg_host: localhost
+  #   pg_port: 5432
+  #   pg_dbname: market_data
+  #   pg_user: postgres
+  #   # pg_password: your_password  # or use pg_dsn for full DSN
+  #   pg_ohlcv_table: market_data.candles_1m
+  #   pg_funding_table: market_data.funding_rates
+  #
+  #   # Hidden windows anti-overfitting configuration
+  #   # The master seed is stored in ~/.agentbusters/hidden_seeds.yaml (not in repo)
+  #   hidden_seed_config: crypto_benchmark_v1
+  #   window_count: 12
+  #   symbols:
+  #     - BTCUSDT
+  #     - ETHUSDT
+  #   date_range_start: "2020-01-01"
+  #   date_range_end: "2025-12-31"
+  #   window_min_bars: 1440   # 1 day at 1m timeframe
+  #   window_max_bars: 10080  # 7 days at 1m timeframe
+  #
+  #   shuffle: false
+  #   weight: 1.0
+  #   evaluation:
+  #     initial_balance: 10000.0
+  #     max_leverage: 3.0
+  #     trading_fee: 0.0004
+  #     price_noise_level: 0.001
+  #     slippage_range: [0.0002, 0.0010]
+  #     adversarial_injection_rate: 0.05
+  #     decision_interval: 1
+  #     funding_interval_hours: 8.0
+  #     score_weights:
+  #       baseline: 0.40
+  #       noisy: 0.30
+  #       adversarial: 0.20
+  #       meta: 0.10
+  #     metric_weights:
+  #       sharpe: 0.50         # Primary ranking metric
+  #       total_return: 0.25   # Secondary
+  #       max_drawdown: 0.15   # Risk
+  #       win_rate: 0.10       # Consistency
+  #     meta_transforms:
+  #       - identity
+  #       - scale_1_1
+  #       - invert_returns
+
+sampling:
+  strategy: sequential
+  total_limit: null
+  seed: 42
+
+debate: false
+timeout_seconds: 300  # 5 minutes

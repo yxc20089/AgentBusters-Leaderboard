@@ -1,0 +1,7 @@
+{
+  "name": "sample_btc_window",
+  "description": "Sample BTCUSDT micro window for smoke tests",
+  "period": "2022-01-01T00:00:00Z to 2022-01-01T00:19:00Z",
+  "symbols": ["BTCUSDT"],
+  "timeframe": "1m"
+}

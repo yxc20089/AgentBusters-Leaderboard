@@ -469,3 +469,33 @@ class TestSyntheticDatasetSupport:
         assert agent._extract_recommendation("Sell the position") == "Sell"
         assert agent._extract_recommendation("Hold your current position") == "Hold"
 
+
+class TestCryptoDatasetSupport:
+    """Test crypto dataset integration."""
+
+    def test_load_crypto_dataset(self):
+        """Test loading crypto dataset through loader."""
+        from cio_agent.eval_config import (
+            EvaluationConfig, CryptoDatasetConfig,
+            SamplingConfig, ConfigurableDatasetLoader
+        )
+
+        config = EvaluationConfig(
+            datasets=[
+                CryptoDatasetConfig(
+                    path="data/crypto/scenarios",
+                    scenarios=["sample_btc_window"],
+                    limit=1,
+                    shuffle=False,
+                )
+            ],
+            sampling=SamplingConfig(strategy="sequential", total_limit=1),
+        )
+
+        loader = ConfigurableDatasetLoader(config)
+        examples = loader.load()
+
+        assert len(examples) == 1
+        assert examples[0].dataset_type == "crypto"
+        assert examples[0].metadata.get("data_path")
+
