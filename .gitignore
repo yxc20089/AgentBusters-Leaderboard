@@ -85,3 +85,11 @@ edgar-cache/
 yfinance-cache/
 data/results.json
 *.db
+
+# Crypto evaluation data (should be in private repo)
+data/crypto/eval_hidden/
+data/crypto/eval_production/
+data/crypto/hidden/
+
+# Hidden seeds (NEVER commit)
+.agentbusters/

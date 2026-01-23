@@ -10,6 +10,7 @@ Supported modes:
     - synthetic: Generated questions from JSON file
     - bizfinbench: HiThink BizFinBench.v2 dataset (single task type)
     - public_csv: FAB++ public.csv dataset
+    - crypto: Crypto trading benchmark scenarios (config mode)
 """
 
 import json
@@ -33,12 +34,14 @@ from cio_agent.eval_config import (
 )
 from cio_agent.agentbeats_results import format_and_save_results
 from cio_agent.unified_scoring import UnifiedScorer, ScoreSection, DATASET_SECTION_MAP
+from cio_agent.crypto_benchmark import CryptoTradingEvaluator, stable_seed
 
 # Dataset providers (for legacy single-dataset mode)
 from cio_agent.data_providers import BizFinBenchProvider, CsvFinanceDatasetProvider
 
 # Dataset-specific evaluators
 from evaluators import BizFinBenchEvaluator, PublicCsvEvaluator, OptionsEvaluator
+from evaluators.gdpval_evaluator import GDPValEvaluator
 from evaluators.llm_utils import build_llm_client, should_use_llm
 
 
@@ -199,8 +202,15 @@ class GreenAgent:
                     llm_model=self.llm_model,
                     llm_temperature=self.llm_temperature,
                 ),
+                "gdpval": GDPValEvaluator(
+                    use_llm=self.use_llm,
+                    llm_client=self.llm_client,
+                    llm_model=self.llm_model,
+                    llm_temperature=self.llm_temperature,
+                ),
                 "synthetic": self.evaluator,  # Use ComprehensiveEvaluator
                 "options": None,  # Options use OptionsEvaluator initialized per-task
+                "crypto": None,  # Crypto uses CryptoTradingEvaluator initialized per-scenario
             }
             
         elif dataset_type == "bizfinbench" and dataset_path:
@@ -360,6 +370,13 @@ class GreenAgent:
                             "strategy_quality": r.get("strategy_quality", 0),
                             "risk_management": r.get("risk_management", 0),
                         }
+                    elif dataset_type == "crypto":
+                        sub_scores = {
+                            "baseline": r.get("baseline_score", 0),
+                            "noisy": r.get("noisy_score", 0),
+                            "adversarial": r.get("adversarial_score", 0),
+                            "meta": r.get("meta_score", 0),
+                        }
 
                     normalized = scorer.create_normalized_result(
                         task_id=r.get("example_id", ""),
@@ -378,6 +395,9 @@ class GreenAgent:
                     purple_agent_url=purple_agent_url,
                     conduct_debate=conduct_debate,
                 )
+                if set(summary["by_dataset"].keys()) == {"crypto"}:
+                    unified_result.benchmark = "AgentBusters Crypto Trading Benchmark"
+                    unified_result.version = "1.0.0"
 
                 # Convert to dict for serialization
                 assessment_result = unified_result.to_dict()
@@ -771,6 +791,8 @@ class GreenAgent:
                         for key in ("llm_used", "llm_failure", "llm_raw_output"):
                             if key in eval_result.details:
                                 result[key] = eval_result.details.get(key)
+                    result["llm_used"] = eval_result.details.get("llm_used", False) if eval_result.details else False
+                    result["sub_scores"] = {}
                     
                 elif self.dataset_type == "public_csv":
                     # Build rubric from example
@@ -810,6 +832,8 @@ class GreenAgent:
                         ):
                             if key in eval_result.details:
                                 result[key] = eval_result.details.get(key)
+                    result["llm_used"] = eval_result.details.get("llm_used", False) if eval_result.details else False
+                    result["sub_scores"] = {}
                 else:
                     result = {
                         "example_id": example.example_id,
@@ -844,11 +868,6 @@ class GreenAgent:
         return all_results
 
 
-class EvalRequest(BaseModel):
-    """Evaluation request payload."""
-
-    participants: dict[str, str]
-    config: dict[str, Any] = {}
 
     async def _evaluate_with_config(
         self,
@@ -870,6 +889,7 @@ class EvalRequest(BaseModel):
             List of evaluation results
         """
         all_results = []
+        crypto_evaluator = None
         examples_to_eval = self._loaded_examples[:num_tasks] if num_tasks else self._loaded_examples
         
         for i, example in enumerate(examples_to_eval):
@@ -881,18 +901,20 @@ class EvalRequest(BaseModel):
             )
             
             try:
-                # Send question to Purple Agent
-                response = await self.messenger.talk_to_agent(
-                    message=example.question,
-                    url=purple_agent_url,
-                    new_conversation=True,
-                    timeout=self.eval_config.timeout_seconds if self.eval_config else 300,
-                )
+                response = ""
+                if example.dataset_type != "crypto":
+                    # Send question to Purple Agent
+                    response = await self.messenger.talk_to_agent(
+                        message=example.question,
+                        url=purple_agent_url,
+                        new_conversation=True,
+                        timeout=self.eval_config.timeout_seconds if self.eval_config else 300,
+                    )
                 predicted_text = self._format_predicted(response)
                 
                 # Get appropriate evaluator (options handled specially below)
                 evaluator = self._evaluators.get(example.dataset_type)
-                if not evaluator and example.dataset_type != "options":
+                if not evaluator and example.dataset_type not in ("options", "crypto"):
                     all_results.append({
                         "example_id": example.example_id,
                         "dataset_type": example.dataset_type,
@@ -989,7 +1011,43 @@ class EvalRequest(BaseModel):
                         "is_correct": is_correct,
                         "feedback": f"Extracted: {extracted}, Expected: {expected}",
                     }
+                    result["llm_used"] = False
+                    result["sub_scores"] = {}
                     eval_result = type('obj', (object,), {'score': result['score']})()
+
+                elif example.dataset_type == "gdpval":
+                    # GDPVal: Open-ended professional tasks (LLM-as-judge)
+                    eval_result = evaluator.evaluate(
+                        predicted=response,
+                        expected="",  # GDPVal has no ground truth
+                        task_prompt=example.question,
+                        occupation=example.task_type,  # task_type stores occupation
+                        sector=example.category,  # category stores sector
+                        reference_files=example.metadata.get("reference_files", []),
+                        question=example.question,
+                    )
+                    result = {
+                        "example_id": example.example_id,
+                        "dataset_type": example.dataset_type,
+                        "occupation": example.task_type,
+                        "sector": example.category,
+                        "question": example.question[:200] + "..." if len(example.question) > 200 else example.question,
+                        "predicted": predicted_text,
+                        "score": eval_result.score,
+                        "is_correct": eval_result.score >= 0.7,  # 70% threshold
+                        "feedback": eval_result.feedback,
+                        "has_reference_files": example.metadata.get("has_reference_files", False),
+                    }
+                    # Add detailed scores if available
+                    sub_scores: dict[str, float] = {}
+                    if eval_result.details:
+                        for key in ("completion", "accuracy", "format", "professionalism", "llm_used"):
+                            if key in eval_result.details:
+                                result[key] = eval_result.details[key]
+                                if key in ("completion", "accuracy", "format", "professionalism"):
+                                    sub_scores[key] = float(eval_result.details[key])
+                    result["llm_used"] = eval_result.details.get("llm_used", False) if eval_result.details else False
+                    result["sub_scores"] = sub_scores
 
                 elif example.dataset_type == "options":
                     # Options Alpha Challenge evaluation
@@ -1058,7 +1116,79 @@ class EvalRequest(BaseModel):
                         "risk_management": options_score.risk_management,
                         "feedback": options_score.feedback,
                     }
+                    result["llm_used"] = False
+                    result["sub_scores"] = {
+                        "pnl_accuracy": options_score.pnl_accuracy,
+                        "greeks_accuracy": options_score.greeks_accuracy,
+                        "strategy_quality": options_score.strategy_quality,
+                        "risk_management": options_score.risk_management,
+                    }
                     eval_result = type('obj', (object,), {'score': options_score.score})()
+
+                elif example.dataset_type == "crypto":
+                    if crypto_evaluator is None:
+                        crypto_evaluator = CryptoTradingEvaluator(
+                            messenger=self.messenger,
+                            timeout_seconds=self.eval_config.timeout_seconds if self.eval_config else 300,
+                        )
+
+                    scenario_meta = example.metadata or {}
+                    scenario_seed_base = os.environ.get("AGENTBEATS_PURPLE_AGENT_ID") or purple_agent_url
+                    scenario_seed = scenario_meta.get("seed")
+                    if scenario_seed is None:
+                        scenario_seed = stable_seed(scenario_seed_base, example.example_id)
+
+                    crypto_result = await crypto_evaluator.evaluate_scenario(
+                        scenario_meta=scenario_meta,
+                        purple_agent_url=purple_agent_url,
+                        seed=scenario_seed,
+                    )
+
+                    if "error" in crypto_result:
+                        result = {
+                            "example_id": example.example_id,
+                            "dataset_type": example.dataset_type,
+                            "error": crypto_result["error"],
+                            "score": 0.0,
+                            "is_correct": False,
+                            "llm_used": False,
+                            "sub_scores": {},
+                        }
+                        eval_result = type('obj', (object,), {'score': 0.0})()
+                    else:
+                        result = {
+                            "example_id": example.example_id,
+                            "dataset_type": example.dataset_type,
+                            "scenario_id": scenario_meta.get("scenario_id", example.example_id),
+                            "scenario_name": scenario_meta.get("name", example.example_id),
+                            "score": crypto_result["final_score"],
+                            "baseline_score": crypto_result["baseline"]["score"],
+                            "noisy_score": crypto_result["noisy"]["score"],
+                            "adversarial_score": crypto_result["adversarial"]["score"],
+                            "meta_score": crypto_result["meta"]["score"],
+                            "grade": crypto_result["grade"],
+                            "random_seed": crypto_result["random_seed"],
+                            "metrics": {
+                                "baseline": crypto_result["baseline"]["metrics"],
+                                "noisy": crypto_result["noisy"]["metrics"],
+                                "adversarial": crypto_result["adversarial"]["metrics"],
+                                "meta": crypto_result["meta"],
+                            },
+                            "events": crypto_result.get("events", []),
+                            "llm_used": False,
+                            "sub_scores": {
+                                "baseline": crypto_result["baseline"]["score"],
+                                "noisy": crypto_result["noisy"]["score"],
+                                "adversarial": crypto_result["adversarial"]["score"],
+                                "meta": crypto_result["meta"]["score"],
+                            },
+                        }
+                        result["is_correct"] = crypto_result["final_score"] >= 70
+                        result["feedback"] = (
+                            f"Final score {crypto_result['final_score']:.2f} "
+                            f"(grade {crypto_result['grade']})"
+                        )
+                        eval_result = type('obj', (object,), {'score': crypto_result["final_score"]})()
 
                 else:
                     # Generic handling for unknown types
@@ -1070,10 +1200,12 @@ class EvalRequest(BaseModel):
                         "score": 0.0,  # No evaluator, no score
                         "is_correct": False,
                         "feedback": "No evaluator configured for this dataset type",
+                        "llm_used": False,
+                        "sub_scores": {},
                     }
                 
                 # Optional debate
-                if conduct_debate and eval_result.score > 0:
+                if conduct_debate and eval_result.score > 0 and example.dataset_type != "crypto":
                     try:
                         rebuttal = await self.messenger.talk_to_agent(
                             message="Challenge your analysis. What risks or uncertainties did you consider?",
@@ -1098,5 +1230,13 @@ class EvalRequest(BaseModel):
                 })
         
         return all_results
+
+
+
+class EvalRequest(BaseModel):
+    """Evaluation request payload."""
+
+    participants: dict[str, str]
+    config: dict[str, Any] = {}
 
 

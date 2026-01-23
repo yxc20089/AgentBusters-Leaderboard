@@ -132,12 +132,21 @@ class GreenAgentExecutor(AgentExecutor):
             # This is a follow-up message, ignore it (evaluation is already running)
             return
 
+        updater = TaskUpdater(event_queue, task.id, context_id)
+
         # Parse EvalRequest from agentbeats-client (first message only)
         request_text = context.get_user_input()
         try:
             eval_request = EvalRequest.model_validate_json(request_text)
         except ValidationError as e:
-            raise ServerError(error=InvalidParamsError(message=f"Invalid request: {e}"))
+            await updater.reject(
+                new_agent_text_message(
+                    f"Invalid request: {e}",
+                    context_id=context_id,
+                    task_id=task.id,
+                )
+            )
+            return
 
         agent = GreenAgent(
             eval_config=self.eval_config,
@@ -156,8 +165,6 @@ class GreenAgentExecutor(AgentExecutor):
         )
         self.agents[context_id] = agent
 
-        updater = TaskUpdater(event_queue, task.id, context_id)
-
         await updater.update_status(
             TaskState.working,
             new_agent_text_message(
@@ -172,13 +179,14 @@ class GreenAgentExecutor(AgentExecutor):
                 await updater.complete()
         except Exception as e:
             print(f"Task failed with agent error: {e}")
-            await updater.failed(
-                new_agent_text_message(
-                    f"Agent error: {e}",
-                    context_id=context_id,
-                    task_id=task.id
+            if not updater._terminal_state_reached:
+                await updater.failed(
+                    new_agent_text_message(
+                        f"Agent error: {e}",
+                        context_id=context_id,
+                        task_id=task.id
+                    )
                 )
-            )
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
         """Cancel an ongoing task (not supported)."""

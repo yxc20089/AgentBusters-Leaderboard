@@ -1,0 +1,90 @@
+# AgentBusters All-Dataset Evaluation Configuration
+# Includes: BizFinBench, public.csv, options, crypto, GDPVal
+# Note: crypto hidden data must be available at data/crypto/hidden.
+
+name: "AgentBusters All Datasets Evaluation"
+version: "1.0"
+
+datasets:
+  - type: bizfinbench
+    path: data/BizFinBench.v2
+    task_types:
+      - event_logic_reasoning
+      - user_sentiment_analysis
+      - financial_quantitative_computation
+      - industry_chain_knowledge
+      - financial_terminology_quiz
+    languages:
+      - en
+      - cn
+    limit_per_task: 5
+    shuffle: true
+    weight: 1.0
+
+  - type: public_csv
+    path: finance-agent/data/public.csv
+    categories: null
+    limit: 30
+    shuffle: true
+    weight: 1.0
+
+  - type: options
+    path: data/options/questions.json
+    categories: null
+    limit: 20
+    shuffle: true
+    weight: 1.0
+
+  - type: crypto
+    path: data/crypto/hidden
+    download_on_missing: false
+    limit: 2
+    shuffle: false
+    weight: 1.0
+    stride: 1
+    max_steps: 200
+    evaluation:
+      initial_balance: 10000.0
+      max_leverage: 3.0
+      trading_fee: 0.0004
+      price_noise_level: 0.001
+      slippage_range: [0.0002, 0.0010]
+      adversarial_injection_rate: 0.05
+      decision_interval: 5
+      funding_interval_hours: 8.0
+      score_weights:
+        baseline: 0.40
+        noisy: 0.30
+        adversarial: 0.20
+        meta: 0.10
+      metric_weights:
+        sharpe: 0.50
+        total_return: 0.25
+        max_drawdown: 0.15
+        win_rate: 0.10
+      meta_transforms:
+        - identity
+        - scale_1_1
+        - invert_returns
+
+  - type: gdpval
+    hf_dataset: "openai/gdpval"
+    sectors: null
+    occupations: null
+    limit: 10
+    shuffle: true
+    weight: 1.0
+    include_reference_files: true
+
+sampling:
+  strategy: weighted
+  total_limit: 50
+  seed: 42
+
+llm_eval:
+  enabled: true
+  model: gpt-4o-mini
+  temperature: 0.0
+
+debate: false
+timeout_seconds: 600

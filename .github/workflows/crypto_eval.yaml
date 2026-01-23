@@ -1,0 +1,133 @@
+# AgentBusters Crypto Benchmark Evaluation
+#
+# This workflow downloads evaluation data from private storage and runs
+# the crypto trading benchmark against submitted purple agents.
+#
+# ANTI-OVERFITTING ARCHITECTURE:
+# 1. Evaluation data is pre-generated locally using hidden seeds
+# 2. Data is anonymized (no timestamps in scenario IDs)
+# 3. Data is stored in PRIVATE storage (not public)
+# 4. Seeds are rotated quarterly to refresh evaluation windows
+
+name: Crypto Benchmark Evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      purple_agent_url:
+        description: 'Purple Agent URL to evaluate'
+        required: true
+        default: 'http://localhost:9110'
+      num_tasks:
+        description: 'Number of evaluation tasks'
+        required: false
+        default: '12'
+
+  # Can also be triggered by PR submission
+  # pull_request:
+  #   types: [opened, synchronize]
+
+env:
+  # Private eval data repository
+  EVAL_DATA_REPO: ${{ secrets.EVAL_DATA_REPO }}
+  # Path inside private repo (default: crypto/eval_hidden)
+  EVAL_DATA_PATH: ${{ secrets.EVAL_DATA_PATH || 'crypto/eval_hidden' }}
+  # Or use HuggingFace
+  HF_TOKEN: ${{ secrets.HF_TOKEN }}
+  HF_DATASET: ${{ secrets.HF_EVAL_DATASET }}
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout AgentBusters
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -e ".[eval]"
+
+      # Option A: Download from GitHub private repo
+      - name: Download eval data (GitHub)
+        if: env.EVAL_DATA_REPO != ''
+        run: |
+          gh repo clone "$EVAL_DATA_REPO" eval_data_temp
+          mkdir -p data/crypto
+          # Use configurable path (default: crypto/eval_hidden)
+          if [ -d "eval_data_temp/$EVAL_DATA_PATH" ]; then
+            mv "eval_data_temp/$EVAL_DATA_PATH" data/crypto/hidden
+          elif [ -d "eval_data_temp/crypto" ]; then
+            mv eval_data_temp/crypto/* data/crypto/hidden/
+          else
+            echo "Error: Could not find eval data in private repo"
+            ls -la eval_data_temp/
+            exit 1
+          fi
+          rm -rf eval_data_temp
+        env:
+          GH_TOKEN: ${{ secrets.EVAL_DATA_PAT }}
+          EVAL_DATA_PATH: ${{ env.EVAL_DATA_PATH }}
+
+      # Option B: Download from HuggingFace private dataset
+      - name: Download eval data (HuggingFace)
+        if: env.HF_DATASET != '' && env.EVAL_DATA_REPO == ''
+        run: |
+          pip install huggingface_hub
+          python -c "
+          from huggingface_hub import snapshot_download
+          snapshot_download(
+              repo_id='${{ secrets.HF_EVAL_DATASET }}',
+              repo_type='dataset',
+              local_dir='data/crypto/hidden',
+              token='${{ secrets.HF_TOKEN }}'
+          )
+          "
+
+      - name: Verify eval data
+        run: |
+          echo "Evaluation data:"
+          ls -la data/crypto/hidden/
+          cat data/crypto/hidden/manifest.json
+
+      - name: Start Green Agent
+        run: |
+          python src/cio_agent/a2a_server.py \
+            --host 0.0.0.0 \
+            --port 9109 \
+            --eval-config config/eval_crypto.yaml &
+          sleep 5
+          echo "Green Agent started"
+
+      - name: Run evaluation
+        id: eval
+        run: |
+          python scripts/run_a2a_eval.py \
+            --green-url http://localhost:9109 \
+            --purple-url ${{ github.event.inputs.purple_agent_url }} \
+            --num-tasks ${{ github.event.inputs.num_tasks }} \
+            --timeout 600 \
+            --output results/eval_output.json \
+            -v
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-results
+          path: results/
+
+      - name: Post results summary
+        if: always()
+        run: |
+          if [ -f results/eval_output.json ]; then
+            echo "## Evaluation Results" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat results/eval_output.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi

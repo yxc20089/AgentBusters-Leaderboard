@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from cio_agent.datasets.csv_provider import (
+from cio_agent.local_datasets.csv_provider import (
     CsvFinanceDatasetProvider,
     REQUIRED_COLUMNS,
     _map_difficulty,

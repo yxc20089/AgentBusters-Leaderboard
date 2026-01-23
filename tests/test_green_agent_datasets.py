@@ -27,7 +27,7 @@ class TestGreenAgentDatasetConfig:
     def test_bizfinbench_mode_initialization(self):
         """Test BizFinBench mode initializes provider and evaluator."""
         from cio_agent.green_agent import GreenAgent
-        from cio_agent.datasets import BizFinBenchProvider
+        from cio_agent.local_datasets import BizFinBenchProvider
         from evaluators import BizFinBenchEvaluator
         
         agent = GreenAgent(
@@ -51,7 +51,7 @@ class TestGreenAgentDatasetConfig:
     def test_public_csv_mode_initialization(self):
         """Test public_csv mode initializes provider and evaluator."""
         from cio_agent.green_agent import GreenAgent
-        from cio_agent.datasets import CsvFinanceDatasetProvider
+        from cio_agent.local_datasets import CsvFinanceDatasetProvider
         from evaluators import PublicCsvEvaluator
         
         agent = GreenAgent(

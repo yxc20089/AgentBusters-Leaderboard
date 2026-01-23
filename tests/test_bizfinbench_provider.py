@@ -5,7 +5,7 @@ Unit tests for BizFinBench.v2 dataset provider.
 import pytest
 from pathlib import Path
 
-from cio_agent.datasets import BizFinBenchProvider, BaseJSONLProvider
+from cio_agent.local_datasets import BizFinBenchProvider, BaseJSONLProvider
 from cio_agent.models import TaskCategory, TaskDifficulty
 
 

@@ -1,0 +1,34 @@
+# GDPVal Benchmark Configuration
+# OpenAI's real-world economically valuable tasks benchmark
+# Reference: https://arxiv.org/abs/2510.04374
+
+name: "GDPVal Evaluation"
+version: "1.0"
+
+datasets:
+  - type: gdpval
+    hf_dataset: "openai/gdpval"  # HuggingFace dataset
+    # Filter by sectors (optional, None = all)
+    # Available: Professional/Scientific/Technical Services, Government,
+    #            Information, Manufacturing, Finance, Healthcare, etc.
+    sectors: null
+    # Filter by occupations (optional, None = all)
+    # 44 occupations available: Accountants, Audio Engineers, etc.
+    occupations: null
+    limit: 20  # Limit for quick testing
+    shuffle: true
+    weight: 1.0
+    include_reference_files: true
+
+sampling:
+  strategy: random
+  total_limit: 20
+  seed: 42
+
+# LLM-as-judge is required for GDPVal (open-ended tasks)
+llm_eval:
+  enabled: true
+  model: gpt-4o-mini
+  temperature: 0.0
+
+timeout_seconds: 600  # GDPVal tasks may require longer responses

@@ -12,6 +12,36 @@ A dynamic finance agent benchmark system for the [AgentBeats Competition](https:
 
 This codebase is designed to work with the [AgentBeats platform](https://agentbeats.dev). The Green Agent follows the official [green-agent-template](https://github.com/RDI-Foundation/green-agent-template).
 
+### Submission Readiness (Reproducibility & Transparency)
+
+- **Deterministic configs**: use fixed `sampling.seed` in eval configs and avoid ad‑hoc overrides during runs.
+- **LLM‑as‑judge determinism**: set `llm_eval.temperature: 0.0` and pin `llm_eval.model` (e.g., `gpt-4o-mini`) in configs such as `config/eval_all.yaml` and `config/eval_gdpval.yaml`.
+- **Crypto reproducibility**: use anonymized hidden scenarios plus fixed seeds; for fully deterministic runs you can set `EVAL_SCENARIO_SEED`.
+- **Transparent evaluation logic**: scoring lives in `src/evaluators/` and `src/cio_agent/unified_scoring.py`; crypto scoring in `src/cio_agent/crypto_benchmark.py`.
+
+### End-to-End (AgentBeats) Flow
+
+1. Build & push Green/Purple images to GHCR.
+2. Register agents on AgentBeats and copy the agent IDs.
+3. Update the leaderboard `scenario.toml` (set `EVAL_CONFIG=config/eval_all.yaml` and agent IDs).
+4. Add secrets to the leaderboard repo (`OPENAI_API_KEY`, `EVAL_DATA_REPO`, `EVAL_DATA_PAT`, optional `HF_TOKEN`).
+5. Push `scenario.toml` → workflow runs → merge PR to publish results.
+
+### Resource Requirements
+
+- **CPU/RAM**: 4 vCPU / 16 GB RAM recommended for multi‑dataset runs.
+- **Storage**: local datasets + hidden crypto windows (size depends on your private repo).
+- **Network**: required for HuggingFace datasets (BizFinBench/GDPVal) and LLM APIs.
+- **LLM**: external API or local LLM; pin model + temperature for reproducibility.
+
+### Submission Checklist
+
+- [ ] `scenario.toml` has real AgentBeats IDs (no placeholders)
+- [ ] `config/eval_all.yaml` (or your target config) uses fixed seeds + `llm_eval.temperature: 0.0`
+- [ ] Hidden crypto data is private and only mounted into Green (not visible to Purple)
+- [ ] README + DEPLOYMENT docs match the exact run steps
+- [ ] End-to-end dry run completed from a clean clone
+
 ### Quick Start
 
 ```bash
@@ -24,7 +54,8 @@ source .venv/bin/activate        # Linux/Mac
 pip install -e ".[dev]"
 
 # Start Green Agent (A2A server)
-python src/cio_agent/a2a_server.py --host 0.0.0.0 --port 9109 --eval-config .\config\eval_config.yaml --store-predicted --predicted-max-chars 200
+# For all datasets: use config/eval_all.yaml
+python src/cio_agent/a2a_server.py --host 0.0.0.0 --port 9109 --eval-config .\config\eval_all.yaml --store-predicted --predicted-max-chars 200
 
 # Start Purple Agent
 purple-agent serve --host 0.0.0.0 --port 9110 --card-url http://127.0.0.1:9110
@@ -98,6 +129,8 @@ All section scores are normalized to 0-100 scale. Example: Knowledge (83.33) + A
    - Corporate finance (FCFF, M&M)
    - Options & derivatives (put-call parity, swaps)
 4. **Options Alpha** (Options): Greeks analysis, strategy construction, P&L analysis
+5. **Crypto Trading Scenarios** (Optional): Multi-round trading evaluation on market states
+6. **GDPVal** (Optional): Open‑ended professional tasks scored by LLM‑as‑judge
 
 ### Key Features
 
@@ -106,6 +139,29 @@ All section scores are normalized to 0-100 scale. Example: Knowledge (83.33) + A
 - **Options Alpha Challenge**: Black-Scholes pricing, Greeks analysis, multi-leg strategies
 - **Adversarial Debate**: Optional counter-argument generation to test conviction
 - **Dynamic Weight Redistribution**: When sections are disabled, weights redistribute proportionally
+
+## Crypto Trading Benchmark (Optional Track)
+
+The repo includes an optional crypto trading benchmark that evaluates
+multi-round trading decisions on historical scenarios (baseline, noisy,
+adversarial, meta-consistency). Use `config/eval_crypto.yaml` to run it
+and see `docs/CRYPTO_BENCHMARK.md` for data format and integration
+details.
+
+> Do not commit hidden seeds or evaluation data. Keep `~/.agentbusters/hidden_seeds.yaml` and `data/crypto/hidden/` private.
+
+### Anti-Overfitting Design
+
+The crypto benchmark implements a **Hidden Windows** strategy to prevent overfitting:
+
+| Protection Layer | Mechanism |
+|------------------|-----------|
+| **Private Seed** | Master seed stored in `~/.agentbusters/` (not in repo) |
+| **Dynamic Selection** | Evaluation windows selected deterministically from seed |
+| **Anonymous IDs** | Scenario IDs are SHA256 hashes (cannot reverse to timestamps) |
+| **Quarterly Rotation** | Seeds refreshed periodically to prevent long-term optimization |
+
+For production deployment with PostgreSQL and hidden windows, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ### Architecture
 
@@ -151,7 +207,7 @@ All section scores are normalized to 0-100 scale. Example: Knowledge (83.33) + A
 Use these exact commands to run the whole stack locally with openai/gpt-oss-20b. Each terminal runs one long-lived process; keep them open.
 
 ```bash
-# Terminal 1 — Local LLM (vLLM: openai/gpt-oss-20b)
+# (Optional) Terminal 1 — Local LLM (vLLM: openai/gpt-oss-20b)
 # conda activate /chronos_data/conda_envs/py313
 # Install vLLM
 # pip install vllm
@@ -160,6 +216,8 @@ Use these exact commands to run the whole stack locally with openai/gpt-oss-20b.
 #export LD_LIBRARY_PATH="/chronos_data/huixu/libcuda_stub:$LD_LIBRARY_PATH"
 vllm serve openai/gpt-oss-20b --port 8000
 # For multi-GPU: add --tensor-parallel-size=2
+
+You can also set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` in `.env`.
 
 # Terminal 2–4 — MCP Servers (OPTIONAL - can skip these!)
 # Purple Agent can run MCP servers in-process (no external servers needed).
@@ -170,28 +228,38 @@ vllm serve openai/gpt-oss-20b --port 8000
 
 # Option B: Run external MCP servers (for debugging/multi-agent)
 # Terminal 2 — SEC EDGAR MCP
-python -m src.mcp_servers.sec_edgar --transport http --host 0.0.0.0 --port 8101
+# python -m src.mcp_servers.sec_edgar --transport http --host 0.0.0.0 --port 8101
 
-# Terminal 3 — Yahoo Finance MCP
-python -m src.mcp_servers.yahoo_finance --transport http --host 0.0.0.0 --port 8102
+# # Terminal 3 — Yahoo Finance MCP
+# python -m src.mcp_servers.yahoo_finance --transport http --host 0.0.0.0 --port 8102
 
-# Terminal 4 — Sandbox MCP
-python -m src.mcp_servers.sandbox --transport http --host 0.0.0.0 --port 8103
+# # Terminal 4 — Sandbox MCP
+# python -m src.mcp_servers.sandbox --transport http --host 0.0.0.0 --port 8103
 
 # Terminal 5 — Purple Agent (Finance Analyst, A2A server for AgentBeats)
 # Recommended: Production-grade A2A server with full LLM support
-purple-agent serve --host 0.0.0.0 --port 9110
+purple-agent serve --host 0.0.0.0 --port 9110 --card-url http://localhost:9110
 
 # Alternatively: Simple test agent (minimal A2A + REST)
-# python src/simple_purple_agent.py --host 0.0.0.0 --port 9110
+# python src/simple_purple_agent.py --host 0.0.0.0 --port 9110 --card-url http://localhost:9110
 
 # Quick one-off analysis (no server needed)
 # purple-agent analyze "Did NVIDIA beat or miss Q3 FY2026 expectations?" --ticker NVDA
 
 # Terminal 6 — Green Agent (Evaluator, A2A server)
 # No CLI wrapper for serve command—start the server directly
-python src/cio_agent/a2a_server.py --host 0.0.0.0 --port 9109
+python src/cio_agent/a2a_server.py --host 0.0.0.0 --port 9109 --eval-config config/eval_crypto.yaml
 
+# Terminal 7 Run Evaluation:
+python scripts/run_a2a_eval.py --green-url http://localhost:9109 --purple-url http://localhost:9110 --num-tasks 1 --timeout 300 -v
+```
+
+#### More Useful Commands (Optional)
+
+```bash
+################################################################################
+# 1. QUICK START - Most Common Commands
+################################################################################
 # Quick smoke checks (discovery/health)
 curl http://localhost:9109/.well-known/agent.json   # Green agent card
 curl http://localhost:9110/health                   # Purple agent health
@@ -224,14 +292,6 @@ cio-agent evaluate --task-id FAB_001 --purple-endpoint http://localhost:9110
 python scripts/run_demo.py
 # Optional: override Purple endpoint
 # PURPLE_ENDPOINT=http://localhost:9110 python scripts/run_demo.py
-```
-
-#### More Useful Commands (Optional)
-
-```bash
-################################################################################
-# 1. QUICK START - Most Common Commands
-################################################################################
 
 # Purple Agent utilities
 purple-agent info NVDA                    # Pulls quote/statistics/SEC snapshot via MCP
@@ -414,10 +474,10 @@ curl -X POST http://localhost:9109/ \
 #   strategy: stratified  # Options: sequential, random, stratified, weighted
 #   total_limit: 100
 #   seed: 42
-# llm_eval:
-#   enabled: true
-#   model: gpt-4o-mini
-#   temperature: 0.0
+llm_eval:
+  enabled: true
+  model: gpt-4o-mini
+  temperature: 0.0
 
 
 # MCP helpers and CSV batch eval
@@ -443,7 +503,7 @@ python -m scripts.run_bizfin_eval \
 	--output /tmp/bizfin_summary.json --limit 10
 
 # List task types by language:
-python -c "from cio_agent.datasets import BizFinBenchProvider; print(BizFinBenchProvider.list_task_types_by_language())"
+python -c "from cio_agent.local_datasets import BizFinBenchProvider; print(BizFinBenchProvider.list_task_types_by_language())"
 
 # Dataset-specific evaluators (exact-match scoring by default, optional LLM grading):
 # BizFinBench: numerical matching (+/-1% tolerance), sequence matching, classification
@@ -481,7 +541,7 @@ Tip: Using hosted APIs instead of local vLLM? You can skip Terminal 1 and just c
 ```dotenv
 # OpenAI (skip Terminal 1)
 LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-your-key
+OPENAI_API_KEY=sk-REDACTED
 LLM_MODEL=gpt-4o
 # Do not set OPENAI_API_BASE or OPENAI_BASE_URL when using OpenAI's hosted API
 ```
@@ -489,7 +549,7 @@ LLM_MODEL=gpt-4o
 ```dotenv
 # Anthropic (skip Terminal 1)
 LLM_PROVIDER=anthropic
-ANTHROPIC_API_KEY=sk-ant-your-key
+ANTHROPIC_API_KEY=sk-ant-REDACTED
 LLM_MODEL=claude-3.5-sonnet
 ```
 
@@ -624,14 +684,14 @@ LLM_MODEL=openai/gpt-oss-20b
 **For OpenAI API:**
 ```dotenv
 LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-your-key
+OPENAI_API_KEY=sk-REDACTED
 LLM_MODEL=gpt-4o
 ```
 
 **For Anthropic API:**
 ```dotenv
 LLM_PROVIDER=anthropic
-ANTHROPIC_API_KEY=sk-ant-your-key
+ANTHROPIC_API_KEY=sk-ant-REDACTED
 LLM_MODEL=claude-3.5-sonnet
 ```
 

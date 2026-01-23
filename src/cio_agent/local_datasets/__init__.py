@@ -1,8 +1,8 @@
 """
-Backward-compatible dataset provider imports.
+Local dataset provider imports.
 
-Dataset providers were moved to cio_agent.data_providers. This module keeps
-old import paths working for tests and external callers.
+Dataset providers live in cio_agent.data_providers. This module keeps the
+imports in one place for tests and local tooling.
 """
 
 from cio_agent.data_providers.base_jsonl_provider import BaseJSONLProvider

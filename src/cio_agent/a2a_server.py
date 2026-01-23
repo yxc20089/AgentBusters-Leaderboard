@@ -178,6 +178,15 @@ def main():
             return 1
         eval_config = args.eval_config
         print(f"Using evaluation config: {args.eval_config}")
+    else:
+        env_eval_config = os.environ.get("EVAL_CONFIG")
+        if env_eval_config:
+            env_path = Path(env_eval_config)
+            if not env_path.exists():
+                print(f"Error: Config file not found: {env_eval_config}")
+                return 1
+            eval_config = env_eval_config
+            print(f"Using evaluation config from EVAL_CONFIG: {env_eval_config}")
     elif args.dataset_type in ("bizfinbench", "public_csv") and not args.dataset_path:
         print(f"Error: --dataset-path is required for {args.dataset_type}")
         return 1
@@ -225,6 +234,27 @@ def main():
             "Assess fundamental data accuracy and macro thesis quality",
         ]
     )
+    crypto_skill = AgentSkill(
+        id="agentbusters-crypto-benchmark",
+        name="AgentBusters Crypto Trading Benchmark",
+        description=(
+            "Evaluates crypto trading agents on multi-step market scenarios. "
+            "Scores robustness across baseline, noisy, adversarial, and "
+            "meta-consistency evaluations with portfolio-level metrics."
+        ),
+        tags=[
+            "crypto",
+            "trading",
+            "evaluation",
+            "benchmark",
+            "multi-round",
+        ],
+        examples=[
+            "Evaluate a BTCUSDT strategy on a volatile drawdown window",
+            "Test robustness under noisy price perturbations",
+            "Assess consistency across transformed market regimes",
+        ],
+    )
 
     # Determine the advertised URL
     # Note: 0.0.0.0 is a bind address, not connectable. Use 127.0.0.1 for local testing.
@@ -238,14 +268,14 @@ def main():
             "A Green Agent for the AgentBeats platform that evaluates finance agents "
             "using the FAB++ (Finance Agent Benchmark Plus Plus) methodology. "
             "Tests agents on earnings analysis, SEC filing interpretation, numerical "
-            "reasoning, and investment recommendations with adversarial robustness testing."
+            "reasoning, investment recommendations, and crypto trading robustness testing."
         ),
         url=card_url,
         version='1.0.0',
         default_input_modes=['text'],
         default_output_modes=['text'],
         capabilities=AgentCapabilities(streaming=True),
-        skills=[skill]
+        skills=[skill, crypto_skill]
     )
 
     # Create request handler with executor
