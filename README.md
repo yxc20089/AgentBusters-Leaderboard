@@ -248,7 +248,18 @@ purple-agent serve --host 0.0.0.0 --port 9110 --card-url http://localhost:9110
 
 # Terminal 6 — Green Agent (Evaluator, A2A server)
 # No CLI wrapper for serve command—start the server directly
-python src/cio_agent/a2a_server.py --host 0.0.0.0 --port 9109 --eval-config config/eval_crypto.yaml
+# If you use gpt-oss-20b, set 
+#```
+# llm_eval:
+#   enabled: true
+#   model: "openai/gpt-oss-20b"
+#   temperature: 0.0
+#```
+# If you use local dataset, update 
+# - type: crypto
+#     path: data/crypto/scenarios/sample_btc_window
+# in `eval_all.yaml`
+python src/cio_agent/a2a_server.py --host 0.0.0.0 --port 9109 --eval-config config/eval_all.yaml
 
 # Terminal 7 Run Evaluation:
 python scripts/run_a2a_eval.py --green-url http://localhost:9109 --purple-url http://localhost:9110 --num-tasks 1 --timeout 300 -v
