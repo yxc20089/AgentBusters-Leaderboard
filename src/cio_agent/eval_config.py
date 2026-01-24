@@ -446,16 +446,6 @@ class ConfigurableDatasetLoader:
                 pass
         if seed is not None:
             random.seed(seed)
-        # Set random seed for reproducibility (env overrides config)
-        seed = self.config.sampling.seed
-        env_seed = os.environ.get("EVAL_SCENARIO_SEED")
-        if env_seed is not None:
-            try:
-                seed = int(env_seed)
-            except ValueError:
-                pass
-        if seed is not None:
-            random.seed(seed)
 
         all_examples = []
 

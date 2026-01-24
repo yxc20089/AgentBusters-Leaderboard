@@ -36,6 +36,7 @@ def create_app(
     anthropic_api_key: str | None = None,
     model: str | None = None,
     simulation_date: datetime | None = None,
+    temperature: float | None = None,
 ) -> FastAPI:
     """
     Create the FastAPI application with A2A protocol support.
@@ -48,6 +49,7 @@ def create_app(
         anthropic_api_key: Anthropic API key for LLM calls
         model: Model identifier
         simulation_date: Optional date for temporal locking
+        temperature: LLM temperature (default: from PURPLE_LLM_TEMPERATURE env var or 0.0)
 
     Returns:
         FastAPI application instance
@@ -87,6 +89,7 @@ def create_app(
         llm_client=llm_client,
         model=default_model or "gpt-4o",
         simulation_date=simulation_date,
+        temperature=temperature,  # None = use env var or default 0.0
     )
 
     # Create A2A infrastructure with persistent storage

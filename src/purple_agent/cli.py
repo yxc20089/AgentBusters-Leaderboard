@@ -61,12 +61,14 @@ def serve(
     openai_key = os.environ.get("OPENAI_API_KEY")
     anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
     model = os.environ.get("LLM_MODEL")
+    temperature = os.environ.get("PURPLE_LLM_TEMPERATURE", "0.0")
 
     # Create and run app
     console.print(Panel.fit(
         f"[bold blue]Purple Finance Agent[/bold blue]\n"
         f"Host: {host}:{port}\n"
         f"LLM: {'OpenAI' if openai_key else 'Anthropic' if anthropic_key else 'None (fallback mode)'}\n"
+        f"Temperature: {temperature} (set PURPLE_LLM_TEMPERATURE to change)\n"
         f"Simulation Date: {sim_date or 'None (live data)'}"
     ))
 

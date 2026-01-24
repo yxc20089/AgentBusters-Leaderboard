@@ -9,6 +9,7 @@ Uses in-process MCP servers for controlled competition environment.
 
 import asyncio
 import json
+import os
 import re
 from datetime import datetime
 from typing import Any
@@ -59,6 +60,7 @@ class FinanceAgentExecutor(AgentExecutor):
         llm_client: Any = None,
         model: str = "gpt-4o",
         simulation_date: datetime | None = None,
+        temperature: float | None = None,
     ):
         """
         Initialize the Finance Agent Executor.
@@ -67,10 +69,24 @@ class FinanceAgentExecutor(AgentExecutor):
             llm_client: LLM client for generating analysis (OpenAI or Anthropic)
             model: Model identifier for LLM calls
             simulation_date: Optional date for temporal locking
+            temperature: LLM temperature (default: from PURPLE_LLM_TEMPERATURE env var or 0.0)
         """
         self.llm_client = llm_client
         self.model = model
         self.simulation_date = simulation_date
+
+        # Temperature: explicit param > env var > default 0.0 (for reproducibility)
+        if temperature is not None:
+            self.temperature = temperature
+        else:
+            env_temp = os.getenv("PURPLE_LLM_TEMPERATURE")
+            if env_temp is not None:
+                try:
+                    self.temperature = float(env_temp)
+                except ValueError:
+                    self.temperature = 0.0
+            else:
+                self.temperature = 0.0  # Default to 0 for reproducible benchmarks
 
         # Always use in-process MCP servers for controlled environment
         self.toolkit = MCPToolkit(simulation_date=simulation_date)
@@ -325,7 +341,7 @@ Respond with ONLY this JSON format:
                         lambda: self.llm_client.chat.completions.create(
                             model=self.model,
                             messages=[{"role": "user", "content": prompt}],
-                            temperature=0.3,
+                            temperature=self.temperature,
                             max_tokens=200,
                         )
                     )
@@ -806,7 +822,7 @@ Respond with ONLY the task type (e.g., "options_pricing"). Nothing else."""
                             {"role": "system", "content": system_prompt},
                             {"role": "user", "content": user_prompt},
                         ],
-                        temperature=0.3,
+                        temperature=self.temperature,
                     )
                 )
                 return response.choices[0].message.content
@@ -819,6 +835,7 @@ Respond with ONLY the task type (e.g., "options_pricing"). Nothing else."""
                         max_tokens=2000,
                         system=system_prompt,
                         messages=[{"role": "user", "content": user_prompt}],
+                        temperature=self.temperature,
                     )
                 )
                 return response.content[0].text
