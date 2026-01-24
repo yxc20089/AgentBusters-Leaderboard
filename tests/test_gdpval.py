@@ -263,7 +263,7 @@ class TestGDPValEvaluator:
 
         assert result.score == 0.0
 
-    @patch("evaluators.gdpval_evaluator.build_llm_client")
+    @patch("evaluators.gdpval_evaluator.build_llm_client_for_evaluator")
     @patch("evaluators.gdpval_evaluator.call_llm")
     def test_llm_evaluation(self, mock_call_llm, mock_build_client):
         """Test LLM-based evaluation."""

@@ -17,15 +17,19 @@ from typing import Any, Dict, List, Optional
 
 from evaluators.base import BaseDatasetEvaluator, EvalResult
 from evaluators.llm_utils import (
-    build_llm_client,
+    build_llm_client_for_evaluator,
     call_llm,
     coerce_bool,
     extract_json,
-    get_llm_model,
-    get_llm_temperature,
+    get_model_for_evaluator,
+    get_temperature_for_evaluator,
+    get_max_tokens_for_evaluator,
 )
 
 logger = logging.getLogger(__name__)
+
+# Evaluator name for config lookup
+EVALUATOR_NAME = "public_csv"
 
 
 class PublicCsvEvaluator(BaseDatasetEvaluator):
@@ -54,21 +58,30 @@ class PublicCsvEvaluator(BaseDatasetEvaluator):
         llm_client: Any = None,
         llm_model: Optional[str] = None,
         llm_temperature: Optional[float] = None,
+        llm_max_tokens: Optional[int] = None,
     ):
         """
         Initialize Public CSV evaluator.
-        
+
         Args:
             use_llm: Whether to use LLM for evaluation (more accurate)
             llm_client: LLM client for LLM-based evaluation
-            llm_model: Optional LLM model override
-            llm_temperature: Optional temperature override
+            llm_model: Optional LLM model override (default: from EvaluatorLLMConfig)
+            llm_temperature: Optional temperature override (default: from EvaluatorLLMConfig)
+            llm_max_tokens: Optional max_tokens override (default: from EvaluatorLLMConfig)
         """
         self.use_llm = use_llm
         self.llm_client = llm_client
-        self.llm_model = llm_model or get_llm_model()
+
+        # Use per-evaluator config with optional overrides
+        self.llm_model = llm_model or get_model_for_evaluator(EVALUATOR_NAME)
         self.llm_temperature = (
-            llm_temperature if llm_temperature is not None else get_llm_temperature()
+            llm_temperature if llm_temperature is not None
+            else get_temperature_for_evaluator(EVALUATOR_NAME)
+        )
+        self._llm_max_tokens = (
+            llm_max_tokens if llm_max_tokens is not None
+            else get_max_tokens_for_evaluator(EVALUATOR_NAME)
         )
     
     def evaluate(
@@ -172,7 +185,7 @@ class PublicCsvEvaluator(BaseDatasetEvaluator):
 
     def _get_llm_client(self) -> Optional[Any]:
         if self.llm_client is None:
-            self.llm_client = build_llm_client()
+            self.llm_client = build_llm_client_for_evaluator(EVALUATOR_NAME)
         return self.llm_client
 
     def _llm_evaluate_rubric(
@@ -226,7 +239,7 @@ Return JSON only:
                 model=self.llm_model,
                 system_prompt=system_prompt,
                 temperature=self.llm_temperature,
-                max_tokens=self.LLM_MAX_TOKENS,
+                max_tokens=self._llm_max_tokens,
             )
             data = extract_json(raw)
             if not data or "items" not in data:

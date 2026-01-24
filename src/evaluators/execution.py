@@ -3,6 +3,8 @@ Execution Evaluator for action quality assessment.
 
 Evaluates the quality of the agent's final recommendation and methodology,
 using rubric-based LLM-as-judge and code execution validation.
+
+Supports per-evaluator LLM configuration via EvaluatorLLMConfig.
 """
 
 from typing import Any, Optional
@@ -16,8 +18,19 @@ from cio_agent.models import (
     CodeExecution,
     TaskCategory,
 )
+from evaluators.llm_utils import (
+    build_llm_client_for_evaluator,
+    call_llm,
+    extract_json,
+    get_model_for_evaluator,
+    get_temperature_for_evaluator,
+    get_max_tokens_for_evaluator,
+)
 
 logger = structlog.get_logger()
+
+# Evaluator name for config lookup
+EVALUATOR_NAME = "execution"
 
 
 class ExecutionEvaluator:
@@ -44,6 +57,8 @@ class ExecutionEvaluator:
         self,
         task: Task,
         llm_client: Optional[Any] = None,
+        llm_model: Optional[str] = None,
+        llm_temperature: Optional[float] = None,
     ):
         """
         Initialize the execution evaluator.
@@ -51,9 +66,19 @@ class ExecutionEvaluator:
         Args:
             task: The task being evaluated
             llm_client: Optional LLM client for rubric-based scoring
+            llm_model: Optional model override (default: from EvaluatorLLMConfig)
+            llm_temperature: Optional temperature override (default: from EvaluatorLLMConfig)
         """
         self.task = task
-        self.llm_client = llm_client
+        self.llm_client = llm_client if llm_client is not None else build_llm_client_for_evaluator(EVALUATOR_NAME)
+
+        # Use per-evaluator config with optional overrides
+        self.llm_model = llm_model or get_model_for_evaluator(EVALUATOR_NAME)
+        self.llm_temperature = (
+            llm_temperature if llm_temperature is not None
+            else get_temperature_for_evaluator(EVALUATOR_NAME)
+        )
+        self.llm_max_tokens = get_max_tokens_for_evaluator(EVALUATOR_NAME)
 
     def _check_mandatory_elements(
         self,
@@ -196,40 +221,56 @@ class ExecutionEvaluator:
             return score, feedback, None
 
         rubric = self.task.rubric
-        prompt = f"""
-        You are evaluating a finance agent's response against a scoring rubric.
+        system_prompt = "You are a strict grader evaluating a finance agent's response against a scoring rubric."
 
-        TASK: {self.task.question}
-        CATEGORY: {self.task.category.value}
+        prompt = f"""TASK: {self.task.question}
+CATEGORY: {self.task.category.value}
 
-        RUBRIC CRITERIA:
-        {chr(10).join(f'- {c}' for c in rubric.criteria)}
+RUBRIC CRITERIA:
+{chr(10).join(f'- {c}' for c in rubric.criteria)}
 
-        MANDATORY ELEMENTS:
-        {chr(10).join(f'- {e}' for e in rubric.mandatory_elements)}
+MANDATORY ELEMENTS:
+{chr(10).join(f'- {e}' for e in rubric.mandatory_elements)}
 
-        AGENT'S ANALYSIS:
-        {response.analysis[:2000]}
+AGENT'S ANALYSIS:
+{response.analysis[:2000]}
 
-        AGENT'S RECOMMENDATION:
-        {response.recommendation}
+AGENT'S RECOMMENDATION:
+{response.recommendation}
 
-        Score this response from 0 to 100. Consider:
-        1. Does it meet all rubric criteria?
-        2. Does it include mandatory elements?
-        3. Is the reasoning clear and supported by data?
-        4. Is the final recommendation justified?
+Score this response from 0 to 100. Consider:
+1. Does it meet all rubric criteria?
+2. Does it include mandatory elements?
+3. Is the reasoning clear and supported by data?
+4. Is the final recommendation justified?
 
-        Respond with ONLY a JSON object:
-        {{"score": <0-100>, "feedback": "<brief feedback>"}}
-        """
+Respond with ONLY a JSON object:
+{{"score": <0-100>, "feedback": "<brief feedback>"}}"""
 
         raw_output = None
         try:
-            raw_output = await self.llm_client.generate(prompt)
-            import json
-            parsed = json.loads(raw_output)
-            return parsed.get("score", 50), parsed.get("feedback", ""), raw_output
+            # Support both sync call_llm and async client.generate
+            if hasattr(self.llm_client, "generate"):
+                # Async client interface (backward compatible)
+                raw_output = await self.llm_client.generate(prompt)
+            else:
+                # Use unified call_llm (sync, but works in async context)
+                raw_output = call_llm(
+                    client=self.llm_client,
+                    prompt=prompt,
+                    model=self.llm_model,
+                    system_prompt=system_prompt,
+                    temperature=self.llm_temperature,
+                    max_tokens=self.llm_max_tokens,
+                )
+
+            parsed = extract_json(raw_output)
+            if parsed:
+                return parsed.get("score", 50), parsed.get("feedback", ""), raw_output
+            else:
+                logger.warning("llm_rubric_invalid_json", raw_output=raw_output[:200])
+                score, feedback = self._heuristic_rubric_score(response)
+                return score, feedback, raw_output
         except Exception as e:
             logger.warning("llm_rubric_failed", error=str(e))
             score, feedback = self._heuristic_rubric_score(response)

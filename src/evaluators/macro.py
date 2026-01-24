@@ -3,17 +3,29 @@ Macro Evaluator for strategic reasoning assessment.
 
 Evaluates the agent's macro analysis against expert-authored ground truth,
 scoring on semantic similarity and theme coverage.
+
+Supports per-evaluator LLM configuration via EvaluatorLLMConfig.
 """
 
 import os
 import re
-from typing import Optional
+from typing import Any, Optional
 
 import structlog
 
 from cio_agent.models import MacroScore, GroundTruth
+from evaluators.llm_utils import (
+    build_llm_client_for_evaluator,
+    call_llm,
+    get_model_for_evaluator,
+    get_temperature_for_evaluator,
+    get_max_tokens_for_evaluator,
+)
 
 logger = structlog.get_logger()
+
+# Evaluator name for config lookup
+EVALUATOR_NAME = "macro"
 
 
 class MacroEvaluator:
@@ -34,6 +46,9 @@ class MacroEvaluator:
         self,
         ground_truth: GroundTruth,
         use_llm: bool = True,
+        llm_client: Any = None,
+        llm_model: Optional[str] = None,
+        llm_temperature: Optional[float] = None,
     ):
         """
         Initialize the macro evaluator.
@@ -41,23 +56,27 @@ class MacroEvaluator:
         Args:
             ground_truth: Ground truth containing macro thesis and key themes
             use_llm: Whether to use LLM for semantic similarity evaluation
-                    (requires OpenAI API key). Falls back to keyword matching if unavailable.
+                    (requires API key). Falls back to keyword matching if unavailable.
+            llm_client: Optional pre-configured LLM client
+            llm_model: Optional model override (default: from EvaluatorLLMConfig)
+            llm_temperature: Optional temperature override (default: from EvaluatorLLMConfig)
         """
         self.ground_truth = ground_truth
         self.use_llm = use_llm
-        self._openai_client = None
+        self._llm_client = llm_client
 
-        if use_llm:
-            try:
-                from openai import OpenAI
-                api_key = os.environ.get("OPENAI_API_KEY")
-                if api_key:
-                    self._openai_client = OpenAI(api_key=api_key)
-                else:
-                    logger.warning("OPENAI_API_KEY not set, using keyword matching")
-                    self.use_llm = False
-            except ImportError:
-                logger.warning("openai package not available, using keyword matching")
+        # Use per-evaluator config with optional overrides
+        self.llm_model = llm_model or get_model_for_evaluator(EVALUATOR_NAME)
+        self.llm_temperature = (
+            llm_temperature if llm_temperature is not None
+            else get_temperature_for_evaluator(EVALUATOR_NAME)
+        )
+        self.llm_max_tokens = get_max_tokens_for_evaluator(EVALUATOR_NAME)
+
+        if use_llm and self._llm_client is None:
+            self._llm_client = build_llm_client_for_evaluator(EVALUATOR_NAME)
+            if self._llm_client is None:
+                logger.warning("No LLM client available, using keyword matching")
                 self.use_llm = False
 
     def _calculate_keyword_similarity(self, text1: str, text2: str) -> float:
@@ -102,15 +121,15 @@ class MacroEvaluator:
         """
         Calculate semantic similarity using LLM evaluation.
 
-        Uses GPT to assess how semantically similar two texts are,
+        Uses configured LLM to assess how semantically similar two texts are,
         returning a score from 0.0 to 1.0.
         """
-        if not self._openai_client:
+        if not self._llm_client:
             return self._calculate_keyword_similarity(text1, text2), None
 
-        prompt = f"""You are an expert evaluator assessing the semantic similarity between two financial analyses.
+        system_prompt = "You are an expert evaluator assessing semantic similarity between financial analyses."
 
-GROUND TRUTH ANALYSIS:
+        prompt = f"""GROUND TRUTH ANALYSIS:
 {text2}
 
 AGENT'S ANALYSIS:
@@ -132,13 +151,15 @@ Consider:
 Respond with ONLY a single integer from 0 to 100, nothing else."""
 
         try:
-            response = self._openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.0,
-                max_tokens=10,
+            raw_output = call_llm(
+                client=self._llm_client,
+                prompt=prompt,
+                model=self.llm_model,
+                system_prompt=system_prompt,
+                temperature=self.llm_temperature,
+                max_tokens=self.llm_max_tokens,
             )
-            score_text = response.choices[0].message.content.strip()
+            score_text = raw_output.strip()
             score = int(score_text)
             return min(max(score / 100.0, 0.0), 1.0), score_text  # Clamp to [0, 1]
         except Exception as e:
