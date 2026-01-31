@@ -1,0 +1,17 @@
+{
+  "image_digests": {
+    "green-agent": "ghcr.io/yxc20089/agentbusters-green@sha256:37a47bf8e7fb7cfa952af6d7a55873e343b5ba412737722ec2c2e399c1314b1a",
+    "purple_agent": "ghcr.io/yxc20089/agentbusters-purple@sha256:69273eb7de4f0f5fc9db6ec8f6e014c137d26df73b3118d8b756f011287db190",
+    "agentbeats-client": "ghcr.io/agentbeats/agentbeats-client@sha256:13dfe3ef4e583a80e7ce2fe3becd0ce3b879841368a7f4fa40b6ebbabeeb014e"
+  },
+  "timestamp": "2026-01-31T05:44:06Z",
+  "github_actions": {
+    "run_url": "https://github.com/yxc20089/AgentBusters-Leaderboard/actions/runs/21539582852",
+    "run_logs_url": "https://api.github.com/repos/yxc20089/AgentBusters-Leaderboard/actions/runs/21539582852/logs",
+    "ref": "refs/heads/test-crypto-integration",
+    "sha": "87f662252dae1ade395f04e183d6560ede058a95",
+    "repository_url": "https://github.com/yxc20089/AgentBusters-Leaderboard",
+    "workflow_ref": "yxc20089/AgentBusters-Leaderboard/.github/workflows/run-scenario.yml@refs/heads/test-crypto-integration",
+    "workflow_sha": "87f662252dae1ade395f04e183d6560ede058a95"
+  }
+}
