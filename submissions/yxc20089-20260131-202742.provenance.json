@@ -1,0 +1,17 @@
+{
+  "image_digests": {
+    "green-agent": "ghcr.io/yxc20089/agentbusters-green@sha256:be0602530be3c7bd5547f97c268b490115ec34a20529830cb83e432b2b41d010",
+    "purple_agent": "ghcr.io/yxc20089/agentbusters-purple@sha256:2e0a2b64ebfd62383e0faa395dcb3ca967939eecc52564ab7ab0a0b82e5ad0dc",
+    "agentbeats-client": "ghcr.io/agentbeats/agentbeats-client@sha256:13dfe3ef4e583a80e7ce2fe3becd0ce3b879841368a7f4fa40b6ebbabeeb014e"
+  },
+  "timestamp": "2026-01-31T20:27:42Z",
+  "github_actions": {
+    "run_url": "https://github.com/yxc20089/AgentBusters-Leaderboard/actions/runs/21550345956",
+    "run_logs_url": "https://api.github.com/repos/yxc20089/AgentBusters-Leaderboard/actions/runs/21550345956/logs",
+    "ref": "refs/heads/test-gdpval-ref-files",
+    "sha": "d16d3fb1f49b30275121fa83de2b41da1e0938de",
+    "repository_url": "https://github.com/yxc20089/AgentBusters-Leaderboard",
+    "workflow_ref": "yxc20089/AgentBusters-Leaderboard/.github/workflows/run-scenario.yml@refs/heads/test-gdpval-ref-files",
+    "workflow_sha": "d16d3fb1f49b30275121fa83de2b41da1e0938de"
+  }
+}
