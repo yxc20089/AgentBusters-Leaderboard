@@ -11,6 +11,12 @@ datasets:
     shuffle: false
     weight: 1.0
 
+  - type: public_csv
+    path: "finance-agent/data/public.csv"
+    limit: 5
+    shuffle: false
+    weight: 1.0
+
   - type: options
     path: "data/options/questions.json"
     limit: 10
@@ -24,8 +30,8 @@ datasets:
     weight: 1.0
 
   - type: crypto
-    path: data/crypto/scenarios  # Use local scenarios
-    download_on_missing: false  # Don't download, use local data
+    path: data/crypto/cache  # Cache dir for downloaded scenarios
+    download_on_missing: true  # Download from EVAL_DATA_REPO
     limit: 2
     shuffle: false
     weight: 1.0
@@ -58,7 +64,7 @@ datasets:
     limit: 10
     shuffle: false
     weight: 1.0
-    include_reference_files: false  # Keep responses concise
+    include_reference_files: true  # Enable reference files for full evaluation
 
 sampling:
   strategy: stratified
