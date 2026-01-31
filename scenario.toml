@@ -20,14 +20,15 @@ num_tasks = 18
 conduct_debate = false
 timeout_seconds = 300
 
-# Datasets to evaluate on (including crypto trading benchmark)
-datasets = ["bizfinbench", "options", "synthetic", "crypto"]
+# Datasets to evaluate on (including crypto trading and GDPVal benchmarks)
+datasets = ["bizfinbench", "options", "synthetic", "crypto", "gdpval"]
 
 # Sampling strategy: "stratified", "random", "sequential"
 sampling_strategy = "stratified"
 
-# Per-dataset limits (balanced - matching available data)
-bizfinbench_limit = 6   # Knowledge retrieval
-options_limit = 5       # Options trading (5 available)
-synthetic_limit = 5     # Analytical reasoning
+# Per-dataset limits (balanced across all sections)
+bizfinbench_limit = 4   # Knowledge retrieval
+options_limit = 4       # Options trading
+synthetic_limit = 4     # Analytical reasoning
 crypto_limit = 2        # Crypto trading (2 available)
+gdpval_limit = 4        # Professional tasks (OpenAI GDPVal)
