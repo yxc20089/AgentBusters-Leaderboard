@@ -28,9 +28,9 @@ sampling_strategy = "stratified"
 
 # Per-dataset limits (balanced across all sections)
 bizfinbench_limit = 2   # Knowledge retrieval
-public_csv_limit = 2    # Knowledge retrieval (FAB public dataset)
-options_limit = 4       # Options trading
-synthetic_limit = 4     # Analytical reasoning
+public_csv_limit = 2    # Knowledge retrieval (FAB public dataset) - needs web search for full capability
+options_limit = 3       # Options trading
+synthetic_limit = 6     # Analytical reasoning (increased for stability)
 crypto_limit = 2        # Crypto trading (2 available)
 gdpval_limit = 4        # Professional tasks (OpenAI GDPVal)
 
