@@ -1,0 +1,634 @@
+{
+  "participants": {
+    "purple_agent": "019bc4dd-f03b-7a11-9e64-61fce92c8d95"
+  },
+  "results": [
+    {
+      "schema_version": "2.0",
+      "benchmark": "FAB++ Finance Agent Benchmark",
+      "version": "2.0.0",
+      "overall_score": {
+        "score": 41.88,
+        "max_score": 100.0
+      },
+      "section_scores": {
+        "knowledge_retrieval": {
+          "score": 30.0,
+          "weight": 0.25,
+          "weighted_contribution": 7.5,
+          "datasets": [
+            "public_csv",
+            "bizfinbench"
+          ],
+          "task_count": 10,
+          "accuracy": 0.3,
+          "sub_scores": {}
+        },
+        "analytical_reasoning": {
+          "score": 33.33,
+          "weight": 0.25,
+          "weighted_contribution": 8.33,
+          "datasets": [
+            "synthetic"
+          ],
+          "task_count": 3,
+          "accuracy": 0.3333,
+          "sub_scores": {}
+        },
+        "crypto_trading": {
+          "score": 45.45,
+          "weight": 0.25,
+          "weighted_contribution": 11.36,
+          "datasets": [
+            "crypto"
+          ],
+          "task_count": 2,
+          "accuracy": 0.0,
+          "sub_scores": {
+            "meta": 43.31,
+            "adversarial": 43.67,
+            "baseline": 45.96,
+            "noisy": 45.81
+          }
+        },
+        "options_trading": {
+          "score": 58.75,
+          "weight": 0.25,
+          "weighted_contribution": 14.69,
+          "datasets": [
+            "options"
+          ],
+          "task_count": 2,
+          "accuracy": 0.0,
+          "sub_scores": {
+            "strategy_quality": 72.5,
+            "risk_management": 42.5,
+            "greeks_accuracy": 30.0,
+            "pnl_accuracy": 90.0
+          }
+        }
+      },
+      "evaluation_metadata": {
+        "purple_agent": "http://purple_agent:9009/",
+        "num_tasks": 17,
+        "num_successful": 8,
+        "conduct_debate": false
+      },
+      "detailed_results": [
+        {
+          "task_id": "bizfinbench_event_logic_reasoning_en_807",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 1.0,
+          "normalized_score": 100.0,
+          "is_correct": true,
+          "feedback": "Predicted: '1,4,2,3', Expected: '1,4,2,3'"
+        },
+        {
+          "task_id": "bizfinbench_financial_quantitative_computation_en_844",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "The calculated CAGR of 86.4100% does not match the expected value of 87.1554% within the tolerance."
+        },
+        {
+          "task_id": "csv_finance_3",
+          "dataset_type": "public_csv",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "LLM rubric scoring: Correctness 0/4, Contradictions 0"
+        },
+        {
+          "task_id": "SYN_LOGIC_0013",
+          "dataset_type": "synthetic",
+          "section": "analytical_reasoning",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "Extracted: Hold, Expected: Unknown"
+        },
+        {
+          "task_id": "scenario_0850c8d782597a5c",
+          "dataset_type": "crypto",
+          "section": "crypto_trading",
+          "raw_score": 48.07,
+          "normalized_score": 48.07,
+          "is_correct": false,
+          "feedback": "Final score 48.07 (grade F)"
+        },
+        {
+          "task_id": "bizfinbench_event_logic_reasoning_en_1468",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "The causal order of events is incorrect."
+        },
+        {
+          "task_id": "bizfinbench_financial_quantitative_computation_en_861",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "The calculated CAGR of 10.0000% does not match the expected value of 10.0586% within the specified tolerance."
+        },
+        {
+          "task_id": "csv_finance_2",
+          "dataset_type": "public_csv",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "LLM rubric scoring: Correctness 0/2, Contradictions 0"
+        },
+        {
+          "task_id": "strategy_002",
+          "dataset_type": "options",
+          "section": "options_trading",
+          "raw_score": 67.5,
+          "normalized_score": 67.5,
+          "is_correct": false,
+          "feedback": "Multiple P&L calculations present. Calculation methodology shown. Greeks discussed but values not extracted. Strong market context analysis. Risk/reward discussed. Exit strategy mentioned."
+        },
+        {
+          "task_id": "SYN_LOGIC_0014",
+          "dataset_type": "synthetic",
+          "section": "analytical_reasoning",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "Extracted: Sell, Expected: Buy"
+        },
+        {
+          "task_id": "scenario_0094498853a90db4",
+          "dataset_type": "crypto",
+          "section": "crypto_trading",
+          "raw_score": 42.84,
+          "normalized_score": 42.84,
+          "is_correct": false,
+          "feedback": "Final score 42.84 (grade F)"
+        },
+        {
+          "task_id": "bizfinbench_event_logic_reasoning_en_478",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 1.0,
+          "normalized_score": 100.0,
+          "is_correct": true,
+          "feedback": "Predicted: '1,2,3,4', Expected: '1,2,3,4'"
+        },
+        {
+          "task_id": "bizfinbench_financial_quantitative_computation_en_560",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "The candidate answer of 0.0000% is incorrect; the correct Working Asset to Total Asset Ratio is -8.6681%."
+        },
+        {
+          "task_id": "csv_finance_4",
+          "dataset_type": "public_csv",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "LLM rubric scoring: Correctness 0/8, Contradictions 0"
+        },
+        {
+          "task_id": "opt_pricing_001",
+          "dataset_type": "options",
+          "section": "options_trading",
+          "raw_score": 50.0,
+          "normalized_score": 50.0,
+          "is_correct": false,
+          "feedback": "Multiple P&L calculations present. Calculation methodology shown. Greeks discussed but values not extracted. Some market context considered."
+        },
+        {
+          "task_id": "SYN_LOGIC_0009",
+          "dataset_type": "synthetic",
+          "section": "analytical_reasoning",
+          "raw_score": 1.0,
+          "normalized_score": 100.0,
+          "is_correct": true,
+          "feedback": "Extracted: Unknown, Expected: Unknown"
+        },
+        {
+          "task_id": "bizfinbench_event_logic_reasoning_en_1505",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 1.0,
+          "normalized_score": 100.0,
+          "is_correct": true,
+          "feedback": "Predicted: '3,4,1,6,5,2', Expected: '3,4,1,6,5,2'"
+        }
+      ],
+      "config_summary": {
+        "total": 30,
+        "by_dataset": {
+          "bizfinbench": 10,
+          "public_csv": 6,
+          "options": 6,
+          "synthetic": 6,
+          "crypto": 2
+        },
+        "by_task_type": {
+          "event_logic_reasoning": 5,
+          "financial_quantitative_computation": 5
+        },
+        "by_category": {
+          "Complex Retrieval": 2,
+          "Volatility Trading": 1,
+          "Financial Logic": 5,
+          "Beat or Miss": 1,
+          "Strategy Construction": 2,
+          "Qualitative Retrieval": 1,
+          "Options Pricing": 1,
+          "Numerical Reasoning": 1,
+          "Greeks Analysis": 1,
+          "Quantitative Retrieval": 2,
+          "Risk Management": 1
+        }
+      },
+      "results": [
+        {
+          "example_id": "bizfinbench_event_logic_reasoning_en_807",
+          "dataset_type": "bizfinbench",
+          "task_type": "event_logic_reasoning",
+          "language": "en",
+          "question": "\n### Role-playing\nYou are an experienced financial time attribution and root cause analysis expert. Please follow the 'Task Requirements' to summarize and organize the causes and effects of the 'Speci...",
+          "expected": "1,4,2,3",
+          "predicted": "",
+          "score": 1.0,
+          "is_correct": true,
+          "feedback": "Predicted: '1,4,2,3', Expected: '1,4,2,3'",
+          "llm_used": false
+        },
+        {
+          "example_id": "bizfinbench_financial_quantitative_computation_en_844",
+          "dataset_type": "bizfinbench",
+          "task_type": "financial_quantitative_computation",
+          "language": "en",
+          "question": "You are an expert in data calculation. Please answer the <User Question> based on the provided <Formula List> and <Related Data>, and give your reasons. You need to answer in the specified format.\n###...",
+          "expected": "87.1554%",
+          "predicted": "",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "The calculated CAGR of 86.4100% does not match the expected value of 87.1554% within the tolerance.",
+          "llm_used": true,
+          "llm_raw_output": "{\"correct\": false, \"score\": 0, \"reason\": \"The calculated CAGR of 86.4100% does not match the expected value of 87.1554% within the tolerance.\"}"
+        },
+        {
+          "example_id": "csv_finance_3",
+          "dataset_type": "public_csv",
+          "category": "Complex Retrieval",
+          "question": "How large was the range (in % terms) for AMD's revenue guidance for Q2 2024, Q3 2024, Q4 2024, and Q1 2025?  Format answer as: \"Q[X] [YEAR]: $[X.X] billion (low) to $[X.X] billion (high), [X.X]% of mi...",
+          "expected": "Average size of AMD's guidance range\nQ1 2025: $6.8 billion to $7.4 billion, 8.5% of midpoint\nQ4 2024...",
+          "predicted": "",
+          "score": 0.0,
+          "is_correct": false,
+          "correct_count": 0,
+          "total_count": 4,
+          "feedback": "LLM rubric scoring: Correctness 0/4, Contradictions 0",
+          "llm_used": true,
+          "llm_raw_output": "{\"items\":[{\"operator\":\"correctness\",\"met\":false},{\"operator\":\"contradiction\",\"violated\":false}]}",
+          "llm_partial": true,
+          "llm_item_count_expected": 5,
+          "llm_item_count_actual": 2
+        },
+        {
+          "example_id": "vol_002",
+          "dataset_type": "options",
+          "error": "1 validation error for Task\nticker\n  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.12/v/string_type",
+          "score": 0.0,
+          "is_correct": false
+        },
+        {
+          "example_id": "SYN_LOGIC_0013",
+          "dataset_type": "synthetic",
+          "category": "Financial Logic",
+          "question": "A firm has $500 million in assets, a debt-to-equity ratio of 1.5, and pays 6% interest on its debt. The corporate tax rate is 30%. If the firm's ROA (return on assets) is 10%, what is the ROE (return ...",
+          "expected": "Unknown",
+          "predicted": "Hold",
+          "predicted_full": "",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "Extracted: Hold, Expected: Unknown",
+          "llm_used": false,
+          "sub_scores": {}
+        },
+        {
+          "example_id": "scenario_0850c8d782597a5c",
+          "dataset_type": "crypto",
+          "scenario_id": "scenario_0850c8d782597a5c",
+          "scenario_name": "scenario_2",
+          "score": 48.07,
+          "baseline_score": 50.7434021731524,
+          "noisy_score": 50.79075983856928,
+          "adversarial_score": 37.304634632313416,
+          "meta_score": 50.215675590620755,
+          "grade": "F",
+          "random_seed": 3670898087,
+          "metrics": {
+            "baseline": {
+              "total_return": 3.9491588679993585e-05,
+              "max_drawdown": 8.98997272824906e-05,
+              "sharpe": 0.05960895002030974,
+              "win_rate": 1.0
+            },
+            "noisy": {
+              "total_return": 7.825568007774564e-05,
+              "max_drawdown": 0.0001854566278183448,
+              "sharpe": 0.06354937163215117,
+              "win_rate": 1.0
+            },
+            "adversarial": {
+              "total_return": -0.00031757649648079677,
+              "max_drawdown": 0.0004427052538669159,
+              "sharpe": -0.28059825047935083,
+              "win_rate": 0.3333333333333333
+            },
+            "meta": {
+              "score": 50.215675590620755,
+              "average": 50.215675590620755,
+              "dispersion": 0.0,
+              "details": [
+                {
+                  "transform": "identity",
+                  "score": 50.215675590620755,
+                  "metrics": {
+                    "total_return": 1.2204285057123343e-05,
+                    "max_drawdown": 0.00010744069777083496,
+                    "sharpe": 0.017487496354196132,
+                    "win_rate": 1.0
+                  },
+                  "trade_count": 1,
+                  "decision_errors": 0
+                }
+              ]
+            }
+          },
+          "events": [
+            {
+              "index": 8,
+              "type": "flash_crash"
+            }
+          ],
+          "llm_used": false,
+          "sub_scores": {
+            "baseline": 50.7434021731524,
+            "noisy": 50.79075983856928,
+            "adversarial": 37.304634632313416,
+            "meta": 50.215675590620755
+          },
+          "is_correct": false,
+          "feedback": "Final score 48.07 (grade F)"
+        },
+        {
+          "example_id": "bizfinbench_event_logic_reasoning_en_1468",
+          "dataset_type": "bizfinbench",
+          "task_type": "event_logic_reasoning",
+          "language": "en",
+          "question": "\n### Role-playing\nYou are an experienced financial time attribution and root cause analysis expert. Please follow the 'Task Requirements' to summarize and organize the causes and effects of the 'Speci...",
+          "expected": "6,5,1,3,2,4",
+          "predicted": "",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "The causal order of events is incorrect.",
+          "llm_used": true,
+          "llm_raw_output": "{\"correct\": false, \"score\": 0, \"reason\": \"The causal order of events is incorrect.\"}"
+        },
+        {
+          "example_id": "bizfinbench_financial_quantitative_computation_en_861",
+          "dataset_type": "bizfinbench",
+          "task_type": "financial_quantitative_computation",
+          "language": "en",
+          "question": "You are an expert in data calculation. Please answer the <User Question> based on the provided <Formula List> and <Related Data>, and give your reasons. You need to answer in the specified format.\n###...",
+          "expected": "10.0586%",
+          "predicted": "",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "The calculated CAGR of 10.0000% does not match the expected value of 10.0586% within the specified tolerance.",
+          "llm_used": true,
+          "llm_raw_output": "{\"correct\": false, \"score\": 0, \"reason\": \"The calculated CAGR of 10.0000% does not match the expected value of 10.0586% within the specified tolerance.\"}"
+        },
+        {
+          "example_id": "csv_finance_2",
+          "dataset_type": "public_csv",
+          "category": "Beat or Miss",
+          "question": "Did TJX beat or miss its Q4 FY 2025 pre-tax margin guidance? Express result as BPS difference",
+          "expected": "80bps beat from low end and 70bps beat from high end",
+          "predicted": "",
+          "score": 0.0,
+          "is_correct": false,
+          "correct_count": 0,
+          "total_count": 2,
+          "feedback": "LLM rubric scoring: Correctness 0/2, Contradictions 0",
+          "llm_used": true,
+          "llm_raw_output": "{\"items\":[{\"operator\":\"correctness\",\"met\":false},{\"operator\":\"contradiction\",\"violated\":false}]}",
+          "llm_partial": true,
+          "llm_item_count_expected": 3,
+          "llm_item_count_actual": 2
+        },
+        {
+          "example_id": "strategy_002",
+          "dataset_type": "options",
+          "category": "Strategy Construction",
+          "question": "AMZN reports earnings in 5 days and is trading at $180. You expect a big move but are unsure of direction. Historical post-earnings moves average 8%. Design an options strategy to profit from this exp...",
+          "expected": "strategy: Long Straddle or Long Strangle; rationale: Profit from large move in either direction; bre...",
+          "predicted": "",
+          "score": 67.5,
+          "is_correct": false,
+          "pnl_accuracy": 100,
+          "greeks_accuracy": 30.0,
+          "strategy_quality": 85.0,
+          "risk_management": 55.0,
+          "feedback": "Multiple P&L calculations present. Calculation methodology shown. Greeks discussed but values not extracted. Strong market context analysis. Risk/reward discussed. Exit strategy mentioned.",
+          "llm_used": false,
+          "sub_scores": {
+            "pnl_accuracy": 100,
+            "greeks_accuracy": 30.0,
+            "strategy_quality": 85.0,
+            "risk_management": 55.0
+          }
+        },
+        {
+          "example_id": "SYN_LOGIC_0014",
+          "dataset_type": "synthetic",
+          "category": "Financial Logic",
+          "question": "In a Modigliani-Miller world with no taxes, Firm A is all-equity with 1 million shares at $50 each. Firm B is identical but has $20 million in debt at 5% interest, with remaining equity value of $30 m...",
+          "expected": "Buy",
+          "predicted": "Sell",
+          "predicted_full": "",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "Extracted: Sell, Expected: Buy",
+          "llm_used": false,
+          "sub_scores": {}
+        },
+        {
+          "example_id": "scenario_0094498853a90db4",
+          "dataset_type": "crypto",
+          "scenario_id": "scenario_0094498853a90db4",
+          "scenario_name": "scenario_1",
+          "score": 42.84,
+          "baseline_score": 41.16831869960124,
+          "noisy_score": 40.83473985864502,
+          "adversarial_score": 50.040888438966746,
+          "meta_score": 36.40011144623022,
+          "grade": "F",
+          "random_seed": 2454587458,
+          "metrics": {
+            "baseline": {
+              "total_return": -0.0005187590193052529,
+              "max_drawdown": 0.0005197601529595701,
+              "sharpe": -0.3042495616261879,
+              "win_rate": 0.5
+            },
+            "noisy": {
+              "total_return": -0.0002578151706566132,
+              "max_drawdown": 0.0002578151706566132,
+              "sharpe": -0.3320864245575092,
+              "win_rate": 0.5
+            },
+            "adversarial": {
+              "total_return": 1.0440982472573523e-06,
+              "max_drawdown": 4.797783145277208e-05,
+              "sharpe": 0.0033841337163320615,
+              "win_rate": 1.0
+            },
+            "meta": {
+              "score": 36.40011144623022,
+              "average": 36.40011144623022,
+              "dispersion": 0.0,
+              "details": [
+                {
+                  "transform": "identity",
+                  "score": 36.40011144623022,
+                  "metrics": {
+                    "total_return": -0.00025737572016005286,
+                    "max_drawdown": 0.0002652717580715093,
+                    "sharpe": -0.3535063473085569,
+                    "win_rate": 0.3333333333333333
+                  },
+                  "trade_count": 3,
+                  "decision_errors": 0
+                }
+              ]
+            }
+          },
+          "events": [],
+          "llm_used": false,
+          "sub_scores": {
+            "baseline": 41.16831869960124,
+            "noisy": 40.83473985864502,
+            "adversarial": 50.040888438966746,
+            "meta": 36.40011144623022
+          },
+          "is_correct": false,
+          "feedback": "Final score 42.84 (grade F)"
+        },
+        {
+          "example_id": "bizfinbench_event_logic_reasoning_en_478",
+          "dataset_type": "bizfinbench",
+          "task_type": "event_logic_reasoning",
+          "language": "en",
+          "question": "\n### Role-playing\nYou are an experienced financial time attribution and root cause analysis expert. Please follow the 'Task Requirements' to summarize and organize the causes and effects of the 'Speci...",
+          "expected": "1,2,3,4",
+          "predicted": "",
+          "score": 1.0,
+          "is_correct": true,
+          "feedback": "Predicted: '1,2,3,4', Expected: '1,2,3,4'",
+          "llm_used": false
+        },
+        {
+          "example_id": "bizfinbench_financial_quantitative_computation_en_560",
+          "dataset_type": "bizfinbench",
+          "task_type": "financial_quantitative_computation",
+          "language": "en",
+          "question": "You are an expert in data calculation. Please answer the <User Question> based on the provided <Formula List> and <Related Data>, and give your reasons. You need to answer in the specified format.\n###...",
+          "expected": "-8.6697%",
+          "predicted": "",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "The candidate answer of 0.0000% is incorrect; the correct Working Asset to Total Asset Ratio is -8.6681%.",
+          "llm_used": true,
+          "llm_raw_output": "{\"correct\": false, \"score\": 0, \"reason\": \"The candidate answer of 0.0000% is incorrect; the correct Working Asset to Total Asset Ratio is -8.6681%.\"}"
+        },
+        {
+          "example_id": "csv_finance_4",
+          "dataset_type": "public_csv",
+          "category": "Qualitative Retrieval",
+          "question": "In 2024, who was Nominated to Serve on BBSI's (NASDAQ: BBSI) Board of Directors? ",
+          "expected": "Thomas Carley\nJoseph Clabby\nThomas Cusick\nGary Kramer\nAnthony Meeker\nCarla Moradi\nAlexandra Morehous...",
+          "predicted": "",
+          "score": 0.0,
+          "is_correct": false,
+          "correct_count": 0,
+          "total_count": 8,
+          "feedback": "LLM rubric scoring: Correctness 0/8, Contradictions 0",
+          "llm_used": true,
+          "llm_raw_output": "{\"items\":[{\"operator\":\"correctness\",\"met\":false},{\"operator\":\"contradiction\",\"violated\":false}]}",
+          "llm_partial": true,
+          "llm_item_count_expected": 9,
+          "llm_item_count_actual": 2
+        },
+        {
+          "example_id": "opt_pricing_001",
+          "dataset_type": "options",
+          "category": "Options Pricing",
+          "question": "Calculate the fair value of a European call option on AAPL with the following parameters: Current stock price $175, Strike price $180, Risk-free rate 5%, Volatility 25%, Time to expiration 30 days. Us...",
+          "expected": "call_price: 2.47; put_price: 6.74; method: Black-Scholes",
+          "predicted": "",
+          "score": 50.0,
+          "is_correct": false,
+          "pnl_accuracy": 80.0,
+          "greeks_accuracy": 30.0,
+          "strategy_quality": 60.0,
+          "risk_management": 30.0,
+          "feedback": "Multiple P&L calculations present. Calculation methodology shown. Greeks discussed but values not extracted. Some market context considered.",
+          "llm_used": false,
+          "sub_scores": {
+            "pnl_accuracy": 80.0,
+            "greeks_accuracy": 30.0,
+            "strategy_quality": 60.0,
+            "risk_management": 30.0
+          }
+        },
+        {
+          "example_id": "SYN_LOGIC_0009",
+          "dataset_type": "synthetic",
+          "category": "Financial Logic",
+          "question": "An investor holds a portfolio of two stocks: Stock X (60% weight, beta=1.2) and Stock Y (40% weight, beta=0.8). The risk-free rate is 3% and the market risk premium is 6%. If the investor wants to red...",
+          "expected": "Unknown",
+          "predicted": "Unknown",
+          "predicted_full": "",
+          "score": 1.0,
+          "is_correct": true,
+          "feedback": "Extracted: Unknown, Expected: Unknown",
+          "llm_used": false,
+          "sub_scores": {}
+        },
+        {
+          "example_id": "bizfinbench_event_logic_reasoning_en_1505",
+          "dataset_type": "bizfinbench",
+          "task_type": "event_logic_reasoning",
+          "language": "en",
+          "question": "\n### Role-playing\nYou are an experienced financial time attribution and root cause analysis expert. Please follow the 'Task Requirements' to summarize and organize the causes and effects of the 'Speci...",
+          "expected": "3,4,1,6,5,2",
+          "predicted": "",
+          "score": 1.0,
+          "is_correct": true,
+          "feedback": "Predicted: '3,4,1,6,5,2', Expected: '3,4,1,6,5,2'",
+          "llm_used": false
+        }
+      ]
+    }
+  ]
+}
