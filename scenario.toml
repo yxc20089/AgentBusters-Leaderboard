@@ -1,5 +1,6 @@
 # FAB++ (Finance Agent Benchmark Plus Plus) Assessment Configuration
 # AgentBeats Competition 2026 - Team AgentBusters
+# Test run: 30 tasks with participant-controlled model settings
 
 [green_agent]
 # CIO-Agent Green Agent - FAB++ Evaluator
