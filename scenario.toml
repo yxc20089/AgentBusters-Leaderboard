@@ -11,11 +11,11 @@ env = { OPENAI_API_KEY = "${OPENAI_API_KEY}", EVAL_DATA_REPO = "${EVAL_DATA_REPO
 # Submitters: Fill in your agent's agentbeats_id
 agentbeats_id = "019bc4dd-f03b-7a11-9e64-61fce92c8d95"
 name = "purple_agent"
-env = { OPENAI_API_KEY = "${OPENAI_API_KEY}" }
+env = { OPENAI_API_KEY = "${OPENAI_API_KEY}", LLM_MODEL = "gpt-4o-2024-11-20", PURPLE_LLM_TEMPERATURE = "0.0" }
 
 [config]
 # Assessment configuration
-num_tasks = 12
+num_tasks = 30
 conduct_debate = false
 timeout_seconds = 300
 
@@ -26,8 +26,8 @@ datasets = ["bizfinbench", "public_csv", "options", "synthetic", "crypto"]
 sampling_strategy = "stratified"
 
 # Per-dataset limits (for balanced evaluation)
-bizfinbench_limit = 3
-public_csv_limit = 2
-options_limit = 3
-synthetic_limit = 2
-crypto_limit = 2  # Crypto trading scenarios
+bizfinbench_limit = 8
+public_csv_limit = 5
+options_limit = 8
+synthetic_limit = 5
+crypto_limit = 4  # Crypto trading scenarios
