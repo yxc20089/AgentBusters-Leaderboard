@@ -1,0 +1,17 @@
+{
+  "image_digests": {
+    "green-agent": "ghcr.io/yxc20089/agentbusters-green@sha256:bc012e03fe04adb612da658a887b82c3d70a53eb4b9c4fe0a44e96a4fcb14dff",
+    "purple_agent": "ghcr.io/yxc20089/agentbusters-purple@sha256:1cc8faf1380ff3882d87c3b9a3444b476900a66a1154e21e1dabf163ed22a064",
+    "agentbeats-client": "ghcr.io/agentbeats/agentbeats-client@sha256:13dfe3ef4e583a80e7ce2fe3becd0ce3b879841368a7f4fa40b6ebbabeeb014e"
+  },
+  "timestamp": "2026-01-31T17:19:43Z",
+  "github_actions": {
+    "run_url": "https://github.com/yxc20089/AgentBusters-Leaderboard/actions/runs/21547930226",
+    "run_logs_url": "https://api.github.com/repos/yxc20089/AgentBusters-Leaderboard/actions/runs/21547930226/logs",
+    "ref": "refs/heads/test-public-csv",
+    "sha": "20ea0ebc27ccd44bd8654b4a1d43bbd3f2c5610f",
+    "repository_url": "https://github.com/yxc20089/AgentBusters-Leaderboard",
+    "workflow_ref": "yxc20089/AgentBusters-Leaderboard/.github/workflows/run-scenario.yml@refs/heads/test-public-csv",
+    "workflow_sha": "20ea0ebc27ccd44bd8654b4a1d43bbd3f2c5610f"
+  }
+}
