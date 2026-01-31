@@ -34,4 +34,4 @@ synthetic_limit = 6     # Analytical reasoning (increased for stability)
 crypto_limit = 2        # Crypto trading (2 available)
 gdpval_limit = 4        # Professional tasks (OpenAI GDPVal)
 
-# Test run 17:37:00 - with web search MCP and GDPVal reference files
+# Test run 17:40:00 - retry after HuggingFace timeout
