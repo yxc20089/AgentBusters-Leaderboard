@@ -93,3 +93,4 @@ data/crypto/hidden/
 
 # Hidden seeds (NEVER commit)
 .agentbusters/
+results/
