@@ -11,12 +11,6 @@ datasets:
     shuffle: false
     weight: 1.0
 
-  - type: public_csv
-    path: "finance-agent/data/public.csv"
-    limit: 10
-    shuffle: false
-    weight: 1.0
-
   - type: options
     path: "data/options/questions.json"
     limit: 10
@@ -28,6 +22,43 @@ datasets:
     limit: 10
     shuffle: false
     weight: 1.0
+
+  - type: crypto
+    path: data/crypto/cache  # Cache dir for downloaded scenarios
+    download_on_missing: true  # Download from EVAL_DATA_REPO
+    limit: 2
+    shuffle: false
+    weight: 1.0
+    stride: 1
+    max_steps: 20
+    evaluation:
+      initial_balance: 10000.0
+      max_leverage: 3.0
+      trading_fee: 0.0004
+      price_noise_level: 0.001
+      slippage_range: [0.0002, 0.0010]
+      adversarial_injection_rate: 0.05
+      decision_interval: 1
+      funding_interval_hours: 8.0
+      score_weights:
+        baseline: 0.5
+        noisy: 0.3
+        adversarial: 0.2
+        meta: 0.0
+      metric_weights:
+        sharpe: 0.50
+        total_return: 0.25
+        max_drawdown: 0.15
+        win_rate: 0.10
+      meta_transforms:
+        - identity
+
+  - type: gdpval
+    hf_dataset: "openai/gdpval"
+    limit: 10
+    shuffle: false
+    weight: 1.0
+    include_reference_files: false  # Keep responses concise
 
 sampling:
   strategy: stratified

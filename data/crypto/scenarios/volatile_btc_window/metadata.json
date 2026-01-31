@@ -1,0 +1,7 @@
+{
+  "name": "volatile_btc_window",
+  "description": "Volatile BTCUSDT window with clear trading signals - oversold bounce and overbought crash!",
+  "period": "2022-01-01T00:00:00Z to 2022-01-01T00:19:00Z",
+  "symbols": ["BTCUSDT"],
+  "timeframe": "1m"
+}

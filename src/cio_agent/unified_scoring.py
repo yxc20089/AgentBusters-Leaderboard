@@ -23,7 +23,7 @@ class ScoreSection(str, Enum):
     ANALYTICAL_REASONING = "analytical_reasoning"
     OPTIONS_TRADING = "options_trading"
     CRYPTO_TRADING = "crypto_trading"
-    GDPVAL = "gdpval"
+    PROFESSIONAL_TASKS = "professional_tasks"
 
 
 # Dataset to section mapping
@@ -33,16 +33,16 @@ DATASET_SECTION_MAP: dict[str, ScoreSection] = {
     "synthetic": ScoreSection.ANALYTICAL_REASONING,
     "options": ScoreSection.OPTIONS_TRADING,
     "crypto": ScoreSection.CRYPTO_TRADING,
-    "gdpval": ScoreSection.GDPVAL,
+    "gdpval": ScoreSection.PROFESSIONAL_TASKS,
 }
 
-# Default section weights (sum to 1.0)
+# Default section weights (normalized dynamically based on active sections)
 DEFAULT_SECTION_WEIGHTS: dict[ScoreSection, float] = {
-    ScoreSection.KNOWLEDGE_RETRIEVAL: 0.30,
-    ScoreSection.ANALYTICAL_REASONING: 0.35,
-    ScoreSection.OPTIONS_TRADING: 0.35,
-    ScoreSection.CRYPTO_TRADING: 0.25,
-    ScoreSection.GDPVAL: 0.25,
+    ScoreSection.KNOWLEDGE_RETRIEVAL: 0.20,
+    ScoreSection.ANALYTICAL_REASONING: 0.20,
+    ScoreSection.OPTIONS_TRADING: 0.20,
+    ScoreSection.CRYPTO_TRADING: 0.20,
+    ScoreSection.PROFESSIONAL_TASKS: 0.20,
 }
 
 # Grade thresholds

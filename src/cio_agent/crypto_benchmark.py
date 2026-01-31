@@ -8,6 +8,7 @@ import copy
 import hashlib
 import json
 import math
+import os
 import random
 import shutil
 import statistics
@@ -133,6 +134,39 @@ def _is_url(value: str) -> bool:
     return value.startswith("http://") or value.startswith("https://")
 
 
+def _get_github_auth_header() -> Optional[dict[str, str]]:
+    """Get GitHub authorization header from environment if available."""
+    pat = os.environ.get("EVAL_DATA_PAT")
+    if pat:
+        return {"Authorization": f"token {pat}"}
+    return None
+
+
+def _build_github_raw_url(repo: str, path: str, branch: str = "main") -> str:
+    """Build raw GitHub URL from repo and path.
+
+    Args:
+        repo: GitHub repo in format 'owner/repo'
+        path: Path within the repo
+        branch: Branch name (default: main)
+
+    Returns:
+        Raw GitHub URL for the file
+    """
+    return f"https://raw.githubusercontent.com/{repo}/{branch}/{path}"
+
+
+def _create_url_request(url: str) -> urllib.request.Request:
+    """Create a URL request with GitHub auth if applicable."""
+    request = urllib.request.Request(url)
+    if "github" in url.lower() or "githubusercontent" in url.lower():
+        auth_header = _get_github_auth_header()
+        if auth_header:
+            for key, value in auth_header.items():
+                request.add_header(key, value)
+    return request
+
+
 def _read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -168,7 +202,8 @@ def _load_manifest(
             except Exception:
                 pass
 
-        with urllib.request.urlopen(manifest_ref, timeout=60) as response:
+        request = _create_url_request(manifest_ref)
+        with urllib.request.urlopen(request, timeout=60) as response:
             manifest = json.loads(response.read().decode("utf-8"))
         if not isinstance(manifest, dict):
             raise ValueError("manifest must be a JSON object")
@@ -241,8 +276,10 @@ def _safe_extract_zip(zip_path: Path, dest_dir: Path) -> None:
 
 
 def _download_to_path(url: str, dest_path: Path) -> None:
+    """Download a file from URL to local path, with GitHub auth if available."""
     dest_path.parent.mkdir(parents=True, exist_ok=True)
-    with urllib.request.urlopen(url, timeout=120) as response:
+    request = _create_url_request(url)
+    with urllib.request.urlopen(request, timeout=120) as response:
         with dest_path.open("wb") as handle:
             shutil.copyfileobj(response, handle)
 
@@ -263,6 +300,11 @@ def prepare_crypto_scenarios(
     manifest, manifest_parent = _load_manifest(remote_manifest, cache_root, cache_ttl_hours)
     base_url = manifest.get("base_url") or manifest.get("base_uri")
 
+    # If no base_url in manifest but we have a remote URL, derive base_url from manifest URL
+    # e.g., https://.../crypto/eval_hidden/manifest.json → https://.../crypto/eval_hidden/
+    if not base_url and _is_url(remote_manifest):
+        base_url = remote_manifest.rsplit("/", 1)[0] + "/"
+
     scenario_filter = {s for s in scenarios} if scenarios else None
     for entry in _manifest_entries(manifest):
         scenario_id = entry.get("id") or entry.get("scenario_id") or entry.get("name")
@@ -273,8 +315,18 @@ def prepare_crypto_scenarios(
 
         artifact_meta = entry.get("artifact") if isinstance(entry.get("artifact"), dict) else {}
         ref = entry.get("url") or artifact_meta.get("url") or entry.get("artifact")
+
+        # If no explicit URL, assume scenario data is in a subdirectory named after the ID
+        # with market_data.json inside (common pattern for directory-based manifests)
         if not ref:
-            raise ValueError(f"manifest entry missing url for scenario {scenario_id}")
+            if base_url:
+                # Construct URL: {base_url}/{scenario_id}/market_data.json
+                ref = f"{scenario_id}/market_data.json"
+            elif manifest_parent:
+                # Local path: {manifest_parent}/{scenario_id}/market_data.json
+                ref = f"{scenario_id}/market_data.json"
+            else:
+                raise ValueError(f"manifest entry missing url for scenario {scenario_id}")
 
         resolved_ref = _resolve_ref(str(ref), base_url, manifest_parent)
         scenario_dir = cache_root / scenario_id
@@ -301,11 +353,25 @@ def prepare_crypto_scenarios(
             if actual_sha.lower() != str(expected_sha).lower():
                 raise RuntimeError(f"scenario {scenario_id} failed sha256 check")
 
-        if str(artifact_path).endswith(".zip"):
+        # Detect artifact format by extension or content
+        artifact_str = str(artifact_path)
+        is_zip = artifact_str.endswith(".zip")
+        is_json = artifact_str.endswith(".json")
+
+        # For downloaded files without proper extension, detect by content
+        if artifact_path.name == "artifact.download":
+            with artifact_path.open("rb") as f:
+                header = f.read(4)
+            if header[:2] == b"PK":  # ZIP magic bytes
+                is_zip = True
+            elif header[:1] in (b"{", b"["):  # JSON starts with { or [
+                is_json = True
+
+        if is_zip:
             _safe_extract_zip(artifact_path, scenario_dir)
             if artifact_path.name == "artifact.download":
                 artifact_path.unlink(missing_ok=True)
-        elif str(artifact_path).endswith(".json"):
+        elif is_json:
             if artifact_path != market_path:
                 shutil.copyfile(artifact_path, market_path)
             if artifact_path.name == "artifact.download":
