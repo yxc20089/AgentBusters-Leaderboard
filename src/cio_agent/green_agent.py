@@ -35,6 +35,11 @@ from cio_agent.eval_config import (
 from cio_agent.agentbeats_results import format_and_save_results
 from cio_agent.unified_scoring import UnifiedScorer, ScoreSection, DATASET_SECTION_MAP
 from cio_agent.crypto_benchmark import CryptoTradingEvaluator, stable_seed
+from cio_agent.robustness_integration import (
+    RobustnessIntegration,
+    RobustnessConfig,
+    create_robustness_integration,
+)
 
 # Dataset providers (for legacy single-dataset mode)
 from cio_agent.data_providers import BizFinBenchProvider, CsvFinanceDatasetProvider
@@ -1236,8 +1241,110 @@ class GreenAgent:
                     "is_correct": False,
                 })
         
+        # Run robustness evaluation if enabled
+        if self.eval_config and self.eval_config.robustness.enabled:
+            await updater.update_status(
+                TaskState.working,
+                new_agent_text_message("Running adversarial robustness tests...")
+            )
+            
+            robustness_result = await self._run_robustness_evaluation(
+                purple_agent_url=purple_agent_url,
+                all_results=all_results,
+                updater=updater,
+            )
+            
+            if robustness_result:
+                # Add robustness as a separate result for unified scoring
+                all_results.append(robustness_result.to_eval_result())
+        
         return all_results
 
+    async def _run_robustness_evaluation(
+        self,
+        purple_agent_url: str,
+        all_results: List[dict],
+        updater: TaskUpdater,
+    ):
+        """
+        Run robustness evaluation on a sample of questions.
+        
+        Args:
+            purple_agent_url: URL of the Purple Agent
+            all_results: Results from main evaluation (to sample from)
+            updater: TaskUpdater for progress reporting
+            
+        Returns:
+            IntegratedRobustnessResult or None
+        """
+        from cio_agent.robustness_integration import (
+            RobustnessIntegration,
+            RobustnessConfig,
+        )
+        
+        if not self.eval_config or not self.eval_config.robustness.enabled:
+            return None
+        
+        # Create robustness config from eval_config
+        robustness_cfg = RobustnessConfig(
+            enabled=True,
+            sample_ratio=self.eval_config.robustness.sample_ratio,
+            min_samples=self.eval_config.robustness.min_samples,
+            max_samples=self.eval_config.robustness.max_samples,
+            attack_types=self.eval_config.robustness.attack_types,
+            attack_intensity=self.eval_config.robustness.attack_intensity,
+            seed=self.eval_config.robustness.seed,
+        )
+        
+        integration = RobustnessIntegration(robustness_cfg)
+        
+        # Record answers from main evaluation (only successful non-crypto results)
+        for result in all_results:
+            if (
+                result.get("score", 0) > 0 and
+                result.get("dataset_type") != "crypto" and
+                "question" in result and
+                "predicted" in result
+            ):
+                integration.record_answer(
+                    question_id=result.get("example_id", "unknown"),
+                    question_text=result["question"],
+                    answer=result["predicted"],
+                )
+        
+        # Define answer function for perturbation testing
+        async def get_perturbed_answer(question: str) -> str:
+            try:
+                response = await self.messenger.talk_to_agent(
+                    message=question,
+                    url=purple_agent_url,
+                    new_conversation=True,
+                    timeout=self.eval_config.timeout_seconds if self.eval_config else 300,
+                )
+                return response
+            except Exception as e:
+                return f"Error: {str(e)}"
+        
+        # Run robustness evaluation
+        try:
+            robustness_result = await integration.evaluate_robustness(get_perturbed_answer)
+            
+            await updater.update_status(
+                TaskState.working,
+                new_agent_text_message(
+                    f"Robustness: Grade {robustness_result.grade}, "
+                    f"Score {robustness_result.overall_score:.1f}/100, "
+                    f"Tested {robustness_result.questions_tested} questions"
+                )
+            )
+            
+            return robustness_result
+            
+        except Exception as e:
+            import structlog
+            logger = structlog.get_logger()
+            logger.warning("robustness_evaluation_failed", error=str(e))
+            return None
 
 
 class EvalRequest(BaseModel):

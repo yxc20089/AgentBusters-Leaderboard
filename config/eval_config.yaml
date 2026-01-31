@@ -24,8 +24,8 @@ datasets:
     weight: 1.0
 
   - type: crypto
-    path: data/crypto/cache  # Cache dir for downloaded scenarios
-    download_on_missing: true  # Download from EVAL_DATA_REPO
+    path: data/crypto/scenarios  # Use local scenarios
+    download_on_missing: false  # Don't download, use local data
     limit: 2
     shuffle: false
     weight: 1.0

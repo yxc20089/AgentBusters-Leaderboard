@@ -24,6 +24,7 @@ class ScoreSection(str, Enum):
     OPTIONS_TRADING = "options_trading"
     CRYPTO_TRADING = "crypto_trading"
     PROFESSIONAL_TASKS = "professional_tasks"
+    ROBUSTNESS = "robustness"  # NEW: Adversarial robustness testing
 
 
 # Dataset to section mapping
@@ -34,10 +35,22 @@ DATASET_SECTION_MAP: dict[str, ScoreSection] = {
     "options": ScoreSection.OPTIONS_TRADING,
     "crypto": ScoreSection.CRYPTO_TRADING,
     "gdpval": ScoreSection.PROFESSIONAL_TASKS,
+    "robustness": ScoreSection.ROBUSTNESS,  # NEW
 }
 
 # Default section weights (normalized dynamically based on active sections)
+# With robustness enabled, weights are redistributed proportionally
 DEFAULT_SECTION_WEIGHTS: dict[ScoreSection, float] = {
+    ScoreSection.KNOWLEDGE_RETRIEVAL: 0.18,
+    ScoreSection.ANALYTICAL_REASONING: 0.18,
+    ScoreSection.OPTIONS_TRADING: 0.18,
+    ScoreSection.CRYPTO_TRADING: 0.18,
+    ScoreSection.PROFESSIONAL_TASKS: 0.18,
+    ScoreSection.ROBUSTNESS: 0.10,  # NEW: 10% weight for robustness
+}
+
+# Alternative weights without robustness (original distribution)
+DEFAULT_SECTION_WEIGHTS_NO_ROBUSTNESS: dict[ScoreSection, float] = {
     ScoreSection.KNOWLEDGE_RETRIEVAL: 0.20,
     ScoreSection.ANALYTICAL_REASONING: 0.20,
     ScoreSection.OPTIONS_TRADING: 0.20,

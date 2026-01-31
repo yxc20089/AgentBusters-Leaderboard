@@ -1,0 +1,638 @@
+{
+  "schema_version": "1.0",
+  "run_id": "408ce8e6-1495-4ff9-b7d8-45f2e0c58775",
+  "scenario_id": "",
+  "timestamp": "2026-01-31T17:23:06.338668+00:00",
+  "green_agent": {
+    "id": "",
+    "benchmark": "FAB++ Finance Agent Benchmark",
+    "version": "2.0.0"
+  },
+  "participants": {
+    "purple_agent": "purple_agent",
+    "participant_id": ""
+  },
+  "results": [
+    {
+      "overall_score": {
+        "score": 49.55,
+        "max_score": 100.0
+      },
+      "section_scores": {
+        "knowledge_retrieval": {
+          "score": 0.0,
+          "weight": 0.2,
+          "weighted_contribution": 0.0,
+          "datasets": [
+            "bizfinbench"
+          ],
+          "task_count": 8,
+          "accuracy": 0.0,
+          "sub_scores": {}
+        },
+        "options_trading": {
+          "score": 54.38,
+          "weight": 0.2,
+          "weighted_contribution": 10.88,
+          "datasets": [
+            "options"
+          ],
+          "task_count": 4,
+          "accuracy": 0.0,
+          "sub_scores": {
+            "strategy_quality": 52.5,
+            "greeks_accuracy": 0.0,
+            "pnl_accuracy": 80.0,
+            "risk_management": 85.0
+          }
+        },
+        "analytical_reasoning": {
+          "score": 100.0,
+          "weight": 0.2,
+          "weighted_contribution": 20.0,
+          "datasets": [
+            "synthetic"
+          ],
+          "task_count": 4,
+          "accuracy": 1.0,
+          "sub_scores": {}
+        },
+        "crypto_trading": {
+          "score": 26.22,
+          "weight": 0.2,
+          "weighted_contribution": 5.24,
+          "datasets": [
+            "crypto"
+          ],
+          "task_count": 2,
+          "accuracy": 0.0,
+          "sub_scores": {
+            "meta": 26.18,
+            "baseline": 26.18,
+            "noisy": 26.31,
+            "adversarial": 26.18
+          }
+        },
+        "professional_tasks": {
+          "score": 67.14,
+          "weight": 0.2,
+          "weighted_contribution": 13.43,
+          "datasets": [
+            "gdpval"
+          ],
+          "task_count": 7,
+          "accuracy": 0.8571,
+          "sub_scores": {
+            "completion": 0.0,
+            "format": 0.0,
+            "accuracy": 0.0,
+            "professionalism": 0.0
+          }
+        }
+      },
+      "evaluation_metadata": {
+        "num_tasks": 25,
+        "num_successful": 17,
+        "accuracy": 0.4
+      },
+      "dataset_scores": {
+        "knowledge_retrieval": {
+          "count": 8,
+          "mean_score": 0.0,
+          "accuracy": 0.0,
+          "weight": 0.2
+        },
+        "options_trading": {
+          "count": 4,
+          "mean_score": 0.5438000000000001,
+          "accuracy": 0.0,
+          "weight": 0.2
+        },
+        "analytical_reasoning": {
+          "count": 4,
+          "mean_score": 1.0,
+          "accuracy": 1.0,
+          "weight": 0.2
+        },
+        "crypto_trading": {
+          "count": 2,
+          "mean_score": 0.2622,
+          "accuracy": 0.0,
+          "weight": 0.2
+        },
+        "professional_tasks": {
+          "count": 7,
+          "mean_score": 0.6714,
+          "accuracy": 0.8571,
+          "weight": 0.2
+        }
+      },
+      "config": {
+        "total": 30,
+        "by_dataset": {
+          "bizfinbench": 10,
+          "options": 5,
+          "synthetic": 5,
+          "crypto": 2,
+          "gdpval": 8
+        },
+        "by_task_type": {
+          "event_logic_reasoning": 5,
+          "financial_quantitative_computation": 5,
+          "Accountants and Auditors": 4,
+          "Administrative Services Managers": 4
+        },
+        "by_category": {
+          "Greeks Analysis": 2,
+          "Financial Logic": 4,
+          "Professional, Scientific, and Technical Services": 4,
+          "Government": 4,
+          "Strategy Construction": 2,
+          "Quantitative Retrieval": 1,
+          "Risk Management": 1
+        }
+      },
+      "sampling_strategy": "stratified"
+    }
+  ],
+  "detailed_results": [
+    {
+      "example_id": "bizfinbench_event_logic_reasoning_en_807",
+      "dataset_type": "bizfinbench",
+      "task_type": "event_logic_reasoning",
+      "language": "en",
+      "question": "\n### Role-playing\nYou are an experienced financial time attribution and root cause analysis expert. Please follow the 'Task Requirements' to summarize and organize the causes and effects of the 'Speci...",
+      "expected": "1,4,2,3",
+      "predicted": "",
+      "score": 0.0,
+      "is_correct": false,
+      "feedback": "Predicted: '404', Expected: '1,4,2,3'",
+      "llm_used": false,
+      "llm_failure": "llm_call_failed: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: gpt-4o-mini'}, 'request_id': 'req_011CXfpwe1xD2xhvLJVLGEBs'}"
+    },
+    {
+      "example_id": "bizfinbench_financial_quantitative_computation_en_844",
+      "dataset_type": "bizfinbench",
+      "task_type": "financial_quantitative_computation",
+      "language": "en",
+      "question": "You are an expert in data calculation. Please answer the <User Question> based on the provided <Formula List> and <Related Data>, and give your reasons. You need to answer in the specified format.\n###...",
+      "expected": "87.1554%",
+      "predicted": "",
+      "score": 0.0,
+      "is_correct": false,
+      "feedback": "Predicted: 404.0, Expected: 87.1554, Tolerance: 0.01",
+      "llm_used": false,
+      "llm_failure": "llm_call_failed: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: gpt-4o-mini'}, 'request_id': 'req_011CXfq2ddXSVvK3xXKRCfv4'}"
+    },
+    {
+      "example_id": "greeks_002",
+      "dataset_type": "options",
+      "category": "Greeks Analysis",
+      "question": "You hold a portfolio of SPY options: Long 10 $450 calls (delta 0.55), Short 5 $460 calls (delta 0.35), Long 10 $440 puts (delta -0.30). Calculate the portfolio's net delta and recommend a hedge to mak...",
+      "expected": "call_delta_long: 5.5; call_delta_short: -1.75; put_delta: -3.0; net_delta: 0.75; hedge: Short 75 sha...",
+      "predicted": "",
+      "score": 53.75,
+      "is_correct": false,
+      "pnl_accuracy": 80.0,
+      "greeks_accuracy": 0.0,
+      "strategy_quality": 50.0,
+      "risk_management": 85.0,
+      "feedback": "Multiple P&L calculations present. Calculation methodology shown. Missing Greeks analysis. Position sizing addressed. Hedging strategy discussed. Exit strategy mentioned.",
+      "llm_used": false,
+      "sub_scores": {
+        "pnl_accuracy": 80.0,
+        "greeks_accuracy": 0.0,
+        "strategy_quality": 50.0,
+        "risk_management": 85.0
+      }
+    },
+    {
+      "example_id": "SYN_LOGIC_0013",
+      "dataset_type": "synthetic",
+      "category": "Financial Logic",
+      "question": "A firm has $500 million in assets, a debt-to-equity ratio of 1.5, and pays 6% interest on its debt. The corporate tax rate is 30%. If the firm's ROA (return on assets) is 10%, what is the ROE (return ...",
+      "expected": "Unknown",
+      "predicted": "Unknown",
+      "predicted_full": "",
+      "score": 1.0,
+      "is_correct": true,
+      "feedback": "Extracted: Unknown, Expected: Unknown",
+      "llm_used": false,
+      "sub_scores": {}
+    },
+    {
+      "example_id": "scenario_ae02b8bd091e6ecc",
+      "dataset_type": "crypto",
+      "scenario_id": "scenario_ae02b8bd091e6ecc",
+      "scenario_name": "scenario_1",
+      "score": 27.31,
+      "baseline_score": 27.312049327343026,
+      "noisy_score": 27.316484964751353,
+      "adversarial_score": 27.310221222917402,
+      "meta_score": 27.30502708807696,
+      "grade": "F",
+      "random_seed": 3576770680,
+      "metrics": {
+        "baseline": {
+          "total_return": -0.0034172849573995334,
+          "max_drawdown": 0.0034172849573995334,
+          "sharpe": -252.43298731570658,
+          "win_rate": 0.0
+        },
+        "noisy": {
+          "total_return": -0.003109332830873609,
+          "max_drawdown": 0.0035260571492269086,
+          "sharpe": -209.8136000752719,
+          "win_rate": 0.0
+        },
+        "adversarial": {
+          "total_return": -0.003350450584225291,
+          "max_drawdown": 0.0035339170825654494,
+          "sharpe": -244.06709362141672,
+          "win_rate": 0.0
+        },
+        "meta": {
+          "score": 27.30502708807696,
+          "average": 27.30502708807696,
+          "dispersion": 0.0,
+          "details": [
+            {
+              "transform": "identity",
+              "score": 27.30502708807696,
+              "metrics": {
+                "total_return": -0.0034339221611606264,
+                "max_drawdown": 0.003637495263134083,
+                "sharpe": -245.93255379768772,
+                "win_rate": 0.0
+              },
+              "trade_count": 1,
+              "decision_errors": 0
+            }
+          ]
+        }
+      },
+      "events": [],
+      "llm_used": false,
+      "sub_scores": {
+        "baseline": 27.312049327343026,
+        "noisy": 27.316484964751353,
+        "adversarial": 27.310221222917402,
+        "meta": 27.30502708807696
+      },
+      "is_correct": false,
+      "feedback": "Final score 27.31 (grade F)"
+    },
+    {
+      "example_id": "7b08cd4d-df60-41ae-9102-8aaa49306ba2",
+      "dataset_type": "gdpval",
+      "occupation": "Accountants and Auditors",
+      "sector": "Professional, Scientific, and Technical Services",
+      "question": "You are the Finance Lead for an advisory client and are responsible for managing and controlling expenses related to their professional music engagements. Your summary will be used not only for intern...",
+      "predicted": "",
+      "score": 0.7,
+      "is_correct": true,
+      "feedback": "Heuristic evaluation (LLM unavailable)",
+      "has_reference_files": false,
+      "llm_used": false,
+      "sub_scores": {}
+    },
+    {
+      "example_id": "c44e9b62-7cd8-4f72-8ad9-f8fbddb94083",
+      "dataset_type": "gdpval",
+      "occupation": "Administrative Services Managers",
+      "sector": "Government",
+      "question": "You are the Administrative Services Manager responsible for the Administrative Support Services Branch in the Central Services Division at government department . The Administrative Support Services B...",
+      "predicted": "",
+      "score": 0.7,
+      "is_correct": true,
+      "feedback": "Heuristic evaluation (LLM unavailable)",
+      "has_reference_files": false,
+      "llm_used": false,
+      "sub_scores": {}
+    },
+    {
+      "example_id": "bizfinbench_event_logic_reasoning_en_1468",
+      "dataset_type": "bizfinbench",
+      "task_type": "event_logic_reasoning",
+      "language": "en",
+      "question": "\n### Role-playing\nYou are an experienced financial time attribution and root cause analysis expert. Please follow the 'Task Requirements' to summarize and organize the causes and effects of the 'Speci...",
+      "expected": "6,5,1,3,2,4",
+      "predicted": "",
+      "score": 0.0,
+      "is_correct": false,
+      "feedback": "Predicted: '404', Expected: '6,5,1,3,2,4'",
+      "llm_used": false,
+      "llm_failure": "llm_call_failed: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: gpt-4o-mini'}, 'request_id': 'req_011CXfq7RjYX8CnYEdV74hKj'}"
+    },
+    {
+      "example_id": "bizfinbench_financial_quantitative_computation_en_861",
+      "dataset_type": "bizfinbench",
+      "task_type": "financial_quantitative_computation",
+      "language": "en",
+      "question": "You are an expert in data calculation. Please answer the <User Question> based on the provided <Formula List> and <Related Data>, and give your reasons. You need to answer in the specified format.\n###...",
+      "expected": "10.0586%",
+      "predicted": "",
+      "score": 0.0,
+      "is_correct": false,
+      "feedback": "Predicted: 404.0, Expected: 10.0586, Tolerance: 0.01",
+      "llm_used": false,
+      "llm_failure": "llm_call_failed: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: gpt-4o-mini'}, 'request_id': 'req_011CXfqBjwY5qDQcfaYioLTU'}"
+    },
+    {
+      "example_id": "greeks_001",
+      "dataset_type": "options",
+      "category": "Greeks Analysis",
+      "question": "Calculate the Greeks (Delta, Gamma, Theta, Vega) for a TSLA $250 call option with 21 days to expiration. TSLA is currently at $245, volatility is 55%, and the risk-free rate is 5%. Explain what each G...",
+      "expected": "delta: 0.42; gamma: 0.025; theta: -0.35; vega: 0.28",
+      "predicted": "",
+      "score": 53.75,
+      "is_correct": false,
+      "pnl_accuracy": 80.0,
+      "greeks_accuracy": 0.0,
+      "strategy_quality": 50.0,
+      "risk_management": 85.0,
+      "feedback": "Multiple P&L calculations present. Calculation methodology shown. Missing Greeks analysis. Position sizing addressed. Hedging strategy discussed. Exit strategy mentioned.",
+      "llm_used": false,
+      "sub_scores": {
+        "pnl_accuracy": 80.0,
+        "greeks_accuracy": 0.0,
+        "strategy_quality": 50.0,
+        "risk_management": 85.0
+      }
+    },
+    {
+      "example_id": "SYN_LOGIC_0011",
+      "dataset_type": "synthetic",
+      "category": "Financial Logic",
+      "question": "Company ABC has EBIT of $10 million, depreciation of $2 million, capital expenditures of $3 million, and working capital increase of $1 million. The tax rate is 25%. What is the Free Cash Flow to Firm...",
+      "expected": "Unknown",
+      "predicted": "Unknown",
+      "predicted_full": "",
+      "score": 1.0,
+      "is_correct": true,
+      "feedback": "Extracted: Unknown, Expected: Unknown",
+      "llm_used": false,
+      "sub_scores": {}
+    },
+    {
+      "example_id": "scenario_7a7a2ed27bcb1937",
+      "dataset_type": "crypto",
+      "scenario_id": "scenario_7a7a2ed27bcb1937",
+      "scenario_name": "scenario_2",
+      "score": 25.13,
+      "baseline_score": 25.052711539154505,
+      "noisy_score": 25.299968726045176,
+      "adversarial_score": 25.058107877447146,
+      "meta_score": 25.051023988626913,
+      "grade": "F",
+      "random_seed": 2692238132,
+      "metrics": {
+        "baseline": {
+          "total_return": -0.04424798972376193,
+          "max_drawdown": 0.044702957258381575,
+          "sharpe": -511.3435347352114,
+          "win_rate": 0.0
+        },
+        "noisy": {
+          "total_return": -0.03747004536265231,
+          "max_drawdown": 0.04210933799628401,
+          "sharpe": -383.91290084694896,
+          "win_rate": 0.0
+        },
+        "adversarial": {
+          "total_return": -0.04408391322204243,
+          "max_drawdown": 0.04465980973339308,
+          "sharpe": -504.87270159165377,
+          "win_rate": 0.0
+        },
+        "meta": {
+          "score": 25.051023988626913,
+          "average": 25.051023988626913,
+          "dispersion": 0.0,
+          "details": [
+            {
+              "transform": "identity",
+              "score": 25.051023988626913,
+              "metrics": {
+                "total_return": -0.044271985025584215,
+                "max_drawdown": 0.044739212857782595,
+                "sharpe": -510.03187936126204,
+                "win_rate": 0.0
+              },
+              "trade_count": 3,
+              "decision_errors": 0
+            }
+          ]
+        }
+      },
+      "events": [],
+      "llm_used": false,
+      "sub_scores": {
+        "baseline": 25.052711539154505,
+        "noisy": 25.299968726045176,
+        "adversarial": 25.058107877447146,
+        "meta": 25.051023988626913
+      },
+      "is_correct": false,
+      "feedback": "Final score 25.13 (grade F)"
+    },
+    {
+      "example_id": "43dc9778-450b-4b46-b77e-b6d82b202035",
+      "dataset_type": "gdpval",
+      "occupation": "Accountants and Auditors",
+      "sector": "Professional, Scientific, and Technical Services",
+      "question": "You are a mid-level Tax Preparer at an accounting firm. You have been given the task to complete an Individual Tax return (form 1040) for the firm\u2019s clients, Bob and Lisa Smith. Bob and Lisa have prov...",
+      "predicted": "",
+      "score": 0.7,
+      "is_correct": true,
+      "feedback": "Heuristic evaluation (LLM unavailable)",
+      "has_reference_files": false,
+      "llm_used": false,
+      "sub_scores": {}
+    },
+    {
+      "example_id": "a328feea-47db-4856-b4be-2bdc63dd88fb",
+      "dataset_type": "gdpval",
+      "occupation": "Administrative Services Managers",
+      "sector": "Government",
+      "question": "You are the Administrative Services Manager of the Administrative Support Branch. You are responsible for the Administrative Support Teams in the Regional Branches of the Department of Civilian Servic...",
+      "predicted": "",
+      "score": 0.7,
+      "is_correct": true,
+      "feedback": "Heuristic evaluation (LLM unavailable)",
+      "has_reference_files": false,
+      "llm_used": false,
+      "sub_scores": {}
+    },
+    {
+      "example_id": "bizfinbench_event_logic_reasoning_en_478",
+      "dataset_type": "bizfinbench",
+      "task_type": "event_logic_reasoning",
+      "language": "en",
+      "question": "\n### Role-playing\nYou are an experienced financial time attribution and root cause analysis expert. Please follow the 'Task Requirements' to summarize and organize the causes and effects of the 'Speci...",
+      "expected": "1,2,3,4",
+      "predicted": "",
+      "score": 0.0,
+      "is_correct": false,
+      "feedback": "Predicted: '404', Expected: '1,2,3,4'",
+      "llm_used": false,
+      "llm_failure": "llm_call_failed: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: gpt-4o-mini'}, 'request_id': 'req_011CXfqHELUNhNyQb8jxwdar'}"
+    },
+    {
+      "example_id": "bizfinbench_financial_quantitative_computation_en_560",
+      "dataset_type": "bizfinbench",
+      "task_type": "financial_quantitative_computation",
+      "language": "en",
+      "question": "You are an expert in data calculation. Please answer the <User Question> based on the provided <Formula List> and <Related Data>, and give your reasons. You need to answer in the specified format.\n###...",
+      "expected": "-8.6697%",
+      "predicted": "",
+      "score": 0.0,
+      "is_correct": false,
+      "feedback": "Predicted: 404.0, Expected: -8.6697, Tolerance: 0.01",
+      "llm_used": false,
+      "llm_failure": "llm_call_failed: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: gpt-4o-mini'}, 'request_id': 'req_011CXfqVtrK57ygtCdFa4qAn'}"
+    },
+    {
+      "example_id": "strategy_001",
+      "dataset_type": "options",
+      "category": "Strategy Construction",
+      "question": "Construct an iron condor on SPX (current price $4500) for a neutral outlook. Define the strikes, calculate max profit, max loss, and breakeven points. Assume 30 DTE options with the following prices: ...",
+      "expected": "strategy: Iron Condor; legs: [{\"action\": \"sell\", \"strike\": 4420, \"type\": \"put\", \"price\": 12}, {\"acti...",
+      "predicted": "",
+      "score": 53.75,
+      "is_correct": false,
+      "pnl_accuracy": 80.0,
+      "greeks_accuracy": 0.0,
+      "strategy_quality": 50.0,
+      "risk_management": 85.0,
+      "feedback": "Multiple P&L calculations present. Calculation methodology shown. Missing Greeks analysis. Position sizing addressed. Hedging strategy discussed. Exit strategy mentioned.",
+      "llm_used": false,
+      "sub_scores": {
+        "pnl_accuracy": 80.0,
+        "greeks_accuracy": 0.0,
+        "strategy_quality": 50.0,
+        "risk_management": 85.0
+      }
+    },
+    {
+      "example_id": "SYN_QUAN_0001",
+      "dataset_type": "synthetic",
+      "category": "Quantitative Retrieval",
+      "question": "What was AAPL's EBITDA in fiscal year 2024?",
+      "expected": "Unknown",
+      "predicted": "Unknown",
+      "predicted_full": "",
+      "score": 1.0,
+      "is_correct": true,
+      "feedback": "Extracted: Unknown, Expected: Unknown",
+      "llm_used": false,
+      "sub_scores": {}
+    },
+    {
+      "example_id": "83d10b06-26d1-4636-a32c-23f92c57f30b",
+      "dataset_type": "gdpval",
+      "occupation": "Accountants and Auditors",
+      "sector": "Professional, Scientific, and Technical Services",
+      "question": "You are an auditor and as part of an audit engagement, you are tasked with reviewing and testing the accuracy of reported Anti-Financial Crime Risk Metrics.\n\nThe attached spreadsheet titled \u2018Populatio...",
+      "predicted": "",
+      "score": 0.7,
+      "is_correct": true,
+      "feedback": "Heuristic evaluation (LLM unavailable)",
+      "has_reference_files": false,
+      "llm_used": false,
+      "sub_scores": {}
+    },
+    {
+      "example_id": "17111c03-aac7-45c2-857d-c06d8223d6ad",
+      "dataset_type": "gdpval",
+      "occupation": "Administrative Services Managers",
+      "sector": "Government",
+      "question": "You are the Administrative Services Manager of a city environmental government agency. The community population has decreased steadily over the last 10 years. You are concerned about eliminating bligh...",
+      "predicted": "",
+      "score": 0.7,
+      "is_correct": true,
+      "feedback": "Heuristic evaluation (LLM unavailable)",
+      "has_reference_files": false,
+      "llm_used": false,
+      "sub_scores": {}
+    },
+    {
+      "example_id": "bizfinbench_event_logic_reasoning_en_1505",
+      "dataset_type": "bizfinbench",
+      "task_type": "event_logic_reasoning",
+      "language": "en",
+      "question": "\n### Role-playing\nYou are an experienced financial time attribution and root cause analysis expert. Please follow the 'Task Requirements' to summarize and organize the causes and effects of the 'Speci...",
+      "expected": "3,4,1,6,5,2",
+      "predicted": "",
+      "score": 0.0,
+      "is_correct": false,
+      "feedback": "Predicted: '404', Expected: '3,4,1,6,5,2'",
+      "llm_used": false,
+      "llm_failure": "llm_call_failed: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: gpt-4o-mini'}, 'request_id': 'req_011CXfqYgVWHR2xHANaChA3E'}"
+    },
+    {
+      "example_id": "bizfinbench_financial_quantitative_computation_en_605",
+      "dataset_type": "bizfinbench",
+      "task_type": "financial_quantitative_computation",
+      "language": "en",
+      "question": "You are an expert in data calculation. Please answer the <User Question> based on the provided <Formula List> and <Related Data>, and give your reasons. You need to answer in the specified format.\n###...",
+      "expected": "10.7818",
+      "predicted": "",
+      "score": 0.0,
+      "is_correct": false,
+      "feedback": "Predicted: 404.0, Expected: 10.7818, Tolerance: 0.01",
+      "llm_used": false,
+      "llm_failure": "llm_call_failed: Error code: 404 - {'type': 'error', 'error': {'type': 'not_found_error', 'message': 'model: gpt-4o-mini'}, 'request_id': 'req_011CXfqqj6z97FHfi8UHK6Lp'}"
+    },
+    {
+      "example_id": "risk_001",
+      "dataset_type": "options",
+      "category": "Risk Management",
+      "question": "You have a $100,000 options trading account. You want to sell a put spread on QQQ (current price $380). The $370/$360 put spread can be sold for $2.50 credit. Calculate the max loss per spread, positi...",
+      "expected": "max_loss_per_spread: 7.5; risk_per_spread: 750; max_account_risk: 2000; position_size: 2; buying_pow...",
+      "predicted": "",
+      "score": 56.25,
+      "is_correct": false,
+      "pnl_accuracy": 80.0,
+      "greeks_accuracy": 0.0,
+      "strategy_quality": 60.0,
+      "risk_management": 85.0,
+      "feedback": "Multiple P&L calculations present. Calculation methodology shown. Missing Greeks analysis. VaR analysis included. Position sizing addressed. Hedging strategy discussed. Exit strategy mentioned.",
+      "llm_used": false,
+      "sub_scores": {
+        "pnl_accuracy": 80.0,
+        "greeks_accuracy": 0.0,
+        "strategy_quality": 60.0,
+        "risk_management": 85.0
+      }
+    },
+    {
+      "example_id": "SYN_LOGIC_0008",
+      "dataset_type": "synthetic",
+      "category": "Financial Logic",
+      "question": "A company has two mutually exclusive projects. Project A requires $100,000 investment and returns $150,000 in Year 1. Project B requires $100,000 investment and returns $180,000 in Year 2. At what dis...",
+      "expected": "Unknown",
+      "predicted": "Unknown",
+      "predicted_full": "",
+      "score": 1.0,
+      "is_correct": true,
+      "feedback": "Extracted: Unknown, Expected: Unknown",
+      "llm_used": false,
+      "sub_scores": {}
+    },
+    {
+      "example_id": "ee09d943-5a11-430a-b7a2-971b4e9b01b5",
+      "dataset_type": "gdpval",
+      "occupation": "Accountants and Auditors",
+      "sector": "Professional, Scientific, and Technical Services",
+      "question": "As our Senior Staff Accountant in Financial Reporting & Assembly, you\u2019ve been a critical part of the Aurisic team and you\u2019ve spent the last few years in this role focusing on ensuring the accuracy and...",
+      "predicted": "",
+      "score": 0.5,
+      "is_correct": false,
+      "feedback": "Heuristic evaluation (LLM unavailable)",
+      "has_reference_files": false,
+      "llm_used": false,
+      "sub_scores": {}
+    }
+  ]
+}

@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Any, List
 
 from cio_agent.a2a_client import PurpleHTTPAgentClient
-from cio_agent.datasets.csv_provider import CsvFinanceDatasetProvider
+from cio_agent.data_providers import CsvFinanceDatasetProvider
 from cio_agent.evaluator import ComprehensiveEvaluator
 from cio_agent.models import TaskDifficulty
 from cio_agent.task_generator import DynamicTaskGenerator

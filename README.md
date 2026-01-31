@@ -576,7 +576,7 @@ LLM_MODEL=openai/gpt-oss-20b
 
 ## MCP Server Configuration
 
-The system uses 6 MCP servers for financial data and options trading:
+The system uses 7 MCP servers for financial data, options trading, and evaluation:
 
 | Server | Port | Purpose |
 |--------|------|---------|
@@ -586,6 +586,7 @@ The system uses 6 MCP servers for financial data and options trading:
 | **Options Chain MCP** | 8104 | Black-Scholes pricing, Greeks, IV surface |
 | **Trading Sim MCP** | 8105 | Paper trading, slippage simulation, P&L |
 | **Risk Metrics MCP** | 8106 | VaR, Sharpe/Sortino, stress testing |
+| **Judge MCP** | 8107 | Semantic/Numeric/Contradiction evaluation |
 
 Configure via environment variables or `.env` file:
 
@@ -599,7 +600,72 @@ MCP_SANDBOX_URL=http://localhost:8103
 MCP_OPTIONS_URL=http://localhost:8104
 MCP_TRADING_URL=http://localhost:8105
 MCP_RISK_URL=http://localhost:8106
+
+# Judge MCP Server (evaluation-as-a-service)
+MCP_JUDGE_URL=http://localhost:8107
 ```
+
+### Judge MCP Server
+
+The Judge MCP Server provides evaluation-as-a-service with specialized tools:
+
+| Tool | Purpose |
+|------|---------|
+| `numeric_evaluate` | Numerical matching with configurable tolerance |
+| `semantic_evaluate` | Key element extraction and semantic matching |
+| `contradiction_detect` | Multi-signal contradiction detection |
+| `hallucination_detect` | Fabricated data detection |
+| `combined_judge` | Comprehensive combined evaluation |
+
+**Start the Judge MCP Server:**
+```bash
+python src/mcp_servers/judge_mcp.py --host 0.0.0.0 --port 8107
+```
+
+## 🛡️ Adversarial Robustness Testing
+
+Test agent robustness against adversarial perturbations:
+
+### Attack Types
+
+| Attack | Description | Answer Should Change? |
+|--------|-------------|----------------------|
+| **Paraphrase** | Rephrase question without changing meaning | No |
+| **Typo** | Inject realistic typos | No |
+| **Number Swap** | Swap similar numbers (e.g., year ±1) | Yes |
+| **Distraction** | Add irrelevant but plausible context | No |
+| **Temporal** | Mix outdated and current information | No |
+| **Negation** | Negate key parts of the question | Yes |
+| **Synonym** | Replace words with synonyms | No |
+
+### Running Robustness Evaluation
+
+```bash
+# Basic robustness test
+python scripts/run_robustness_eval.py \
+  --purple-url http://localhost:9110 \
+  --num-questions 5
+
+# Full robustness evaluation with specific attacks
+python scripts/run_robustness_eval.py \
+  --purple-url http://localhost:9110 \
+  --attacks paraphrase typo distraction \
+  --num-questions 20 \
+  --output results/robustness_report.json
+
+# Use custom dataset
+python scripts/run_robustness_eval.py \
+  --purple-url http://localhost:9110 \
+  --dataset finance-agent/data/public.csv \
+  --num-questions 10
+```
+
+### Robustness Metrics
+
+- **Consistency Score**: How consistent are answers across equivalent perturbations
+- **Stability Score**: How stable is performance under attack
+- **Robustness Grade**: A-F grade based on overall robustness
+- **Vulnerabilities**: Specific weaknesses identified per attack type
 
 Tip: If MCP URLs are unset, the Purple Agent falls back to in-process MCP servers.
 
@@ -811,7 +877,8 @@ AgentBusters/
 │   │   ├── sandbox.py       # Python execution sandbox (:8103)
 │   │   ├── options_chain.py # Black-Scholes pricing (:8104)
 │   │   ├── trading_sim.py   # Paper trading simulator (:8105)
-│   │   └── risk_metrics.py  # VaR, Sharpe, stress tests (:8106)
+│   │   ├── risk_metrics.py  # VaR, Sharpe, stress tests (:8106)
+│   │   └── judge_mcp.py     # Semantic/Numeric/Contradiction judge (:8107)
 │   │
 │   └── evaluators/          # Evaluation components
 │       ├── macro.py         # Macro thesis evaluator

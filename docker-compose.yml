@@ -125,6 +125,22 @@ services:
       timeout: 10s
       retries: 3
 
+  # MCP Server 7: Judge (Semantic/Numeric/Contradiction evaluation)
+  judge-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fab-plus-judge
+    command: ["python", "src/mcp_servers/judge_mcp.py", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8107:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('localhost',8000),2); s.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # CIO-Agent Orchestrator (Green Agent / Evaluator)
   cio-agent:
     build:
@@ -138,6 +154,7 @@ services:
       - MCP_OPTIONS_URL=http://options-chain-mcp:8000/mcp
       - MCP_TRADING_URL=http://trading-sim-mcp:8000/mcp
       - MCP_RISK_URL=http://risk-metrics-mcp:8000/mcp
+      - MCP_JUDGE_URL=http://judge-mcp:8000/mcp
       - A2A_PROTOCOL_VERSION=1.0
       - LLM_PROVIDER=${LLM_PROVIDER:-openai}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -154,6 +171,8 @@ services:
       trading-sim-mcp:
         condition: service_healthy
       risk-metrics-mcp:
+        condition: service_healthy
+      judge-mcp:
         condition: service_healthy
     ports:
       - "9109:9109"

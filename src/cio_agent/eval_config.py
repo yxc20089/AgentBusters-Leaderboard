@@ -358,6 +358,43 @@ class LLMEvaluationConfig(BaseModel):
     )
 
 
+class RobustnessEvalConfig(BaseModel):
+    """Configuration for adversarial robustness testing.
+    
+    When enabled, a sample of questions will be tested with perturbations
+    (paraphrase, typo, distraction) to measure agent consistency.
+    The robustness score is included in the final unified score.
+    """
+    enabled: bool = Field(
+        default=False,
+        description="Enable robustness testing as part of evaluation"
+    )
+    sample_ratio: float = Field(
+        default=0.2,
+        description="Ratio of questions to test for robustness (0.0-1.0)"
+    )
+    min_samples: int = Field(
+        default=3,
+        description="Minimum number of questions to test"
+    )
+    max_samples: int = Field(
+        default=10,
+        description="Maximum number of questions to test"
+    )
+    attack_types: List[str] = Field(
+        default_factory=lambda: ["paraphrase", "typo", "distraction"],
+        description="Types of perturbation attacks to use"
+    )
+    attack_intensity: float = Field(
+        default=0.5,
+        description="How aggressive perturbations are (0.0-1.0)"
+    )
+    seed: int = Field(
+        default=42,
+        description="Random seed for reproducibility"
+    )
+
+
 class EvaluationConfig(BaseModel):
     """Main evaluation configuration."""
     name: str = Field(
@@ -384,6 +421,10 @@ class EvaluationConfig(BaseModel):
     llm_eval: LLMEvaluationConfig = Field(
         default_factory=LLMEvaluationConfig,
         description="LLM-as-judge configuration for dataset evaluators."
+    )
+    robustness: RobustnessEvalConfig = Field(
+        default_factory=RobustnessEvalConfig,
+        description="Adversarial robustness testing configuration."
     )
 
     @classmethod

@@ -1,0 +1,74 @@
+# FAB++ Evaluation Configuration with Adversarial Robustness Testing
+#
+# This config enables robustness testing as part of the evaluation pipeline.
+# A sample of questions will be tested with perturbations (paraphrase, typo, 
+# distraction) to measure agent consistency. The robustness score (10% weight)
+# is included in the final unified score.
+#
+# Usage:
+#   python src/cio_agent/a2a_server.py --eval-config config/eval_with_robustness.yaml
+#   python scripts/run_a2a_eval.py --green-url http://localhost:9109 --purple-url http://localhost:9110
+
+name: "FAB++ with Robustness Testing"
+version: "2.0"
+
+# Datasets to evaluate
+datasets:
+  # Knowledge Retrieval (public.csv)
+  - type: public_csv
+    path: finance-agent/data/public.csv
+    limit: 10
+    
+  # Analytical Reasoning (BizFinBench)
+  - type: bizfinbench
+    task_type: financial_quantitative_computation
+    language: en
+    limit: 5
+
+# Sampling configuration
+sampling:
+  method: stratified
+  total_limit: 15
+  seed: 42
+  shuffle: true
+
+# Adversarial debate (optional)
+debate: false
+
+# Timeout per question
+timeout_seconds: 300
+
+# LLM grading for evaluators
+llm_eval:
+  enabled: true
+  model: gpt-4o-mini
+  temperature: 0.0
+
+# ============================================
+# ROBUSTNESS TESTING CONFIGURATION (NEW!)
+# ============================================
+robustness:
+  # Enable robustness testing (adds ~10% weight to final score)
+  enabled: true
+  
+  # Ratio of questions to test for robustness (0.0-1.0)
+  # 0.2 = test 20% of questions
+  sample_ratio: 0.3
+  
+  # Minimum/maximum questions to test
+  min_samples: 3
+  max_samples: 8
+  
+  # Attack types to use for perturbation testing
+  # Available: paraphrase, typo, distraction, temporal, number_swap, negation, synonym
+  attack_types:
+    - paraphrase
+    - typo
+    - distraction
+  
+  # How aggressive perturbations are (0.0-1.0)
+  # Higher = more aggressive changes
+  attack_intensity: 0.5
+  
+  # Random seed for reproducibility
+  seed: 42
