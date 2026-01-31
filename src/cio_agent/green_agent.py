@@ -377,6 +377,13 @@ class GreenAgent:
                             "adversarial": r.get("adversarial_score", 0),
                             "meta": r.get("meta_score", 0),
                         }
+                    elif dataset_type == "gdpval":
+                        sub_scores = {
+                            "completion": r.get("completion", 0),
+                            "accuracy": r.get("accuracy", 0),
+                            "format": r.get("format", 0),
+                            "professionalism": r.get("professionalism", 0),
+                        }
 
                     normalized = scorer.create_normalized_result(
                         task_id=r.get("example_id", ""),

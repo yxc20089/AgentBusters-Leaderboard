@@ -8,7 +8,8 @@ Sections and Weights:
 - Knowledge Retrieval (30%): bizfinbench, public_csv
 - Analytical Reasoning (35%): synthetic
 - Options Trading (35%): options
-- Crypto Trading (20%): crypto
+- Crypto Trading (25%): crypto
+- GDPVal (25%): gdpval
 """
 
 from dataclasses import dataclass, field
@@ -22,6 +23,7 @@ class ScoreSection(str, Enum):
     ANALYTICAL_REASONING = "analytical_reasoning"
     OPTIONS_TRADING = "options_trading"
     CRYPTO_TRADING = "crypto_trading"
+    GDPVAL = "gdpval"
 
 
 # Dataset to section mapping
@@ -31,6 +33,7 @@ DATASET_SECTION_MAP: dict[str, ScoreSection] = {
     "synthetic": ScoreSection.ANALYTICAL_REASONING,
     "options": ScoreSection.OPTIONS_TRADING,
     "crypto": ScoreSection.CRYPTO_TRADING,
+    "gdpval": ScoreSection.GDPVAL,
 }
 
 # Default section weights (sum to 1.0)
@@ -39,6 +42,7 @@ DEFAULT_SECTION_WEIGHTS: dict[ScoreSection, float] = {
     ScoreSection.ANALYTICAL_REASONING: 0.35,
     ScoreSection.OPTIONS_TRADING: 0.35,
     ScoreSection.CRYPTO_TRADING: 0.25,
+    ScoreSection.GDPVAL: 0.25,
 }
 
 # Grade thresholds
@@ -159,12 +163,12 @@ class UnifiedScorer:
 
         Args:
             score: Raw score from evaluator
-            dataset_type: Type of dataset (bizfinbench, public_csv, options, synthetic)
+            dataset_type: Type of dataset (bizfinbench, public_csv, gdpval, options, synthetic)
 
         Returns:
             Normalized score in 0-100 range
         """
-        if dataset_type in ("bizfinbench", "public_csv", "synthetic"):
+        if dataset_type in ("bizfinbench", "public_csv", "synthetic", "gdpval"):
             # These evaluators return 0.0-1.0
             return min(100.0, max(0.0, score * 100.0))
         elif dataset_type in ("options", "crypto"):
