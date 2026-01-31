@@ -21,14 +21,13 @@ conduct_debate = false
 timeout_seconds = 300
 
 # Datasets to evaluate on (including crypto trading benchmark)
-datasets = ["bizfinbench", "public_csv", "options", "synthetic", "crypto"]
+datasets = ["bizfinbench", "options", "synthetic", "crypto"]
 
 # Sampling strategy: "stratified", "random", "sequential"
 sampling_strategy = "stratified"
 
 # Per-dataset limits (for balanced evaluation)
-bizfinbench_limit = 8
-public_csv_limit = 5
-options_limit = 8
-synthetic_limit = 5
+bizfinbench_limit = 10
+options_limit = 10
+synthetic_limit = 6
 crypto_limit = 4  # Crypto trading scenarios
