@@ -16,7 +16,7 @@ env = { OPENAI_API_KEY = "${OPENAI_API_KEY}" }
 
 [config]
 # Assessment configuration
-num_tasks = 30
+num_tasks = 18
 conduct_debate = false
 timeout_seconds = 300
 
@@ -26,8 +26,8 @@ datasets = ["bizfinbench", "options", "synthetic", "crypto"]
 # Sampling strategy: "stratified", "random", "sequential"
 sampling_strategy = "stratified"
 
-# Per-dataset limits (for balanced evaluation)
-bizfinbench_limit = 10
-options_limit = 10
-synthetic_limit = 6
-crypto_limit = 4  # Crypto trading scenarios
+# Per-dataset limits (balanced - matching available data)
+bizfinbench_limit = 6   # Knowledge retrieval
+options_limit = 5       # Options trading (5 available)
+synthetic_limit = 5     # Analytical reasoning
+crypto_limit = 2        # Crypto trading (2 available)
