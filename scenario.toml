@@ -34,4 +34,4 @@ synthetic_limit = 6     # Analytical reasoning (increased for stability)
 crypto_limit = 2        # Crypto trading (2 available)
 gdpval_limit = 4        # Professional tasks (OpenAI GDPVal)
 
-# Test with GDPVal reference files passed to Purple Agent
+# Test GDPVal reference files feature - reference files now passed to Purple Agent
