@@ -1,0 +1,41 @@
+# FAB++ (Finance Agent Benchmark Plus Plus) Assessment Configuration
+# AgentBeats Competition 2026 - Team AgentBusters
+# Test run with public_csv re-enabled
+
+[green_agent]
+# CIO-Agent Green Agent - FAB++ Evaluator
+agentbeats_id = "019bc421-99d0-7ee3-ae27-658145eff474"
+env = { OPENAI_API_KEY = "${OPENAI_API_KEY}", EVAL_CONFIG = "config/eval_all.yaml", EVAL_DATA_REPO = "${EVAL_DATA_REPO}", EVAL_DATA_PAT = "${EVAL_DATA_PAT}" }
+
+[[participants]]
+# Purple Agent (Finance Analyst) to be evaluated
+# Submitters: Fill in your agent's agentbeats_id
+agentbeats_id = "019c17cd-91c4-7212-9e59-d5280984e1d8"
+name = "purple_agent"
+env = { 
+    OPENAI_API_KEY = "${OPENAI_API_KEY}", TAVILY_API_KEY = "${TAVILY_API_KEY}",
+    OPENAI_API_BASE = "https://openrouter.ai/api/v1",
+    LLM_MODEL = "google/gemini-3-pro-preview"
+}
+
+[config]
+# Assessment configuration
+num_tasks = 18
+conduct_debate = false
+timeout_seconds = 300
+
+# Datasets to evaluate on (including crypto trading and GDPVal benchmarks)
+datasets = ["bizfinbench", "public_csv", "options", "synthetic", "crypto", "gdpval"]
+
+# Sampling strategy: "stratified", "random", "sequential"
+sampling_strategy = "stratified"
+
+# Per-dataset limits (balanced across all sections)
+bizfinbench_limit = 2   # Knowledge retrieval
+public_csv_limit = 2    # Knowledge retrieval (FAB public dataset) - needs web search for full capability
+options_limit = 3       # Options trading
+synthetic_limit = 6     # Analytical reasoning (increased for stability)
+crypto_limit = 2        # Crypto trading (2 available)
+gdpval_limit = 4        # Professional tasks (OpenAI GDPVal)
+
+# Test with GDPVal reference files passed to Purple Agent
