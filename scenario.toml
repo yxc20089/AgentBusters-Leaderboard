@@ -25,14 +25,14 @@ conduct_debate = false
 timeout_seconds = 300
 
 # Datasets to evaluate on (including crypto trading and GDPVal benchmarks)
-datasets = ["bizfinbench", "public_csv", "options", "synthetic", "crypto", "gdpval"]
+datasets = ["bizfinbench", "prbench", "options", "synthetic", "crypto", "gdpval"]
 
 # Sampling strategy: "stratified", "random", "sequential"
 sampling_strategy = "stratified"
 
 # Per-dataset limits (balanced across all sections)
 bizfinbench_limit = 2   # Knowledge retrieval
-public_csv_limit = 2    # Knowledge retrieval (FAB public dataset) - needs web search for full capability
+prbench_limit = 2       # Professional reasoning (Scale AI PRBench)
 options_limit = 3       # Options trading
 synthetic_limit = 6     # Analytical reasoning (increased for stability)
 crypto_limit = 2        # Crypto trading (2 available)
