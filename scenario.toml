@@ -1,11 +1,11 @@
 # FAB++ (Finance Agent Benchmark Plus Plus) Assessment Configuration
 # AgentBeats Competition 2026 - Team AgentBusters
-# Test run with public_csv re-enabled
+# PRBench evaluation (crypto disabled - no hidden scenarios in Docker image)
 
 [green_agent]
 # CIO-Agent Green Agent - FAB++ Evaluator
 agentbeats_id = "019bc421-99d0-7ee3-ae27-658145eff474"
-env = { OPENAI_API_KEY = "${OPENAI_API_KEY}", EVAL_CONFIG = "config/eval_all.yaml", EVAL_DATA_REPO = "${EVAL_DATA_REPO}", EVAL_DATA_PAT = "${EVAL_DATA_PAT}" }
+env = { OPENAI_API_KEY = "${OPENAI_API_KEY}", EVAL_CONFIG = "config/eval_leaderboard.yaml", EVAL_DATA_REPO = "${EVAL_DATA_REPO}", EVAL_DATA_PAT = "${EVAL_DATA_PAT}" }
 
 [[participants]]
 # Purple Agent (Finance Analyst) to be evaluated
