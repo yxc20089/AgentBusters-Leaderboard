@@ -1,0 +1,165 @@
+# AgentBusters Full Benchmark Evaluation
+#
+# This workflow runs a complete evaluation of the purple agent against
+# all benchmark datasets using the green agent from Docker.
+#
+# Both agents are pulled from GHCR and run as containers.
+
+name: Full Benchmark Evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      num_tasks:
+        description: 'Number of evaluation tasks'
+        required: false
+        default: '60'
+      eval_config:
+        description: 'Evaluation config file'
+        required: false
+        default: 'config/eval_config.yaml'
+
+env:
+  GREEN_IMAGE: ghcr.io/yxc20089/agentbusters-green:latest
+  PURPLE_IMAGE: ghcr.io/yxc20089/agentbusters-purple:latest
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout AgentBusters
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull Docker images
+        run: |
+          docker pull $GREEN_IMAGE
+          docker pull $PURPLE_IMAGE
+
+      - name: Create Docker network
+        run: docker network create eval-network
+
+      - name: Start Purple Agent
+        run: |
+          docker run -d \
+            --name purple-agent \
+            --network eval-network \
+            -p 9110:9110 \
+            -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            -e ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
+            $PURPLE_IMAGE \
+            --host 0.0.0.0 \
+            --port 9110
+
+          # Wait for purple agent to be ready
+          echo "Waiting for Purple Agent to start..."
+          for i in {1..30}; do
+            if curl -sf http://localhost:9110/.well-known/agent.json > /dev/null 2>&1; then
+              echo "Purple Agent is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Start Green Agent
+        run: |
+          docker run -d \
+            --name green-agent \
+            --network eval-network \
+            -p 9109:9109 \
+            -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            -e ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
+            $GREEN_IMAGE \
+            --host 0.0.0.0 \
+            --port 9109 \
+            --eval-config ${{ github.event.inputs.eval_config }} \
+            --store-predicted \
+            --no-truncate-predicted
+
+          # Wait for green agent to be ready
+          echo "Waiting for Green Agent to start..."
+          for i in {1..30}; do
+            if curl -sf http://localhost:9109/.well-known/agent.json > /dev/null 2>&1; then
+              echo "Green Agent is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Show agent status
+        run: |
+          echo "=== Green Agent ==="
+          curl -s http://localhost:9109/.well-known/agent.json | head -50 || echo "Failed to get Green Agent info"
+          echo ""
+          echo "=== Purple Agent ==="
+          curl -s http://localhost:9110/.well-known/agent.json | head -50 || echo "Failed to get Purple Agent info"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install evaluation dependencies
+        run: |
+          pip install httpx python-a2a
+
+      - name: Run evaluation
+        id: eval
+        run: |
+          # Run evaluation from host, using Docker network names for inter-container communication
+          python scripts/run_a2a_eval.py \
+            --green-url http://localhost:9109 \
+            --purple-url http://purple-agent:9110 \
+            --num-tasks ${{ github.event.inputs.num_tasks }} \
+            --timeout 1800 \
+            --output results/full_eval_output.json \
+            -v
+
+          # Also copy results from green agent container
+          mkdir -p results
+          docker cp green-agent:/home/agent/results/. results/ 2>/dev/null || echo "Container results copied"
+
+      - name: Show container logs
+        if: always()
+        run: |
+          echo "=== Green Agent Logs ==="
+          docker logs green-agent 2>&1 | tail -100 || true
+          echo ""
+          echo "=== Purple Agent Logs ==="
+          docker logs purple-agent 2>&1 | tail -100 || true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-results
+          path: results/
+
+      - name: Post results summary
+        if: always()
+        run: |
+          if [ -f results/full_eval_output.json ]; then
+            echo "## Full Benchmark Evaluation Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Configuration:** ${{ github.event.inputs.eval_config }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Tasks:** ${{ github.event.inputs.num_tasks }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat results/full_eval_output.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop green-agent purple-agent 2>/dev/null || true
+          docker rm green-agent purple-agent 2>/dev/null || true
+          docker network rm eval-network 2>/dev/null || true
