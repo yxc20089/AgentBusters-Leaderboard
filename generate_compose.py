@@ -62,7 +62,7 @@ services:
     image: {green_image}
     platform: linux/amd64
     container_name: green-agent
-    command: ["--host", "0.0.0.0", "--port", "{green_port}", "--card-url", "http://green-agent:{green_port}", "--eval-config", "config/eval_config.yaml", "--store-predicted", "--no-truncate-predicted"]
+    command: ["--host", "0.0.0.0", "--port", "{green_port}", "--card-url", "http://green-agent:{green_port}", "--eval-config", "{green_eval_config}", "--store-predicted", "--no-truncate-predicted"]
     environment:{green_env}
     volumes:
       - ./data/crypto/hidden:/home/agent/data/crypto/hidden
