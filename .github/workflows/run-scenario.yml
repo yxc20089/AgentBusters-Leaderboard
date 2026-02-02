@@ -35,6 +35,8 @@ jobs:
         run: |
           mkdir -p data/crypto/hidden
           rsync -a --delete eval_data_temp/crypto/eval_hidden/ data/crypto/hidden/
+          # Make writable for container's agent user (uid 1000)
+          chmod -R 777 data/crypto/hidden
 
       - name: Set up Python
         uses: actions/setup-python@v4

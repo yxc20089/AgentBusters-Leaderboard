@@ -1,6 +1,6 @@
 # FAB++ (Finance Agent Benchmark Plus Plus) Assessment Configuration
 # AgentBeats Competition 2026 - Team AgentBusters
-# Full evaluation with crypto re-enabled (using eval_all.yaml with hidden data path)
+# Full evaluation with crypto (fixed permissions for hidden data mount)
 
 [green_agent]
 # CIO-Agent Green Agent - FAB++ Evaluator
