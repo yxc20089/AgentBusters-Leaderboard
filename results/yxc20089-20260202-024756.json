@@ -1,0 +1,500 @@
+{
+  "participants": {
+    "purple_agent": "019c1634-be7d-7200-9102-dc57104f32db"
+  },
+  "results": [
+    {
+      "schema_version": "2.0",
+      "benchmark": "FAB++ Finance Agent Benchmark",
+      "version": "2.0.0",
+      "overall_score": {
+        "score": 21.37,
+        "max_score": 100.0
+      },
+      "section_scores": {
+        "knowledge_retrieval": {
+          "score": 21.37,
+          "weight": 1.0,
+          "weighted_contribution": 21.37,
+          "datasets": [
+            "prbench",
+            "bizfinbench"
+          ],
+          "task_count": 18,
+          "accuracy": 0.1111,
+          "sub_scores": {}
+        }
+      },
+      "evaluation_metadata": {
+        "purple_agent": "http://purple_agent:9009/",
+        "num_tasks": 18,
+        "num_successful": 6,
+        "conduct_debate": false
+      },
+      "detailed_results": [
+        {
+          "task_id": "bizfinbench_anomaly_information_tracing_cn_1549",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "LLM evaluation"
+        },
+        {
+          "task_id": "bizfinbench_event_logic_reasoning_en_1969",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "LLM evaluation"
+        },
+        {
+          "task_id": "bizfinbench_financial_data_description_cn_37",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "LLM evaluation"
+        },
+        {
+          "task_id": "bizfinbench_financial_quantitative_computation_en_150",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 1.0,
+          "normalized_score": 100.0,
+          "is_correct": true,
+          "feedback": "The calculated ROE for Yunbai International in the 2022 Annual Report is -201.4772, which matches the expected answer."
+        },
+        {
+          "task_id": "bizfinbench_user_sentiment_analysis_en_1898",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "Predicted: 'error during analysis: error code: 401 - {'error': {'message': 'no cookie auth credentials found', 'code': 401}}error during analysis: error code: 401 - {'error': {'message': 'no cookie auth credentials found', 'code': 401}}', Expected: '41.2'"
+        },
+        {
+          "task_id": "bizfinbench_stock_price_predict_cn_1905",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "The candidate answer does not provide a valid prediction or interval."
+        },
+        {
+          "task_id": "bizfinbench_financial_multi_turn_perception_en_953",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "Exact match: False"
+        },
+        {
+          "task_id": "bizfinbench_financial_report_analysis_cn_993",
+          "dataset_type": "bizfinbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "The candidate answer does not provide a valid analysis or conclusion based on the financial data provided."
+        },
+        {
+          "task_id": "prbench_finance_3c9d539bfe62c6481a4ee766",
+          "dataset_type": "prbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "The candidate answer does not address any of the evaluation criteria related to capturing the interaction of shocks in stress tests. It fails to mention the non-linear effects, methods for modeling dependence, reconciliation of results, benchmarking against historical crises, or any other relevant points. Additionally, it includes an error message instead of a coherent response, which violates the requirement for clarity and completeness."
+        },
+        {
+          "task_id": "prbench_finance_hard_c818942e9e75daf3c66ee634",
+          "dataset_type": "prbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.449,
+          "normalized_score": 44.9,
+          "is_correct": false,
+          "feedback": "The candidate answer effectively proposes a sophisticated financing instrument and discusses the limited capacity for investments post-dividend recap. It also presents a quantitative model comparing the expected values of the options. However, it fails to mention the typical market rate for covenant amendment fees, which is a critical aspect of the analysis. Overall, the response demonstrates a solid understanding of the situation but lacks some key details."
+        },
+        {
+          "task_id": "prbench_finance_a69235c6c14cf8964deee783",
+          "dataset_type": "prbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "The candidate answer does not address any of the evaluation criteria. It fails to provide any analysis or interpretation of the liquidity signals, price reliability, or default risk associated with the bonds trading at 75 cents on the dollar. Additionally, it does not mention any relevant trading conventions, execution costs, or sources for post-trade transparency. Overall, the response lacks any substantive content related to the question asked."
+        },
+        {
+          "task_id": "prbench_finance_hard_c306978680ce97cc63f42b94",
+          "dataset_type": "prbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.4292,
+          "normalized_score": 42.92,
+          "is_correct": false,
+          "feedback": "The candidate answer correctly calculates Adjusted EBITDA as $65mm and identifies asset sales as potentially recurring in certain contexts. However, it fails to provide actionable next steps for verifying the adjustments and lacks a comprehensive discussion on the implications for valuation methods, which is a significant oversight."
+        },
+        {
+          "task_id": "prbench_finance_4d8572153bf1cf6c0484b643",
+          "dataset_type": "prbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.6319,
+          "normalized_score": 63.19,
+          "is_correct": false,
+          "feedback": "The candidate answer correctly states that the user is obligated to refund the wrongful amount and mentions the legal basis of unjust enrichment. It also emphasizes the ethical obligation to refund the money and outlines potential consequences of failing to do so. However, it lacks a disclaimer about not being a professional advisor and does not suggest pleading with the bank for a waiver of the spent amount, which would enhance the response."
+        },
+        {
+          "task_id": "prbench_finance_e6a65e76b7092d4d60483836",
+          "dataset_type": "prbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "The candidate answer does not provide any relevant content or analysis related to the question. It fails to address any of the evaluation criteria, including quantifying the hedge drag, discussing the implications of USD strength on EM debt, or suggesting specific asset allocation adjustments. The response is entirely unresponsive and lacks any financial reasoning or calculations."
+        },
+        {
+          "task_id": "prbench_finance_04c6835c454bc1174b6af238",
+          "dataset_type": "prbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "The candidate answer does not address any of the evaluation criteria, providing an error message instead of relevant content. Therefore, it fails to meet any expectations for the task."
+        },
+        {
+          "task_id": "prbench_finance_605283b41c6b1b458445c7f3",
+          "dataset_type": "prbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.8617,
+          "normalized_score": 86.17,
+          "is_correct": true,
+          "feedback": "The candidate answer effectively addresses most of the key tax considerations for funding, transfer pricing, and repatriation of profits for both the German GmbH and the US LLC. It correctly identifies the need for a check-the-box election for the US LLC and discusses the relevant withholding tax rates under the UK treaties. However, it incorrectly bases its US LLC strategy on disregarded entity status, which is inappropriate for a UK parent, leading to a penalty."
+        },
+        {
+          "task_id": "prbench_finance_9c97c0e72466f6864b96083c",
+          "dataset_type": "prbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.0,
+          "normalized_score": 0.0,
+          "is_correct": false,
+          "feedback": "The candidate answer does not address any of the evaluation criteria and instead presents an error message unrelated to the task. Therefore, none of the criteria are satisfied, and multiple penalties are triggered due to the lack of relevant content."
+        },
+        {
+          "task_id": "prbench_finance_hard_78e8f04c94697623c7c97b60",
+          "dataset_type": "prbench",
+          "section": "knowledge_retrieval",
+          "raw_score": 0.475,
+          "normalized_score": 47.5,
+          "is_correct": false,
+          "feedback": "The response adequately addresses the need to check the LPA for transfer provisions, suggests a tiered data room structure, and proposes leveraging the new fund allocation as an incentive. However, it fails to provide a realistic discount range and misrepresents the GP's role in the sale process, leading to penalties. Additionally, it does not sufficiently prepare an adjusted pro forma NAV for potential buyers."
+        }
+      ],
+      "config_summary": {
+        "total": 50,
+        "by_dataset": {
+          "bizfinbench": 16,
+          "prbench": 29,
+          "synthetic": 1,
+          "options": 1,
+          "crypto": 1,
+          "gdpval": 2
+        },
+        "by_task_type": {
+          "anomaly_information_tracing": 2,
+          "event_logic_reasoning": 2,
+          "financial_data_description": 2,
+          "financial_quantitative_computation": 2,
+          "user_sentiment_analysis": 2,
+          "stock_price_predict": 2,
+          "financial_multi_turn_perception": 2,
+          "financial_report_analysis": 2,
+          "Risk Management & Stress Testing": 2,
+          "Corporate Finance": 2,
+          "Market Microstructure, Trading & Liquidity": 2,
+          "Accounting & Financial Statement Analysis": 2,
+          "Wealth Management, Financial Planning & Advice": 2,
+          "Investment Strategy & Portfolio Design": 1,
+          "International Finance & FX Hedging": 2,
+          "Taxation & Cross-Border Structuring": 1,
+          "Derivatives & Structured Products": 1,
+          "Alternative Investments & Private Markets": 1,
+          "Labor & Employment Law": 1,
+          "Regulatory & Administrative Law": 1,
+          "Criminal Law": 1,
+          "Corporate & Transactional Law": 1,
+          "Litigation & Dispute Resolution": 1,
+          "Family Law": 1,
+          "Real Estate & Property Law": 1,
+          "Intellectual Property (IP) Law": 1,
+          "Constitutional & Civil Rights Law": 1,
+          "Legal Ethics, Compliance & Risk Management": 1,
+          "FinTech, Crypto & Digital Assets": 1,
+          "Regulation, Compliance & Ethics": 1,
+          "International Law & Trade": 1,
+          "Accountants and Auditors": 1,
+          "Administrative Services Managers": 1
+        },
+        "by_category": {
+          "Numerical Reasoning": 18,
+          "Qualitative Retrieval": 11,
+          "Financial Logic": 1,
+          "Greeks Analysis": 1,
+          "Professional, Scientific, and Technical Services": 1,
+          "Government": 1
+        }
+      },
+      "results": [
+        {
+          "example_id": "bizfinbench_anomaly_information_tracing_cn_1549",
+          "dataset_type": "bizfinbench",
+          "task_type": "anomaly_information_tracing",
+          "language": "cn",
+          "question": "\n\u60a8\u662f\u4e00\u4e2a\u77e5\u8bc6\u6e0a\u535a\u4e14\u4e50\u4e8e\u52a9\u4eba\u7684\u91d1\u878d\u9886\u57df\u4e13\u5bb6\uff0c\u9700\u8981\u57fa\u4e8e<\u65f6\u95f4>\u548c<\u5185\u5bb9>\u4fe1\u606f\u56de\u7b54\u7528\u6237\u95ee\u9898\uff0c\u7ed9\u51fa\u4ee4\u7528\u6237\u6ee1\u610f\u7684\u7b54\u590d\u3002\n\n\u8bf7\u4ece\u4e0b\u5217\u5185\u5bb9\u6570\u636e\u4e2d\u8bc6\u522b\u51fa\u4e0e2025-05-06\u4e09\u7ef4\u5316\u5b66\u80a1\u7968\u6da8\u505c\u65e0\u76f4\u63a5\u5173\u8054\u7684\u5185\u5bb9\u3002\n|\u5185\u5bb9id|\u5185\u5bb9\u65f6\u95f4|\u5185\u5bb9\u8be6\u60c5|\n|---|---|---|\n|1|2025-04-17|\u534e\u5c14\u6cf0\uff08SZ 001217\uff0c\u6536\u76d8\u4ef7\uff1a11.33\u5143\uff094\u670817\u65e5\u665a\u95f4\u53d1\u5e03\u5e74\u5ea6\u4e1a\u7ee9\u62a5\u544a\u79f0\uff0c2024\u5e74\u8425\u4e1a\u6536\u5165\u7ea616.41...",
+          "expected": "1, 2, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "LLM evaluation",
+          "llm_used": true,
+          "llm_raw_output": "{ \"\u65e0\u5173\u5185\u5bb9\u5e8f\u53f7\": [1, 2, 4, 5, 6, 7, 8, 13, 14, 15] }"
+        },
+        {
+          "example_id": "bizfinbench_event_logic_reasoning_en_1969",
+          "dataset_type": "bizfinbench",
+          "task_type": "event_logic_reasoning",
+          "language": "en",
+          "question": "\n### Role-playing\nYou are an experienced financial time attribution and root cause analysis expert. Please follow the 'Task Requirements' to summarize and organize the causes and effects of the 'Speci...",
+          "expected": "5,1,4,2,3,6",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "LLM evaluation",
+          "llm_used": true,
+          "llm_raw_output": "{\n  \"answer\": \"5,1,4,2,3,6\"\n}"
+        },
+        {
+          "example_id": "bizfinbench_financial_data_description_cn_37",
+          "dataset_type": "bizfinbench",
+          "task_type": "financial_data_description",
+          "language": "cn",
+          "question": "\u4f60\u662f\u4e00\u4f4d\u7ecf\u9a8c\u4e30\u5bcc\u7684\u6570\u636e\u6838\u5bf9\u4e13\u5bb6\uff0c<\u6570\u636e\u5217\u8868>\u662f\u6b63\u786e\u7684\u91d1\u878d\u6570\u636e\uff0c\u4f60\u9700\u8981\u4f9d\u6b21\u6821\u5bf9<\u6570\u636e\u63cf\u8ff0\u5217\u8868>\u4e2d\u6bcf\u4e00\u4e2a\u63cf\u8ff0id\uff0c\u6311\u9009\u51fa\u6709\u660e\u663e\u6570\u636e\u9519\u8bef\u7684\u63cf\u8ff0id\uff0c\u5e76\u4ee5\u6307\u5b9a\u7684<\u8f93\u51fa\u683c\u5f0f>\u56de\u7b54\u3002\n\n### <\u6570\u636e\u5217\u8868>\n\u7f16\u53f7: 1\n\u53d6\u6570\u95ee\u53e5: ST\u846b\u82a6\u5a03,7\u67087\u65e5\u81f37\u67089\u65e5\u6bcf\u65e5\u7684\u4e3b\u529b\u6301\u4ed3\u6210\u672c\n\u53d6\u6570\u7ed3\u679c: \u4e3a\u60a8\u627e\u52301\u6761\u6570\u636e\n|\u80a1\u7968\u4ee3\u7801|\u80a1\u7968\u7b80\u79f0|\u4e3b\u529b\u6301\u4ed3\u6210\u672c[20250707]|\u4e3b\u529b\u6301\u4ed3\u6210\u672c[20250708]|\u4e3b\u529b\u6301\u4ed3\u6210...",
+          "expected": "[1, 9]",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "LLM evaluation",
+          "llm_used": true,
+          "llm_raw_output": "{\n  \"answer\": [3, 5]\n}"
+        },
+        {
+          "example_id": "bizfinbench_financial_quantitative_computation_en_150",
+          "dataset_type": "bizfinbench",
+          "task_type": "financial_quantitative_computation",
+          "language": "en",
+          "question": "You are an expert in data calculation. Please answer the <User Question> based on the provided <Formula List> and <Related Data>, and give your reasons. You need to answer in the specified format.\n###...",
+          "expected": "-201.4772",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 1.0,
+          "is_correct": true,
+          "feedback": "The calculated ROE for Yunbai International in the 2022 Annual Report is -201.4772, which matches the expected answer.",
+          "llm_used": true,
+          "llm_raw_output": "{\"correct\": true, \"score\": 1, \"reason\": \"The calculated ROE for Yunbai International in the 2022 Annual Report is -201.4772, which matches the expected answer.\"}"
+        },
+        {
+          "example_id": "bizfinbench_user_sentiment_analysis_en_1898",
+          "dataset_type": "bizfinbench",
+          "task_type": "user_sentiment_analysis",
+          "language": "en",
+          "question": "## Role Play\nSuppose you are a stock investor sentiment analyst with ten years of experience, able to conduct rigorous analysis based on the 'user-related information', 'user stock volatility', 'macro...",
+          "expected": "41.2",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "Predicted: 'error during analysis: error code: 401 - {'error': {'message': 'no cookie auth credentials found', 'code': 401}}error during analysis: error code: 401 - {'error': {'message': 'no cookie auth credentials found', 'code': 401}}', Expected: '41.2'",
+          "llm_used": false,
+          "llm_failure": "llm_invalid_json",
+          "llm_raw_output": "answer_boxed{45.0}\ninterval_boxed{[40.5,49.5]}"
+        },
+        {
+          "example_id": "bizfinbench_stock_price_predict_cn_1905",
+          "dataset_type": "bizfinbench",
+          "task_type": "stock_price_predict",
+          "language": "cn",
+          "question": "## \u89d2\u8272\u626e\u6f14\n \u4f60\u662f\u4e00\u540d\u62e5\u670930\u5e74\u7ecf\u9a8c\u7684\u91d1\u878d\u9886\u57df\u4e13\u4e1a\u5206\u6790\u5e08\uff0c\u73b0\u5728\u4f60\u9700\u8981\u6839\u636e\u63d0\u4f9b\u7684'\u80a1\u7968\u4fe1\u606f'\uff0c'\u5b8f\u89c2\u5e02\u573a\u72b6\u51b5','\u76f8\u5173\u65b0\u95fb\u4e0e\u7814\u62a5'\u4ee5\u53ca'\u793e\u533a\u8bc4\u8bba'\u7b49\u5185\u5bb9\u8fdb\u884c\u4e25\u8c28\u7684\u5206\u6790\uff0c\u4ece\u800c\u9884\u6d4b\u5b9e\u76ca\u8fbe\u57282025-12-05\u7684\u6536\u76d8\u4ef7\u4fe1\u606f\uff0c\u5e76\u5bf9\u4f60\u7684\u9884\u6d4b\u7ed3\u679c\u57fa\u4e8e\u4e00\u5b9a\u7684\u663e\u8457\u6027\u6c34\u5e73\u7ed9\u51fa\u76f8\u5e94\u7684\u7f6e\u4fe1\u533a\u95f4\uff0c\u7f6e\u4fe1\u533a\u95f4\u7684\u5f62\u5f0f\u4e3a[\u9884\u6d4b\u7ed3\u679cx(1-1%)\uff0c\u9884\u6d4b\u7ed3\u679cx(1+1%)],\u6700\u7ec8\u7ed3\u679c\u9700\u5305\u542b\u4e24\u4e2a\u5b57\u6bb5\uff1a\u7528answer_boxed{}\u6807...",
+          "expected": "9.42",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "The candidate answer does not provide a valid prediction or interval.",
+          "llm_used": true,
+          "llm_raw_output": "{\"correct\": false, \"score\": 0, \"reason\": \"The candidate answer does not provide a valid prediction or interval.\"}"
+        },
+        {
+          "example_id": "bizfinbench_financial_multi_turn_perception_en_953",
+          "dataset_type": "bizfinbench",
+          "task_type": "financial_multi_turn_perception",
+          "language": "en",
+          "question": "\n# Task Objective  \nYou are an experienced dialogue analysis expert. Please analyze the <Historical Dialogues> and <Descriptions>, identify which dialogue(s) each description comes from, and provide r...",
+          "expected": "[\n  {\"description_id\":1,\"answer\":[4]},\n{\"description_id\":2,\"answer\":[8]},\n{\"description_id\":3,\"answe...",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "Exact match: False",
+          "llm_used": false,
+          "llm_failure": "llm_invalid_json",
+          "llm_raw_output": "```json\n[\n  {\"description_id\":1,\"answer\":[4]},\n  {\"description_id\":2,\"answer\":[8]},\n  {\"description_id\":3,\"answer\":[6,7,8]},\n  {\"description_id\":4,\"answer\":[4]},\n  {\"description_id\":5,\"answer\":[7]},\n  {\"description_id\":6,\"answer\":[6]},\n  {\"description_id\":7,\"answer\":[2]},\n  {\"description_id\":8,\"answer\":[4]},\n  {\"description_id\":9,\"answer\":[4]},\n  {\"description_id\":10,\"answer\":[7]},\n  {\"description_id\":11,\"answer\":[6]},\n  {\"description_id\":12,\"answer\":[1]},\n  {\"description_id\":13,\"answer\":[8]},\n  {\"description_id\":14,\"answer\":[8]},\n  {\"description_id\":15,\"answer\":[6]},\n  {\"description_id\":16,\"answer\":[2]},\n  {\"description_id\":17,\"answer\":[5]},\n  {\"description_id\":18,\"answer\":[2]},\n  {\"description_id\":19,\"answer\":[3,4]},\n  {\"description_id\":20,\"answer\":[3]},\n  {\"description_id\":21,\"answer\":[3]},\n  {\"description_id\":22,\"answer\":[1]},\n  {\"description_id\":23,\"answer\":[5,6,8]},\n  {\"description_id\":24,\"answer\":[1]},\n  {\"description_id\":25,\"answer\":[4]}\n]\n```"
+        },
+        {
+          "example_id": "bizfinbench_financial_report_analysis_cn_993",
+          "dataset_type": "bizfinbench",
+          "task_type": "financial_report_analysis",
+          "language": "cn",
+          "question": "## \u89d2\u8272\n\u4f60\u662f\u4e00\u4f4d\u4e13\u4e1a\u7684\u8d22\u52a1\u5206\u6790\u5e08\uff0c\u64c5\u957f\u5206\u6790\u4e0a\u5e02\u516c\u53f8\u7684\u57fa\u672c\u8d22\u52a1\u4fe1\u606f\u3002\n\n## \u4efb\u52a1\u80cc\u666f\n\u4f60\u9700\u8981\u5206\u6790\u4e0b\u52173\u4e2a\u516c\u53f8\u7684\u5404\u9879\u6570\u636e\uff0c\u4ece\u4e2d\u9009\u62e9\u8d22\u52a1\u76f8\u5173\u7684\u6570\u636e\uff0c\u7136\u540e\u5206\u67903\u4e2a\u516c\u53f8\u54ea\u4e2a\u8d22\u52a1\u72b6\u51b5\u66f4\u597d\u3002\n\u8d22\u52a1\u72b6\u51b5\u7684\u5206\u6790\u7ef4\u5ea6\u4e3b\u8981\u5305\u62ec\n1. \u8d22\u52a1\u80fd\u529b\uff08\u7acb\u8db3\u5f53\u4e0b\u8003\u91cf\u516c\u53f8\u5728\u5065\u5eb7\u8fd0\u8425\u3001\u521b\u9020\u7ee9\u6548\u65b9\u9762\u7684\u8d22\u52a1\u8868\u73b0\uff09\n2. \u4ef7\u503c\u589e\u503c\uff08\u7740\u773c\u672a\u6765\u8003\u91cf\u516c\u53f8\u4e1a\u7ee9\u589e\u957f\u548c\u4ef7\u503c\u589e\u503c\u7684\u6f5c\u529b\uff09\n3. \u8d22\u52a1\u8d28\u91cf\uff08\u8003\u91cf\u4f01\u4e1a\u7684\u8d44\u4ea7\u8d28\u91cf\u548c\u76c8\u5229\u8d28\u91cf\uff09\n\u4f60\u9700\u8981\u5206\u6790...",
+          "expected": "C,B,A",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.0,
+          "is_correct": false,
+          "feedback": "The candidate answer does not provide a valid analysis or conclusion based on the financial data provided.",
+          "llm_used": true,
+          "llm_raw_output": "{\"correct\": false, \"score\": 0, \"reason\": \"The candidate answer does not provide a valid analysis or conclusion based on the financial data provided.\"}"
+        },
+        {
+          "example_id": "prbench_finance_3c9d539bfe62c6481a4ee766",
+          "dataset_type": "prbench",
+          "category": "Numerical Reasoning",
+          "question": "I run stress tests for a bank's derivatives book. When we shock both cross-currency basis and short-end funding spreads at the same time, the margin calls spike non-linearly.\n\nHow should I capture thi...",
+          "expected": "1. State that shocking cross-currency basis and funding spreads together creates non-linear margin c...",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.0,
+          "is_correct": false,
+          "correct_count": 0,
+          "total_count": 14,
+          "feedback": "The candidate answer does not address any of the evaluation criteria related to capturing the interaction of shocks in stress tests. It fails to mention the non-linear effects, methods for modeling dependence, reconciliation of results, benchmarking against historical crises, or any other relevant points. Additionally, it includes an error message instead of a coherent response, which violates the requirement for clarity and completeness."
+        },
+        {
+          "example_id": "prbench_finance_hard_c818942e9e75daf3c66ee634",
+          "dataset_type": "prbench",
+          "category": "Numerical Reasoning",
+          "question": "Our PE sponsor executed a dividend recap last year, leaving the holding company with 80 million USD in cash but levered at 5.5x. One of our main operating subsidiaries is now struggling, burning cash,...",
+          "expected": "An ideal response should first address the information gaps before providing a recommendation. Key m...",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.44899999999999995,
+          "is_correct": false,
+          "correct_count": 3,
+          "total_count": 14,
+          "feedback": "The candidate answer effectively proposes a sophisticated financing instrument and discusses the limited capacity for investments post-dividend recap. It also presents a quantitative model comparing the expected values of the options. However, it fails to mention the typical market rate for covenant amendment fees, which is a critical aspect of the analysis. Overall, the response demonstrates a solid understanding of the situation but lacks some key details."
+        },
+        {
+          "example_id": "prbench_finance_a69235c6c14cf8964deee783",
+          "dataset_type": "prbench",
+          "category": "Numerical Reasoning",
+          "question": "I've been looking at the bonds of a troubled company that are now trading around 75 cents on the dollar. The problem is, trading is very thin and the bid-ask spread is wide. As an investor, how should...",
+          "expected": "Liquidity conditions\n* Wide bid-ask spread and thin volume indicate poor liquidity.\n* Harder to tran...",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.0,
+          "is_correct": false,
+          "correct_count": 0,
+          "total_count": 16,
+          "feedback": "The candidate answer does not address any of the evaluation criteria. It fails to provide any analysis or interpretation of the liquidity signals, price reliability, or default risk associated with the bonds trading at 75 cents on the dollar. Additionally, it does not mention any relevant trading conventions, execution costs, or sources for post-trade transparency. Overall, the response lacks any substantive content related to the question asked."
+        },
+        {
+          "example_id": "prbench_finance_hard_c306978680ce97cc63f42b94",
+          "dataset_type": "prbench",
+          "category": "Numerical Reasoning",
+          "question": "The company reports: revenue $500mm, ebitda $75mm, net income $40 mm. The footnotes show: $15mm restructuring charges, $20 mm gain on asset sale, $5mm impairment reversal. How should you adjust earnin...",
+          "expected": "The response should start with adjusted EBITDA reconciliation. If all three one-time items are adjus...",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.42916666666666664,
+          "is_correct": false,
+          "correct_count": 3,
+          "total_count": 10,
+          "feedback": "The candidate answer correctly calculates Adjusted EBITDA as $65mm and identifies asset sales as potentially recurring in certain contexts. However, it fails to provide actionable next steps for verifying the adjustments and lacks a comprehensive discussion on the implications for valuation methods, which is a significant oversight."
+        },
+        {
+          "example_id": "prbench_finance_4d8572153bf1cf6c0484b643",
+          "dataset_type": "prbench",
+          "category": "Numerical Reasoning",
+          "question": "I got a credit alert on my bank app and I assumed it was the interest on my savings so I used \u00a3650 for the balance on my holiday trip. The bank just called requesting a refund because it was a wrong a...",
+          "expected": "The response must mention that the user is obligated legally and ethically to refund the money becau...",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.6319230769230768,
+          "is_correct": false,
+          "correct_count": 6,
+          "total_count": 14,
+          "feedback": "The candidate answer correctly states that the user is obligated to refund the wrongful amount and mentions the legal basis of unjust enrichment. It also emphasizes the ethical obligation to refund the money and outlines potential consequences of failing to do so. However, it lacks a disclaimer about not being a professional advisor and does not suggest pleading with the bank for a waiver of the spent amount, which would enhance the response."
+        },
+        {
+          "example_id": "prbench_finance_e6a65e76b7092d4d60483836",
+          "dataset_type": "prbench",
+          "category": "Numerical Reasoning",
+          "question": "How should a global portfolio manager adjust strategic asset allocation when rising interest rates strengthen the dollar, simultaneously increasing hedging costs for euro-based investors and reducing ...",
+          "expected": "Explain that higher U.S rates strengthen the dollar and raise hedging costs for euro-based investors...",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.0,
+          "is_correct": false,
+          "correct_count": 0,
+          "total_count": 11,
+          "feedback": "The candidate answer does not provide any relevant content or analysis related to the question. It fails to address any of the evaluation criteria, including quantifying the hedge drag, discussing the implications of USD strength on EM debt, or suggesting specific asset allocation adjustments. The response is entirely unresponsive and lacks any financial reasoning or calculations."
+        },
+        {
+          "example_id": "prbench_finance_04c6835c454bc1174b6af238",
+          "dataset_type": "prbench",
+          "category": "Numerical Reasoning",
+          "question": "We're long EUR receivables from EU clients, but sourcing raw materials in USD. How should we frame the core exposure here?\n--- Turn 2 ---\nIf we accept that mismatch as structural, how to size the hedg...",
+          "expected": "Identify core EUR inflows vs. USD outflows exposure.\nDefine hedge ratio using CFaR, cross-checked wi...",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.0,
+          "is_correct": false,
+          "correct_count": 0,
+          "total_count": 16,
+          "feedback": "The candidate answer does not address any of the evaluation criteria, providing an error message instead of relevant content. Therefore, it fails to meet any expectations for the task."
+        },
+        {
+          "example_id": "prbench_finance_605283b41c6b1b458445c7f3",
+          "dataset_type": "prbench",
+          "category": "Numerical Reasoning",
+          "question": "hi, i run a small uk software consultancy and we've just started to get some interest from overseas and have signed our first couple of clients, one in germany and one in the US. its all new to me - d...",
+          "expected": "The response must state the critical preliminary step for the US LLC - making a check the box electi...",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.8616666666666667,
+          "is_correct": true,
+          "correct_count": 11,
+          "total_count": 13,
+          "feedback": "The candidate answer effectively addresses most of the key tax considerations for funding, transfer pricing, and repatriation of profits for both the German GmbH and the US LLC. It correctly identifies the need for a check-the-box election for the US LLC and discusses the relevant withholding tax rates under the UK treaties. However, it incorrectly bases its US LLC strategy on disregarded entity status, which is inappropriate for a UK parent, leading to a penalty."
+        },
+        {
+          "example_id": "prbench_finance_9c97c0e72466f6864b96083c",
+          "dataset_type": "prbench",
+          "category": "Numerical Reasoning",
+          "question": "I am hedging forward-starting USD swaptions inside a CMS 2s10s steepener autocallable. If it autocalls early, I am left with vega and curve gamma risk from the unwind. How do dealers usually handle th...",
+          "expected": "1. State that early autocall leaves vega and curve gamma risk.\n\n2. Explain that vega is hedged prima...",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.0,
+          "is_correct": false,
+          "correct_count": 0,
+          "total_count": 12,
+          "feedback": "The candidate answer does not address any of the evaluation criteria and instead presents an error message unrelated to the task. Therefore, none of the criteria are satisfied, and multiple penalties are triggered due to the lack of relevant content."
+        },
+        {
+          "example_id": "prbench_finance_hard_78e8f04c94697623c7c97b60",
+          "dataset_type": "prbench",
+          "category": "Numerical Reasoning",
+          "question": "We have a small endowment LP in our 2021 vintage PE fund looking for an early exit. They're asking about a stapled secondary to roll into our new fund, but their original commitment is only $15M.\n\nThe...",
+          "expected": "An ideal response should function as a strategic memo from a private equity professional.\n\nFirst, it...",
+          "predicted": "Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}Error during analysis: Error code: 401 - {'error': {'message': 'No cookie auth credentials found', 'code': 401}}",
+          "score": 0.475,
+          "is_correct": false,
+          "correct_count": 5,
+          "total_count": 12,
+          "feedback": "The response adequately addresses the need to check the LPA for transfer provisions, suggests a tiered data room structure, and proposes leveraging the new fund allocation as an incentive. However, it fails to provide a realistic discount range and misrepresents the GP's role in the sale process, leading to penalties. Additionally, it does not sufficiently prepare an adjusted pro forma NAV for potential buyers."
+        }
+      ]
+    }
+  ]
+}
