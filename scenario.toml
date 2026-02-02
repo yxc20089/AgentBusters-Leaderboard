@@ -1,7 +1,7 @@
 # FAB++ (Finance Agent Benchmark Plus Plus) Assessment Configuration
 # AgentBeats Competition 2026 - Team AgentBusters
 # Full evaluation with prbench, synthetic, options, crypto, and GDPVal
-# Docker image rebuilt 2026-02-02 with synthetic dataset support
+# Docker image rebuilt 2026-02-02 with synthetic + prbench support
 
 [green_agent]
 # CIO-Agent Green Agent - FAB++ Evaluator
