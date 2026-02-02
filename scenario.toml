@@ -1,6 +1,6 @@
 # FAB++ (Finance Agent Benchmark Plus Plus) Assessment Configuration
 # AgentBeats Competition 2026 - Team AgentBusters
-# PRBench evaluation (crypto disabled - no hidden scenarios in Docker image)
+# PRBench evaluation (crypto disabled - hidden scenarios not in Docker image)
 
 [green_agent]
 # CIO-Agent Green Agent - FAB++ Evaluator
