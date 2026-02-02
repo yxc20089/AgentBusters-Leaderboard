@@ -25,7 +25,7 @@ conduct_debate = false
 timeout_seconds = 300
 
 # Datasets to evaluate on (including crypto trading and GDPVal benchmarks)
-datasets = ["bizfinbench", "prbench", "options", "synthetic", "crypto", "gdpval"]
+datasets = ["bizfinbench", "prbench", "options", "synthetic", "gdpval"]
 
 # Sampling strategy: "stratified", "random", "sequential"
 sampling_strategy = "stratified"
@@ -35,7 +35,7 @@ bizfinbench_limit = 2   # Knowledge retrieval
 prbench_limit = 2       # Professional reasoning (Scale AI PRBench)
 options_limit = 3       # Options trading
 synthetic_limit = 6     # Analytical reasoning (increased for stability)
-crypto_limit = 2        # Crypto trading (2 available)
+# crypto_limit = 2     # Crypto trading (disabled - hidden scenarios not in Docker image)
 gdpval_limit = 4        # Professional tasks (OpenAI GDPVal)
 
 # Test with GDPVal reference files passed to Purple Agent
